@@ -1,0 +1,25 @@
+#!/bin/bash
+# git pre-commit: no commit while scripts/check.sh is red. There is no remote and no CI — this is
+# the CI. Installed once per clone with `git config core.hooksPath scripts/git-hooks`;
+# `git commit --no-verify` skips it when a work-in-progress commit is the point.
+#
+# It checks the working tree, not the staged snapshot: a commit of part of the changes is checked
+# as if everything were in it.
+set -euo pipefail
+
+cd "$(git rev-parse --show-toplevel)"
+
+# A clone's own checks, if it keeps any, live where git looks by default: <git dir>/hooks/pre-commit,
+# which core.hooksPath shadows.
+own_hook="$(git rev-parse --git-common-dir)/hooks/pre-commit"
+if [[ -x "$own_hook" ]]; then
+    "$own_hook"
+fi
+
+./scripts/check.sh --if-changed
+
+# check.sh regenerates the API dump; a commit that changes the public API carries the new one.
+if ! git ls-files --error-unmatch api/BNUI.api >/dev/null 2>&1 || ! git diff --quiet -- api/BNUI.api; then
+    echo "✗ api/BNUI.api is not staged: the public API changed. Read its diff, then: git add api/BNUI.api" >&2
+    exit 1
+fi

@@ -1,0 +1,3 @@
+# CLAUDE.md: no force unwraps outside tests. In a test a failed unwrap is a failed test.
+disabled_rules:
+  - force_unwrapping

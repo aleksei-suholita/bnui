@@ -1,0 +1,121 @@
+excluded:
+  - .build
+line_length:
+  warning: 140
+  error: 200
+identifier_name:
+  min_length: 1
+disabled_rules:
+  - todo
+  # SwiftFormat adds trailing commas automatically; the formatter wins over the linter.
+  - trailing_comma
+
+# Style belongs to SwiftFormat. What is opted in here is correctness only, and every rule was
+# chosen because the code already satisfies it: the list rewrote nothing when it was switched on
+# and keeps the next edit from regressing. Force unwraps are allowed in tests — Tests/.swiftlint.yml.
+opt_in_rules:
+  # Crashes and silent failures
+  - force_unwrapping
+  - implicitly_unwrapped_optional
+  - fatal_error_message
+  - unhandled_throwing_task
+  - untyped_error_in_catch
+  - discarded_notification_center_observer
+  # Retain cycles and lifetimes
+  - weak_delegate
+  - unowned_variable_capture
+  # UIKit and SwiftUI contracts
+  - overridden_super_call
+  - prohibited_super_call
+  - private_swiftui_state
+  - accessibility_label_for_image
+  - accessibility_trait_for_button
+  # Concurrency and signatures that say more than the body does
+  - async_without_await
+  - unneeded_throws_rethrows
+  - unneeded_escaping
+  - lower_acl_than_parent
+  - unavailable_function
+  - return_value_from_void_function
+  # Logic slips
+  - identical_operands
+  - yoda_condition
+  - redundant_nil_coalescing
+  - toggle_bool
+  - legacy_multiple
+  - raw_value_for_camel_cased_codable_enum
+  - local_doc_comment
+  # Collections: the clear spelling is also the cheaper one
+  - empty_count
+  - first_where
+  - last_where
+  - sorted_first_last
+  - flatmap_over_map_reduce
+  - contains_over_filter_count
+  - contains_over_filter_is_empty
+  - contains_over_first_not_nil
+  - contains_over_range_nil_comparison
+  # Documentation: the API is documented where it is declared (CLAUDE.md, «API — это код»)
+  - missing_docs
+
+# Public API without a doc comment. The backlog of 2026-09-28 sits in .swiftlint.baseline; a new
+# declaration is reported at once, and so is an old one whose line changes — it drops out of the
+# baseline and is documented then.
+missing_docs:
+  warning: [open, public]
+  # A `public` member of an internal type is not API.
+  evaluate_effective_access_control_level: true
+  # A bare `init()` says everything its doc comment would.
+  excludes_trivial_init: true
+baseline: .swiftlint.baseline
+
+# The rules of CLAUDE.md that a regular expression can hold.
+custom_rules:
+  kit_knows_no_app:
+    name: "Kit knows no app"
+    regex: '\b(Stint|Tapwake)\b'
+    message: "The kit knows no app: no app names in its sources, comments included. Colour, font and spacing come from outside."
+    severity: error
+  no_print:
+    name: "No print"
+    regex: '\b(print|debugPrint|dump)\s*\('
+    match_kinds: [identifier]
+    message: "A kit does not write to the host's console. Report through an event or an error instead."
+    severity: error
+  no_concurrency_escape_hatch:
+    name: "No concurrency escape hatch"
+    regex: '@unchecked\s+Sendable|nonisolated\(unsafe\)'
+    message: "Swift 6 strict concurrency is a kit rule; an escape hatch turns the checker off where it matters most."
+    severity: error
+  # A file named as a solver is pure through and through. A pure type in a mixed file
+  # (BNSpring, BNHapticGate) is held by `swift test` instead: it builds on macOS, where UIKit is absent.
+  pure_solver_imports_no_ui:
+    name: "Pure solver imports no UI framework"
+    included: 'Sources/BNUI[A-Za-z]*/.*(Solver|Metrics|Geometry|Queue)\.swift$'
+    regex: '\bimport\s+(UIKit|SwiftUI)\b'
+    excluded_match_kinds: [comment, doccomment, string]
+    message: "Solvers, metrics, geometry and the toast queue are pure logic under swift test. The UIKit half belongs in the view's file."
+    severity: error
+  no_silent_error:
+    name: "No silent error"
+    regex: '\btry\?|\bcatch\b[^{]*\{\s*\}'
+    excluded_match_kinds: [comment, doccomment, string]
+    message: "Errors are not swallowed silently: handle it, rethrow it or report it to the host."
+    severity: error
+  haptics_through_one_engine:
+    name: "Haptics through one engine"
+    excluded: 'Sources/BNUICore/BNHaptics\.swift$'
+    regex: '\b(UI[A-Za-z]*FeedbackGenerator|CHHaptic[A-Za-z]*|sensoryFeedback)\b'
+    excluded_match_kinds: [comment, doccomment, string]
+    message: "Haptics play through BNHaptics, the one engine that merges signals. A generator of its own bypasses the merge rule."
+    severity: error
+  # The one place a property animator is made is BNTransition.run, and the one way to stop it is
+  # BNAnimation.interrupt(). An animator of its own can be stopped with stopAnimation(true), which
+  # drops the completion without a word.
+  animations_through_transition_run:
+    name: "Animations through BNTransition.run"
+    excluded: 'Sources/BNUICore/BNMotion\.swift$'
+    regex: '\bUIViewPropertyAnimator\b'
+    excluded_match_kinds: [comment, doccomment, string]
+    message: "Animate through BNTransition.run and stop through BNAnimation.interrupt(): a property animator of its own can be stopped without its completion ever hearing."
+    severity: error

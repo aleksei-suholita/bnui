@@ -1,0 +1,12 @@
+--swiftversion 6.2
+# Without this SwiftFormat assumes Swift 5 mode, whatever the swift version above says.
+--language-mode 6
+--indent 4
+--maxwidth none
+--self remove
+--stripunusedargs closure-only
+--trimwhitespace always
+# Opt-in rules the code already satisfies: they rewrite nothing today and keep it that way.
+--enable isEmpty,preferFinalClasses,privateStateVariables,unusedPrivateDeclarations,preferSwiftTesting
+# The static site scripts/build-docs.sh exports. SwiftFormat ignores .gitignore.
+--exclude docs-site

@@ -1,0 +1,35 @@
+{
+  "permissions": {
+    "ask": [
+      "Bash(xcodebuild *)",
+      "Bash(xcrun xcodebuild *)",
+      "Bash(xcrun simctl *)",
+      "Bash(./scripts/build-docs.sh *)"
+    ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/scripts/format-lint.sh"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR\"/scripts/stop-check.sh",
+            "timeout": 300,
+            "statusMessage": "scripts/check.sh"
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,1217 @@
+[
+ {
+  "text": "        public var isPressed: Bool",
+  "violation": {
+   "location": {
+    "file": "Sources/BNUIButton/BNButtonContentRenderer.swift",
+    "line": 7,
+    "character": 16
+   },
+   "ruleName": "Missing Docs",
+   "reason": "public declarations should be documented",
+   "ruleDescription": "Declarations should be documented.",
+   "severity": "warning",
+   "ruleIdentifier": "missing_docs"
+  }
+ },
+ {
+  "text": "        public var status: BNButtonStatus",
+  "violation": {
+   "location": {
+    "file": "Sources/BNUIButton/BNButtonContentRenderer.swift",
+    "line": 8,
+    "character": 16
+   },
+   "ruleName": "Missing Docs",
+   "reason": "public declarations should be documented",
+   "ruleDescription": "Declarations should be documented.",
+   "severity": "warning",
+   "ruleIdentifier": "missing_docs"
+  }
+ },
+ {
+  "text": "        public var isFocused: Bool",
+  "violation": {
+   "location": {
+    "file": "Sources/BNUIButton/BNButtonContentRenderer.swift",
+    "line": 9,
+    "character": 16
+   },
+   "ruleName": "Missing Docs",
+   "reason": "public declarations should be documented",
+   "ruleDescription": "Declarations should be documented.",
+   "severity": "warning",
+   "ruleIdentifier": "missing_docs"
+  }
+ },
+ {
+  "text": "        public var axis: BNButtonContentAxis",
+  "violation": {
+   "location": {
+    "file": "Sources/BNUIButton/BNButtonContentRenderer.swift",
+    "line": 10,
+    "character": 16
+   },
+   "ruleName": "Missing Docs",
+   "reason": "public declarations should be documented",
+   "ruleDescription": "Declarations should be documented.",
+   "severity": "warning",
+   "ruleIdentifier": "missing_docs"
+  }
+ },
+ {
+  "text": "        public var numberOfLines: Int",
+  "violation": {
+   "location": {
+    "file": "Sources/BNUIButton/BNButtonContentRenderer.swift",
+    "line": 11,
+    "character": 16
+   },
+   "ruleName": "Missing Docs",
+   "reason": "public declarations should be documented",
+   "ruleDescription": "Declarations should be documented.",
+   "severity": "warning",
+   "ruleIdentifier": "missing_docs"
+  }
+ },
+ {
+  "text": "        public var alignment: BNButtonAlignment",
+  "violation": {
+   "location": {
+    "file": "Sources/BNUIButton/BNButtonContentRenderer.swift",
+    "line": 15,
+    "character": 16
+   },
+   "ruleName": "Missing Docs",
+   "reason": "public declarations should be documented",
+   "ruleDescription": "Declarations should be documented.",
+   "severity": "warning",
+   "ruleIdentifier": "missing_docs"
+  }
+ },
+ {
+  "text": "        public var style: BNButtonStyle",
+  "violation": {
+   "location": {
+    "file": "Sources/BNUIButton/BNButtonContentRenderer.swift",
+    "line": 16,
+    "character": 16
+   },
+   "ruleName": "Missing Docs",
+   "reason": "public declarations should be documented",
+   "ruleDescription": "Declarations should be documented.",
+   "severity": "warning",
+   "ruleIdentifier": "missing_docs"
+  }
+ },
+ {
+  "text": "        public var size: BNButtonSize",
+  "violation": {
+   "location": {
+    "file": "Sources/BNUIButton/BNButtonContentRenderer.swift",
+    "line": 17,
+    "character": 16
+   },
+   "ruleName": "Missing Docs",
+   "reason": "public declarations should be documented",
+   "ruleDescription": "Declarations should be documented.",
+   "severity": "warning",
+   "ruleIdentifier": "missing_docs"
+  }
+ },
+ {
+  "text": "        public var theme: BNButtonTheme",
+  "violation": {
+   "location": {
+    "file": "Sources/BNUIButton/BNButtonContentRenderer.swift",
+    "line": 18,
+    "character": 16
+   },
+   "ruleName": "Missing Docs",
+   "reason": "public declarations should be documented",
+   "ruleDescription": "Declarations should be documented.",
+   "severity": "warning",
+   "ruleIdentifier": "missing_docs"
+  }
+ },
+ {
+  "text": "        public init(",
+  "violation": {
+   "location": {
+    "file": "Sources/BNUIButton/BNButtonContentRenderer.swift",
+    "line": 20,
+    "character": 16
+   },
+   "ruleName": "Missing Docs",
+   "reason": "public declarations should be documented",
+   "ruleDescription": "Declarations should be documented.",
+   "severity": "warning",
+   "ruleIdentifier": "missing_docs"
+  }
+ },
+ {
+  "text": "    public protocol BNButtonContentRenderer {",
+  "violation": {
+   "location": {
+    "file": "Sources/BNUIButton/BNButtonContentRenderer.swift",
+    "line": 60,
+    "character": 12
+   },
+   "ruleName": "Missing Docs",
+   "reason": "public declarations should be documented",
+   "ruleDescription": "Declarations should be documented.",
+   "severity": "warning",
+   "ruleIdentifier": "missing_docs"
+  }
+ },
+ {
+  "text": "        func makeContentView(",
+  "violation": {
+   "location": {
+    "file": "Sources/BNUIButton/BNButtonContentRenderer.swift",
+    "line": 63,
+    "character": 9
+   },
+   "ruleName": "Missing Docs",
+   "reason": "public declarations should be documented",
+   "ruleDescription": "Declarations should be documented.",
+   "severity": "warning",
+   "ruleIdentifier": "missing_docs"
+  }
+ },
+ {
+  "text": "        public var isEnabled: Bool",
+  "violation": {
+   "location": {
+    "file": "Sources/BNUIButton/BNButtonHaptics.swift",
+    "line": 34,
+    "character": 16
+   },
+   "ruleName": "Missing Docs",
+   "reason": "public declarations should be documented",
+   "ruleDescription": "Declarations should be documented.",
+   "severity": "warning",
+   "ruleIdentifier": "missing_docs"
+  }
+ },
+ {
+  "text": "        public init(isEnabled: Bool = true, engine: BNHaptics = .shared) {",
+  "violation": {
+   "location": {
+    "file": "Sources/BNUIButton/BNButtonHaptics.swift",
+    "line": 38,
+    "character": 16
+   },
+   "ruleName": "Missing Docs",
+   "reason": "public declarations should be documented",
+   "ruleDescription": "Declarations should be documented.",
+   "severity": "warning",
+   "ruleIdentifier": "missing_docs"
+  }
+ },
+ {
+  "text": "        public func pressed() {",
+  "violation": {
+   "location": {
+    "file": "Sources/BNUIButton/BNButtonHaptics.swift",
+    "line": 50,
+    "character": 16
+   },
+   "ruleName": "Missing Docs",
+   "reason": "public declarations should be documented",
+   "ruleDescription": "Declarations should be documented.",
+   "severity": "warning",
+   "ruleIdentifier": "missing_docs"
+  }
+ },
+ {
+  "text": "        public func triggered(emphasis: BNButtonHapticEmphasis) {",
+  "violation": {
+   "location": {
+    "file": "Sources/BNUIButton/BNButtonHaptics.swift",
+    "line": 65,
+    "character": 16
+   },
+   "ruleName": "Missing Docs",
+   "reason": "public declarations should be documented",
+   "ruleDescription": "Declarations should be documented.",
+   "severity": "warning",
+   "ruleIdentifier": "missing_docs"
+  }
+ },
+ {
+  "text": "    public static func solve(_ input: Input) -> Output {",
+  "violation": {
+   "location": {
+    "file": "Sources/BNUIButton/BNButtonLayoutSolver.swift",
+    "line": 104,
+    "character": 19
+   },
+   "ruleName": "Missing Docs",
+   "reason": "public declarations should be documented",
+   "ruleDescription": "Declarations should be documented.",
+   "severity": "warning",
+   "ruleIdentifier": "missing_docs"
+  }
+ },
+ {
+  "text": "    public protocol BNButtonLoadingIndicatorFactory {",
+  "violation": {
+   "location": {
+    "file": "Sources/BNUIButton/BNButtonLoadingIndicator.swift",
+    "line": 15,
+    "character": 12
+   },
+   "ruleName": "Missing Docs",
+   "reason": "public declarations should be documented",
+   "ruleDescription": "Declarations should be documented.",
+   "severity": "warning",
+   "ruleIdentifier": "missing_docs"
+  }
+ },
+ {
+  "text": "        func makeIndicator() -> any BNButtonLoadingIndicating",
+  "violation": {
+   "location": {
+    "file": "Sources/BNUIButton/BNButtonLoadingIndicator.swift",
+    "line": 18,
+    "character": 9
+   },
+   "ruleName": "Missing Docs",
+   "reason": "public declarations should be documented",
+   "ruleDescription": "Declarations should be documented.",
+   "severity": "warning",
+   "ruleIdentifier": "missing_docs"
+  }
+ },
+ {
+  "text": "        public init(",
+  "violation": {
+   "location": {
+    "file": "Sources/BNUIButton/BNButtonMaterial.swift",
+    "line": 41,
+    "character": 16
+   },
+   "ruleName": "Missing Docs",
+   "reason": "public declarations should be documented",
+   "ruleDescription": "Declarations should be documented.",
+   "severity": "warning",
+   "ruleIdentifier": "missing_docs"
+  }
+ },
+ {
+  "text": "        var pressResponse: BNButtonPressResponse { get }",
+  "violation": {
+   "location": {
+    "file": "Sources/BNUIButton/BNButtonMaterial.swift",
+    "line": 64,
+    "character": 9
+   },
+   "ruleName": "Missing Docs",
+   "reason": "public declarations should be documented",
+   "ruleDescription": "Declarations should be documented.",
+   "severity": "warning",
+   "ruleIdentifier": "missing_docs"
+  }
+ },
+ {
+  "text": "        func makeSurface(style: BNButtonStyle, size: BNButtonSize, theme: BNButtonTheme) -> BNButtonSurface",
+  "violation": {
+   "location": {
+    "file": "Sources/BNUIButton/BNButtonMaterial.swift",
+    "line": 67,
+    "character": 9
+   },
+   "ruleName": "Missing Docs",
+   "reason": "public declarations should be documented",
+   "ruleDescription": "Declarations should be documented.",
+   "severity": "warning",
+   "ruleIdentifier": "missing_docs"
+  }
+ },
+ {
+  "text": "        public var fill: BNButtonColorSet",
+  "violation": {
+   "location": {
+    "file": "Sources/BNUIButton/BNButtonStyle.swift",
+    "line": 67,
+    "character": 16
+   },
+   "ruleName": "Missing Docs",
+   "reason": "public declarations should be documented",
+   "ruleDescription": "Declarations should be documented.",
+   "severity": "warning",
+   "ruleIdentifier": "missing_docs"
+  }
+ },
+ {
+  "text": "        public var title: BNButtonColorSet",
+  "violation": {
+   "location": {
+    "file": "Sources/BNUIButton/BNButtonStyle.swift",
+    "line": 68,
+    "character": 16
+   },
+   "ruleName": "Missing Docs",
+   "reason": "public declarations should be documented",
+   "ruleDescription": "Declarations should be documented.",
+   "severity": "warning",
+   "ruleIdentifier": "missing_docs"
+  }
+ },
+ {
+  "text": "        public var border: BNButtonBorder?",
+  "violation": {
+   "location": {
+    "file": "Sources/BNUIButton/BNButtonStyle.swift",
+    "line": 71,
+    "character": 16
+   },
+   "ruleName": "Missing Docs",
+   "reason": "public declarations should be documented",
+   "ruleDescription": "Declarations should be documented.",
+   "severity": "warning",
+   "ruleIdentifier": "missing_docs"
+  }
+ },
+ {
+  "text": "        public var material: any BNButtonMaterial",
+  "violation": {
+   "location": {
+    "file": "Sources/BNUIButton/BNButtonStyle.swift",
+    "line": 72,
+    "character": 16
+   },
+   "ruleName": "Missing Docs",
+   "reason": "public declarations should be documented",
+   "ruleDescription": "Declarations should be documented.",
+   "severity": "warning",
+   "ruleIdentifier": "missing_docs"
+  }
+ },
+ {
+  "text": "        public var hapticEmphasis: BNButtonHapticEmphasis",
+  "violation": {
+   "location": {
+    "file": "Sources/BNUIButton/BNButtonStyle.swift",
+    "line": 76,
+    "character": 16
+   },
+   "ruleName": "Missing Docs",
+   "reason": "public declarations should be documented",
+   "ruleDescription": "Declarations should be documented.",
+   "severity": "warning",
+   "ruleIdentifier": "missing_docs"
+  }
+ },
+ {
+  "text": "        public var highContrast: BNButtonContrastOverride?",
+  "violation": {
+   "location": {
+    "file": "Sources/BNUIButton/BNButtonStyle.swift",
+    "line": 79,
+    "character": 16
+   },
+   "ruleName": "Missing Docs",
+   "reason": "public declarations should be documented",
+   "ruleDescription": "Declarations should be documented.",
+   "severity": "warning",
+   "ruleIdentifier": "missing_docs"
+  }
+ },
+ {
+  "text": "        public init(",
+  "violation": {
+   "location": {
+    "file": "Sources/BNUIButton/BNButtonStyle.swift",
+    "line": 81,
+    "character": 16
+   },
+   "ruleName": "Missing Docs",
+   "reason": "public declarations should be documented",
+   "ruleDescription": "Declarations should be documented.",
+   "severity": "warning",
+   "ruleIdentifier": "missing_docs"
+  }
+ },
+ {
+  "text": "        static let primary = BNButtonStyle(",
+  "violation": {
+   "location": {
+    "file": "Sources/BNUIButton/BNButtonStyle.swift",
+    "line": 137,
+    "character": 16
+   },
+   "ruleName": "Missing Docs",
+   "reason": "public declarations should be documented",
+   "ruleDescription": "Declarations should be documented.",
+   "severity": "warning",
+   "ruleIdentifier": "missing_docs"
+  }
+ },
+ {
+  "text": "        static let secondary = BNButtonStyle(",
+  "violation": {
+   "location": {
+    "file": "Sources/BNUIButton/BNButtonStyle.swift",
+    "line": 147,
+    "character": 16
+   },
+   "ruleName": "Missing Docs",
+   "reason": "public declarations should be documented",
+   "ruleDescription": "Declarations should be documented.",
+   "severity": "warning",
+   "ruleIdentifier": "missing_docs"
+  }
+ },
+ {
+  "text": "        static let ghost = BNButtonStyle(",
+  "violation": {
+   "location": {
+    "file": "Sources/BNUIButton/BNButtonStyle.swift",
+    "line": 157,
+    "character": 16
+   },
+   "ruleName": "Missing Docs",
+   "reason": "public declarations should be documented",
+   "ruleDescription": "Declarations should be documented.",
+   "severity": "warning",
+   "ruleIdentifier": "missing_docs"
+  }
+ },
+ {
+  "text": "        static let destructive = BNButtonStyle(",
+  "violation": {
+   "location": {
+    "file": "Sources/BNUIButton/BNButtonStyle.swift",
+    "line": 170,
+    "character": 16
+   },
+   "ruleName": "Missing Docs",
+   "reason": "public declarations should be documented",
+   "ruleDescription": "Declarations should be documented.",
+   "severity": "warning",
+   "ruleIdentifier": "missing_docs"
+  }
+ },
+ {
+  "text": "        var timingParameters: UISpringTimingParameters {",
+  "violation": {
+   "location": {
+    "file": "Sources/BNUICore/BNMotion.swift",
+    "line": 87,
+    "character": 9
+   },
+   "ruleName": "Missing Docs",
+   "reason": "public declarations should be documented",
+   "ruleDescription": "Declarations should be documented.",
+   "severity": "warning",
+   "ruleIdentifier": "missing_docs"
+  }
+ },
+ {
+  "text": "        var timingParameters: any UITimingCurveProvider {",
+  "violation": {
+   "location": {
+    "file": "Sources/BNUICore/BNMotion.swift",
+    "line": 100,
+    "character": 9
+   },
+   "ruleName": "Missing Docs",
+   "reason": "public declarations should be documented",
+   "ruleDescription": "Declarations should be documented.",
+   "severity": "warning",
+   "ruleIdentifier": "missing_docs"
+  }
+ },
+ {
+  "text": "        var timingParameters: (any UITimingCurveProvider)? {",
+  "violation": {
+   "location": {
+    "file": "Sources/BNUICore/BNMotion.swift",
+    "line": 114,
+    "character": 9
+   },
+   "ruleName": "Missing Docs",
+   "reason": "public declarations should be documented",
+   "ruleDescription": "Declarations should be documented.",
+   "severity": "warning",
+   "ruleIdentifier": "missing_docs"
+  }
+ },
+ {
+  "text": "        var animation: Animation {",
+  "violation": {
+   "location": {
+    "file": "Sources/BNUICore/BNSwiftUISupport.swift",
+    "line": 26,
+    "character": 9
+   },
+   "ruleName": "Missing Docs",
+   "reason": "public declarations should be documented",
+   "ruleDescription": "Declarations should be documented.",
+   "severity": "warning",
+   "ruleIdentifier": "missing_docs"
+  }
+ },
+ {
+  "text": "            case matchBar",
+  "violation": {
+   "location": {
+    "file": "Sources/BNUITabBar/BNTabBarAccessory.swift",
+    "line": 12,
+    "character": 13
+   },
+   "ruleName": "Missing Docs",
+   "reason": "public declarations should be documented",
+   "ruleDescription": "Declarations should be documented.",
+   "severity": "warning",
+   "ruleIdentifier": "missing_docs"
+  }
+ },
+ {
+  "text": "            case hug",
+  "violation": {
+   "location": {
+    "file": "Sources/BNUITabBar/BNTabBarAccessory.swift",
+    "line": 13,
+    "character": 13
+   },
+   "ruleName": "Missing Docs",
+   "reason": "public declarations should be documented",
+   "ruleDescription": "Declarations should be documented.",
+   "severity": "warning",
+   "ruleIdentifier": "missing_docs"
+  }
+ },
+ {
+  "text": "        public let view: UIView",
+  "violation": {
+   "location": {
+    "file": "Sources/BNUITabBar/BNTabBarAccessory.swift",
+    "line": 16,
+    "character": 16
+   },
+   "ruleName": "Missing Docs",
+   "reason": "public declarations should be documented",
+   "ruleDescription": "Declarations should be documented.",
+   "severity": "warning",
+   "ruleIdentifier": "missing_docs"
+  }
+ },
+ {
+  "text": "        public let width: Width",
+  "violation": {
+   "location": {
+    "file": "Sources/BNUITabBar/BNTabBarAccessory.swift",
+    "line": 17,
+    "character": 16
+   },
+   "ruleName": "Missing Docs",
+   "reason": "public declarations should be documented",
+   "ruleDescription": "Declarations should be documented.",
+   "severity": "warning",
+   "ruleIdentifier": "missing_docs"
+  }
+ },
+ {
+  "text": "        public init(view: UIView, width: Width = .matchBar, spacing: CGFloat = 8) {",
+  "violation": {
+   "location": {
+    "file": "Sources/BNUITabBar/BNTabBarAccessory.swift",
+    "line": 21,
+    "character": 16
+   },
+   "ruleName": "Missing Docs",
+   "reason": "public declarations should be documented",
+   "ruleDescription": "Declarations should be documented.",
+   "severity": "warning",
+   "ruleIdentifier": "missing_docs"
+  }
+ },
+ {
+  "text": "            public let item: BNTabBarItem",
+  "violation": {
+   "location": {
+    "file": "Sources/BNUITabBar/BNTabBarContainerViewController+SwiftUI.swift",
+    "line": 97,
+    "character": 20
+   },
+   "ruleName": "Missing Docs",
+   "reason": "public declarations should be documented",
+   "ruleDescription": "Declarations should be documented.",
+   "severity": "warning",
+   "ruleIdentifier": "missing_docs"
+  }
+ },
+ {
+  "text": "            public init(item: BNTabBarItem, @ViewBuilder content: () -> some View) {",
+  "violation": {
+   "location": {
+    "file": "Sources/BNUITabBar/BNTabBarContainerViewController+SwiftUI.swift",
+    "line": 100,
+    "character": 20
+   },
+   "ruleName": "Missing Docs",
+   "reason": "public declarations should be documented",
+   "ruleDescription": "Declarations should be documented.",
+   "severity": "warning",
+   "ruleIdentifier": "missing_docs"
+  }
+ },
+ {
+  "text": "        public var isEnabled: Bool",
+  "violation": {
+   "location": {
+    "file": "Sources/BNUITabBar/BNTabBarHaptics.swift",
+    "line": 29,
+    "character": 16
+   },
+   "ruleName": "Missing Docs",
+   "reason": "public declarations should be documented",
+   "ruleDescription": "Declarations should be documented.",
+   "severity": "warning",
+   "ruleIdentifier": "missing_docs"
+  }
+ },
+ {
+  "text": "        public init(isEnabled: Bool = true, engine: BNHaptics = .shared) {",
+  "violation": {
+   "location": {
+    "file": "Sources/BNUITabBar/BNTabBarHaptics.swift",
+    "line": 33,
+    "character": 16
+   },
+   "ruleName": "Missing Docs",
+   "reason": "public declarations should be documented",
+   "ruleDescription": "Declarations should be documented.",
+   "severity": "warning",
+   "ruleIdentifier": "missing_docs"
+  }
+ },
+ {
+  "text": "        public func pressedDown() {",
+  "violation": {
+   "location": {
+    "file": "Sources/BNUITabBar/BNTabBarHaptics.swift",
+    "line": 45,
+    "character": 16
+   },
+   "ruleName": "Missing Docs",
+   "reason": "public declarations should be documented",
+   "ruleDescription": "Declarations should be documented.",
+   "severity": "warning",
+   "ruleIdentifier": "missing_docs"
+  }
+ },
+ {
+  "text": "        public func crossedBoundary() {",
+  "violation": {
+   "location": {
+    "file": "Sources/BNUITabBar/BNTabBarHaptics.swift",
+    "line": 51,
+    "character": 16
+   },
+   "ruleName": "Missing Docs",
+   "reason": "public declarations should be documented",
+   "ruleDescription": "Declarations should be documented.",
+   "severity": "warning",
+   "ruleIdentifier": "missing_docs"
+  }
+ },
+ {
+  "text": "        public func selectionChanged() {",
+  "violation": {
+   "location": {
+    "file": "Sources/BNUITabBar/BNTabBarHaptics.swift",
+    "line": 56,
+    "character": 16
+   },
+   "ruleName": "Missing Docs",
+   "reason": "public declarations should be documented",
+   "ruleDescription": "Declarations should be documented.",
+   "severity": "warning",
+   "ruleIdentifier": "missing_docs"
+  }
+ },
+ {
+  "text": "        public var isSelected: Bool",
+  "violation": {
+   "location": {
+    "file": "Sources/BNUITabBar/BNTabBarItemRenderer.swift",
+    "line": 14,
+    "character": 16
+   },
+   "ruleName": "Missing Docs",
+   "reason": "public declarations should be documented",
+   "ruleDescription": "Declarations should be documented.",
+   "severity": "warning",
+   "ruleIdentifier": "missing_docs"
+  }
+ },
+ {
+  "text": "        public var isPressed: Bool",
+  "violation": {
+   "location": {
+    "file": "Sources/BNUITabBar/BNTabBarItemRenderer.swift",
+    "line": 23,
+    "character": 16
+   },
+   "ruleName": "Missing Docs",
+   "reason": "public declarations should be documented",
+   "ruleDescription": "Declarations should be documented.",
+   "severity": "warning",
+   "ruleIdentifier": "missing_docs"
+  }
+ },
+ {
+  "text": "        public var theme: BNTabBarTheme",
+  "violation": {
+   "location": {
+    "file": "Sources/BNUITabBar/BNTabBarItemRenderer.swift",
+    "line": 24,
+    "character": 16
+   },
+   "ruleName": "Missing Docs",
+   "reason": "public declarations should be documented",
+   "ruleDescription": "Declarations should be documented.",
+   "severity": "warning",
+   "ruleIdentifier": "missing_docs"
+  }
+ },
+ {
+  "text": "        public var layer: BNTabBarItemLayer",
+  "violation": {
+   "location": {
+    "file": "Sources/BNUITabBar/BNTabBarItemRenderer.swift",
+    "line": 25,
+    "character": 16
+   },
+   "ruleName": "Missing Docs",
+   "reason": "public declarations should be documented",
+   "ruleDescription": "Declarations should be documented.",
+   "severity": "warning",
+   "ruleIdentifier": "missing_docs"
+  }
+ },
+ {
+  "text": "        public init(",
+  "violation": {
+   "location": {
+    "file": "Sources/BNUITabBar/BNTabBarItemRenderer.swift",
+    "line": 27,
+    "character": 16
+   },
+   "ruleName": "Missing Docs",
+   "reason": "public declarations should be documented",
+   "ruleDescription": "Declarations should be documented.",
+   "severity": "warning",
+   "ruleIdentifier": "missing_docs"
+  }
+ },
+ {
+  "text": "        func makeItemView(for item: BNTabBarItem, layer: BNTabBarItemLayer) -> any BNTabBarItemRendering",
+  "violation": {
+   "location": {
+    "file": "Sources/BNUITabBar/BNTabBarItemRenderer.swift",
+    "line": 63,
+    "character": 9
+   },
+   "ruleName": "Missing Docs",
+   "reason": "public declarations should be documented",
+   "ruleDescription": "Declarations should be documented.",
+   "severity": "warning",
+   "ruleIdentifier": "missing_docs"
+  }
+ },
+ {
+  "text": "        func makeLens() -> any BNTabBarLens",
+  "violation": {
+   "location": {
+    "file": "Sources/BNUITabBar/BNTabBarLens.swift",
+    "line": 56,
+    "character": 9
+   },
+   "ruleName": "Missing Docs",
+   "reason": "public declarations should be documented",
+   "ruleDescription": "Declarations should be documented.",
+   "severity": "warning",
+   "ruleIdentifier": "missing_docs"
+  }
+ },
+ {
+  "text": "        public init(",
+  "violation": {
+   "location": {
+    "file": "Sources/BNUITabBar/BNTabBarMaterial.swift",
+    "line": 21,
+    "character": 16
+   },
+   "ruleName": "Missing Docs",
+   "reason": "public declarations should be documented",
+   "ruleDescription": "Declarations should be documented.",
+   "severity": "warning",
+   "ruleIdentifier": "missing_docs"
+  }
+ },
+ {
+  "text": "        func makeSurface() -> BNTabBarSurface",
+  "violation": {
+   "location": {
+    "file": "Sources/BNUITabBar/BNTabBarMaterial.swift",
+    "line": 44,
+    "character": 9
+   },
+   "ruleName": "Missing Docs",
+   "reason": "public declarations should be documented",
+   "ruleDescription": "Declarations should be documented.",
+   "severity": "warning",
+   "ruleIdentifier": "missing_docs"
+  }
+ },
+ {
+  "text": "        public final class Coordinator {",
+  "violation": {
+   "location": {
+    "file": "Sources/BNUITabBar/BNTabBarView+SwiftUI.swift",
+    "line": 274,
+    "character": 22
+   },
+   "ruleName": "Missing Docs",
+   "reason": "public declarations should be documented",
+   "ruleDescription": "Declarations should be documented.",
+   "severity": "warning",
+   "ruleIdentifier": "missing_docs"
+  }
+ },
+ {
+  "text": "        public static func all() -> [any GalleryPage] {",
+  "violation": {
+   "location": {
+    "file": "Sources/BNUIGallery/BNUIGalleryPages.swift",
+    "line": 8,
+    "character": 23
+   },
+   "ruleName": "Missing Docs",
+   "reason": "public declarations should be documented",
+   "ruleDescription": "Declarations should be documented.",
+   "severity": "warning",
+   "ruleIdentifier": "missing_docs"
+  }
+ },
+ {
+  "text": "        public enum Control {",
+  "violation": {
+   "location": {
+    "file": "Sources/BNUIGallery/GalleryKnob.swift",
+    "line": 8,
+    "character": 16
+   },
+   "ruleName": "Missing Docs",
+   "reason": "public declarations should be documented",
+   "ruleDescription": "Declarations should be documented.",
+   "severity": "warning",
+   "ruleIdentifier": "missing_docs"
+  }
+ },
+ {
+  "text": "            case toggle(initial: Bool, onChange: (Bool) -> Void)",
+  "violation": {
+   "location": {
+    "file": "Sources/BNUIGallery/GalleryKnob.swift",
+    "line": 9,
+    "character": 13
+   },
+   "ruleName": "Missing Docs",
+   "reason": "public declarations should be documented",
+   "ruleDescription": "Declarations should be documented.",
+   "severity": "warning",
+   "ruleIdentifier": "missing_docs"
+  }
+ },
+ {
+  "text": "            case slider(min: Double, max: Double, initial: Double, onChange: (Double) -> Void)",
+  "violation": {
+   "location": {
+    "file": "Sources/BNUIGallery/GalleryKnob.swift",
+    "line": 10,
+    "character": 13
+   },
+   "ruleName": "Missing Docs",
+   "reason": "public declarations should be documented",
+   "ruleDescription": "Declarations should be documented.",
+   "severity": "warning",
+   "ruleIdentifier": "missing_docs"
+  }
+ },
+ {
+  "text": "            case textField(initial: String, onChange: (String) -> Void)",
+  "violation": {
+   "location": {
+    "file": "Sources/BNUIGallery/GalleryKnob.swift",
+    "line": 14,
+    "character": 13
+   },
+   "ruleName": "Missing Docs",
+   "reason": "public declarations should be documented",
+   "ruleDescription": "Declarations should be documented.",
+   "severity": "warning",
+   "ruleIdentifier": "missing_docs"
+  }
+ },
+ {
+  "text": "            case button(onTap: () -> Void)",
+  "violation": {
+   "location": {
+    "file": "Sources/BNUIGallery/GalleryKnob.swift",
+    "line": 17,
+    "character": 13
+   },
+   "ruleName": "Missing Docs",
+   "reason": "public declarations should be documented",
+   "ruleDescription": "Declarations should be documented.",
+   "severity": "warning",
+   "ruleIdentifier": "missing_docs"
+  }
+ },
+ {
+  "text": "        public let label: String",
+  "violation": {
+   "location": {
+    "file": "Sources/BNUIGallery/GalleryKnob.swift",
+    "line": 25,
+    "character": 16
+   },
+   "ruleName": "Missing Docs",
+   "reason": "public declarations should be documented",
+   "ruleDescription": "Declarations should be documented.",
+   "severity": "warning",
+   "ruleIdentifier": "missing_docs"
+  }
+ },
+ {
+  "text": "        public let control: Control",
+  "violation": {
+   "location": {
+    "file": "Sources/BNUIGallery/GalleryKnob.swift",
+    "line": 26,
+    "character": 16
+   },
+   "ruleName": "Missing Docs",
+   "reason": "public declarations should be documented",
+   "ruleDescription": "Declarations should be documented.",
+   "severity": "warning",
+   "ruleIdentifier": "missing_docs"
+  }
+ },
+ {
+  "text": "        public init(label: String, control: Control, unit: String? = nil, note: String? = nil) {",
+  "violation": {
+   "location": {
+    "file": "Sources/BNUIGallery/GalleryKnob.swift",
+    "line": 32,
+    "character": 16
+   },
+   "ruleName": "Missing Docs",
+   "reason": "public declarations should be documented",
+   "ruleDescription": "Declarations should be documented.",
+   "severity": "warning",
+   "ruleIdentifier": "missing_docs"
+  }
+ },
+ {
+  "text": "        var title: String { get }",
+  "violation": {
+   "location": {
+    "file": "Sources/BNUIGallery/GalleryPage.swift",
+    "line": 12,
+    "character": 9
+   },
+   "ruleName": "Missing Docs",
+   "reason": "public declarations should be documented",
+   "ruleDescription": "Declarations should be documented.",
+   "severity": "warning",
+   "ruleIdentifier": "missing_docs"
+  }
+ },
+ {
+  "text": "        func makeDemoView() -> UIView",
+  "violation": {
+   "location": {
+    "file": "Sources/BNUIGallery/GalleryPage.swift",
+    "line": 24,
+    "character": 9
+   },
+   "ruleName": "Missing Docs",
+   "reason": "public declarations should be documented",
+   "ruleDescription": "Declarations should be documented.",
+   "severity": "warning",
+   "ruleIdentifier": "missing_docs"
+  }
+ },
+ {
+  "text": "        func makeKnobs(for demoView: UIView) -> [GalleryKnob]",
+  "violation": {
+   "location": {
+    "file": "Sources/BNUIGallery/GalleryPage.swift",
+    "line": 56,
+    "character": 9
+   },
+   "ruleName": "Missing Docs",
+   "reason": "public declarations should be documented",
+   "ruleDescription": "Declarations should be documented.",
+   "severity": "warning",
+   "ruleIdentifier": "missing_docs"
+  }
+ },
+ {
+  "text": "        var symbol: String {",
+  "violation": {
+   "location": {
+    "file": "Sources/BNUIGallery/GalleryPage.swift",
+    "line": 66,
+    "character": 9
+   },
+   "ruleName": "Missing Docs",
+   "reason": "public declarations should be documented",
+   "ruleDescription": "Declarations should be documented.",
+   "severity": "warning",
+   "ruleIdentifier": "missing_docs"
+  }
+ },
+ {
+  "text": "        var summary: String? {",
+  "violation": {
+   "location": {
+    "file": "Sources/BNUIGallery/GalleryPage.swift",
+    "line": 70,
+    "character": 9
+   },
+   "ruleName": "Missing Docs",
+   "reason": "public declarations should be documented",
+   "ruleDescription": "Declarations should be documented.",
+   "severity": "warning",
+   "ruleIdentifier": "missing_docs"
+  }
+ },
+ {
+  "text": "        var section: String {",
+  "violation": {
+   "location": {
+    "file": "Sources/BNUIGallery/GalleryPage.swift",
+    "line": 74,
+    "character": 9
+   },
+   "ruleName": "Missing Docs",
+   "reason": "public declarations should be documented",
+   "ruleDescription": "Declarations should be documented.",
+   "severity": "warning",
+   "ruleIdentifier": "missing_docs"
+  }
+ },
+ {
+  "text": "        func makeDemoViewController() -> UIViewController? {",
+  "violation": {
+   "location": {
+    "file": "Sources/BNUIGallery/GalleryPage.swift",
+    "line": 78,
+    "character": 9
+   },
+   "ruleName": "Missing Docs",
+   "reason": "public declarations should be documented",
+   "ruleDescription": "Declarations should be documented.",
+   "severity": "warning",
+   "ruleIdentifier": "missing_docs"
+  }
+ },
+ {
+  "text": "        var fillsDemoArea: Bool {",
+  "violation": {
+   "location": {
+    "file": "Sources/BNUIGallery/GalleryPage.swift",
+    "line": 82,
+    "character": 9
+   },
+   "ruleName": "Missing Docs",
+   "reason": "public declarations should be documented",
+   "ruleDescription": "Declarations should be documented.",
+   "severity": "warning",
+   "ruleIdentifier": "missing_docs"
+  }
+ },
+ {
+  "text": "        var demoAreaFraction: CGFloat {",
+  "violation": {
+   "location": {
+    "file": "Sources/BNUIGallery/GalleryPage.swift",
+    "line": 86,
+    "character": 9
+   },
+   "ruleName": "Missing Docs",
+   "reason": "public declarations should be documented",
+   "ruleDescription": "Declarations should be documented.",
+   "severity": "warning",
+   "ruleIdentifier": "missing_docs"
+  }
+ },
+ {
+  "text": "        var backdrop: GalleryBackdrop {",
+  "violation": {
+   "location": {
+    "file": "Sources/BNUIGallery/GalleryPage.swift",
+    "line": 90,
+    "character": 9
+   },
+   "ruleName": "Missing Docs",
+   "reason": "public declarations should be documented",
+   "ruleDescription": "Declarations should be documented.",
+   "severity": "warning",
+   "ruleIdentifier": "missing_docs"
+  }
+ },
+ {
+  "text": "        var isBackground: Bool {",
+  "violation": {
+   "location": {
+    "file": "Sources/BNUIGallery/GalleryPage.swift",
+    "line": 94,
+    "character": 9
+   },
+   "ruleName": "Missing Docs",
+   "reason": "public declarations should be documented",
+   "ruleDescription": "Declarations should be documented.",
+   "severity": "warning",
+   "ruleIdentifier": "missing_docs"
+  }
+ },
+ {
+  "text": "        var eventFeedEdge: GalleryEventFeedEdge {",
+  "violation": {
+   "location": {
+    "file": "Sources/BNUIGallery/GalleryPage.swift",
+    "line": 98,
+    "character": 9
+   },
+   "ruleName": "Missing Docs",
+   "reason": "public declarations should be documented",
+   "ruleDescription": "Declarations should be documented.",
+   "severity": "warning",
+   "ruleIdentifier": "missing_docs"
+  }
+ },
+ {
+  "text": "        func resetDemo(_: UIView) {}",
+  "violation": {
+   "location": {
+    "file": "Sources/BNUIGallery/GalleryPage.swift",
+    "line": 102,
+    "character": 9
+   },
+   "ruleName": "Missing Docs",
+   "reason": "public declarations should be documented",
+   "ruleDescription": "Declarations should be documented.",
+   "severity": "warning",
+   "ruleIdentifier": "missing_docs"
+  }
+ }
+]
