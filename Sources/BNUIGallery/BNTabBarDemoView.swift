@@ -22,7 +22,9 @@
             static let minimumItemWidth = Double(BNTabBarMetrics.standard.minimumItemWidth)
             static let motion = BNTabBarMotion.standard
             static let haptics = true
-            static let badge = false
+            /// Off, Count, Text, Dot.
+            static let badge = 0
+            static let badgeCount = 12
             static let selectionAnimation = 0
         }
 
@@ -62,7 +64,11 @@
         private var tabBar: BNTabBarView?
 
         private var sectionCount = Defaults.sections
-        private var showsBadge = Defaults.badge
+        private var badgeKind = Defaults.badge
+        private var badgeCount = Defaults.badgeCount
+        /// Counts up once a second while on, so a drag can be tried against a badge that keeps
+        /// changing — it must not lose the gesture.
+        private var badgeTicker: Task<Void, Never>?
         private var selectionAnimation: BNTabBarSymbolAnimation = .bounce
 
         override init(frame: CGRect) {
@@ -84,9 +90,37 @@
             tabBar?.items = makeItems()
         }
 
-        func setBadge(_ enabled: Bool) {
-            showsBadge = enabled
+        func setBadge(index: Int) {
+            badgeKind = index
             tabBar?.items = makeItems()
+        }
+
+        func setTickingBadge(_ ticking: Bool) {
+            badgeTicker?.cancel()
+            badgeTicker = nil
+            guard ticking else { return }
+            badgeTicker = Task { [weak self] in
+                while !Task.isCancelled {
+                    do {
+                        try await Task.sleep(for: .seconds(1))
+                    } catch {
+                        return
+                    }
+                    self?.tickBadge()
+                }
+            }
+        }
+
+        private func tickBadge() {
+            badgeCount += 1
+            tabBar?.items = makeItems()
+        }
+
+        override func didMoveToWindow() {
+            super.didMoveToWindow()
+            if window == nil {
+                setTickingBadge(false)
+            }
         }
 
         func setSelectionAnimation(index: Int) {
@@ -192,7 +226,9 @@
         func reset() {
             guard let tabBar else { return }
             sectionCount = Defaults.sections
-            showsBadge = Defaults.badge
+            badgeKind = Defaults.badge
+            badgeCount = Defaults.badgeCount
+            setTickingBadge(false)
             selectionAnimation = .bounce
             tabBar.items = makeItems()
             tabBar.action = nil
@@ -246,14 +282,24 @@
             setHaptics(Defaults.haptics)
         }
 
+        private func makeBadge() -> BNTabBarBadge? {
+            switch badgeKind {
+            case 1: .count(badgeCount, accessibilityLabel: "\(badgeCount) new")
+            case 2: .text("New")
+            case 3: .dot(accessibilityLabel: "New")
+            default: nil
+            }
+        }
+
         private func makeItems() -> [BNTabBarItem] {
             Self.catalogue.prefix(sectionCount).enumerated().map { index, entry in
                 BNTabBarItem(
                     id: entry.title.lowercased(),
                     icon: .symbol(entry.symbol),
                     title: entry.title,
-                    // The last one is the first behind More: its badge goes to the menu.
-                    badge: showsBadge && (index == 1 || index == Self.catalogue.count - 1) ? "12" : nil,
+                    // The last one is the first behind More: its badge goes to the menu, and a dot
+                    // to More.
+                    badge: index == 1 || index == Self.catalogue.count - 1 ? makeBadge() : nil,
                     selectionAnimation: selectionAnimation,
                 )
             }

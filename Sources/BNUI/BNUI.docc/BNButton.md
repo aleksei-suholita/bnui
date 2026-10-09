@@ -32,6 +32,7 @@
 - ``onTap``
 - ``onTouchDown``
 - ``onTouchUp``
+- ``onTouchCancel``
 - ``haptics``
 - ``performPrimaryAction()``
 

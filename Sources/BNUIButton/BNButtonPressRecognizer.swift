@@ -13,6 +13,10 @@
     /// It reports; it decides nothing. Every rule about what a touch means stays in
     /// ``BNButtonInteraction``.
     public final class BNButtonPressRecognizer: UIGestureRecognizer {
+        /// The landing touch's `tapCount`: above one, a quick second tap that `UIControl` reports
+        /// as a repeat.
+        private(set) var tapCount = 1
+
         override public init(target: Any?, action: Selector?) {
             super.init(target: target, action: action)
             // The pressed state has to be on screen in the frame the finger lands, so nothing here
@@ -24,6 +28,7 @@
 
         override public func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent) {
             super.touchesBegan(touches, with: event)
+            tapCount = touches.first?.tapCount ?? 1
             // `.began` immediately rather than after a threshold: this is a button, and any delay
             // before the press appears reads as lag.
             state = .began

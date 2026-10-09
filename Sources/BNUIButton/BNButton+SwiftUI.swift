@@ -11,54 +11,74 @@
         /// UIKit-first in the first place.
         ///
         /// ```swift
-        /// BN.Button(.title("Finish"), style: .primary, status: isSaving ? .loading : .enabled) {
-        ///     session.finish()
-        /// }
-        /// .onRejected { showWhyNot() }
+        /// BN.Button("Pay", isLoading: isPaying) { pay() }
+        ///     .bnButtonStyle(.primary)
+        ///     .onRejected { showWhyNot() }
         /// ```
         ///
-        /// The host still owns the status. `.disabled(true)` above the button counts as `.disabled`,
-        /// so a SwiftUI form that disables its controls wholesale disables this one too.
+        /// The initializer takes what the button is — its label and action — and whether it is
+        /// busy. How it looks comes from modifiers, which reach every button beneath them:
+        ///
+        /// ```swift
+        /// Form { … }
+        ///     .bnButtonStyle(.secondary)
+        ///     .bnButtonWidth(.fill)
+        ///     .controlSize(.large)
+        /// ```
+        ///
+        /// Disabled two ways. ``SwiftUICore/View/bnButtonDisabled(_:)`` is the kit's: a tap is
+        /// refused — a flash, a shake, ``BNButton/onRejected``. SwiftUI's `.disabled()` lets no touch
+        /// through, so the button stays silent under it, as a system one would. `isLoading` wins
+        /// over both: a form disabled while it submits keeps the spinner on the button submitting
+        /// it. `.controlSize` picks the button's step of the size scale.
         ///
         /// Sized by the button's own layout solver: it hugs its content, or takes the offered width
         /// for ``BNButtonWidth/fill``, and its height grows with Dynamic Type and wrapped titles.
         struct Button: UIViewRepresentable {
-            public var content: BNButtonContent
-            public var style: BNButtonStyle
-            public var size: BNButtonSize
-            public var configuration: BNButtonConfiguration
-            public var theme: BNButtonTheme
-            /// Overrides the style's material. Compared by identity, so a new instance of the same
-            /// material does not rebuild the button.
-            public var material: (any BNButtonMaterial)?
-            public var status: BNButtonStatus
-            /// Read once, when the button is made — the UIKit button holds its haptics for life.
-            public var haptics: BNButtonHaptics
-            public var action: () -> Void
+            let content: BNButtonContent
+            let isLoading: Bool
+            let action: () -> Void
+            var adjustments: [(inout BNButtonEnvironment) -> Void] = []
 
             var onTouchDown: (() -> Void)?
             var onTouchUp: ((Bool) -> Void)?
+            var onTouchCancel: (() -> Void)?
             var onRejected: (() -> Void)?
 
-            public init(
-                _ content: BNButtonContent,
-                style: BNButtonStyle = .primary,
-                size: BNButtonSize = .medium,
-                configuration: BNButtonConfiguration = BNButtonConfiguration(),
-                theme: BNButtonTheme = .standard,
-                material: (any BNButtonMaterial)? = nil,
-                status: BNButtonStatus = .enabled,
-                haptics: BNButtonHaptics = BNButtonHaptics(),
-                action: @escaping () -> Void,
-            ) {
+            /// A button with a title.
+            ///
+            /// - Parameters:
+            ///   - title: what the button says.
+            ///   - isLoading: busy — the title gives way to a spinner and taps are swallowed.
+            ///   - action: what a tap does.
+            public init(_ title: String, isLoading: Bool = false, action: @escaping () -> Void) {
+                self.init(.title(title), isLoading: isLoading, action: action)
+            }
+
+            /// A button with a title and an SF Symbol before it.
+            ///
+            /// - Parameters:
+            ///   - title: what the button says.
+            ///   - systemImage: the symbol's name.
+            ///   - isLoading: busy — the content gives way to a spinner and taps are swallowed.
+            ///   - action: what a tap does.
+            public init(_ title: String, systemImage: String, isLoading: Bool = false, action: @escaping () -> Void) {
+                self.init(
+                    BNButtonContent(title: title, leadingIcon: .symbol(systemImage)),
+                    isLoading: isLoading,
+                    action: action,
+                )
+            }
+
+            /// A button with any content the kit draws: an icon alone, icons on both sides.
+            ///
+            /// - Parameters:
+            ///   - content: what the button shows.
+            ///   - isLoading: busy — the content gives way to a spinner and taps are swallowed.
+            ///   - action: what a tap does.
+            public init(_ content: BNButtonContent, isLoading: Bool = false, action: @escaping () -> Void) {
                 self.content = content
-                self.style = style
-                self.size = size
-                self.configuration = configuration
-                self.theme = theme
-                self.material = material
-                self.status = status
-                self.haptics = haptics
+                self.isLoading = isLoading
                 self.action = action
             }
 
@@ -72,54 +92,78 @@
                 return copy
             }
 
+            /// The button accepted a touch; exactly one `onTouchUp` or `onTouchCancel` follows. See
+            /// ``BNButton/onTouchDown``.
             public func onTouchDown(_ handler: @escaping () -> Void) -> Self {
                 var copy = self
                 copy.onTouchDown = handler
                 return copy
             }
 
-            /// `true` when the finger lifted inside the touch area.
+            /// The finger lifted: `true` inside, together with the action, `false` outside. See
+            /// ``BNButton/onTouchUp``.
             public func onTouchUp(_ handler: @escaping (Bool) -> Void) -> Self {
                 var copy = self
                 copy.onTouchUp = handler
                 return copy
             }
 
+            /// The touch ended without a lift that counts. See ``BNButton/onTouchCancel``.
+            public func onTouchCancel(_ handler: @escaping () -> Void) -> Self {
+                var copy = self
+                copy.onTouchCancel = handler
+                return copy
+            }
+
+            /// Records a modifier set on this button itself: it is applied over the environment.
+            func adjusting(_ adjustment: @escaping (inout BNButtonEnvironment) -> Void) -> Self {
+                var copy = self
+                copy.adjustments.append(adjustment)
+                return copy
+            }
+
             // MARK: - UIViewRepresentable
 
             public func makeUIView(context: Context) -> BNButton {
+                let settings = settings(in: context.environment)
                 let button = BNButton(
                     content: content,
-                    style: style,
-                    size: size,
-                    configuration: configuration,
-                    theme: theme,
-                    material: material,
-                    haptics: haptics,
+                    style: settings.style ?? .primary,
+                    size: size(settings, in: context.environment),
+                    configuration: settings.configuration,
+                    theme: settings.theme ?? .standard,
+                    material: settings.material,
+                    haptics: settings.haptics ?? BNButtonHaptics(),
                 )
+                // SwiftUI writes `isEnabled` on a wrapped control from its own `.disabled()` alone —
+                // on the gallery stand that write took a busy button's spinner away. The face counts
+                // SwiftUI's flag in already, so the write is kept off the status: it must undo
+                // neither a disabled set by `bnButtonDisabled` nor a spinner.
+                button.statusFollowsEnabledFlag = false
                 // A button that appears already loading appears that way; it does not animate into it.
-                button.setStatus(resolvedStatus(in: context.environment), animated: false)
+                button.setStatus(status(settings, in: context.environment), animated: false)
                 wire(button)
                 return button
             }
 
             public func updateUIView(_ button: BNButton, context: Context) {
+                let settings = settings(in: context.environment)
                 // Each of these setters compares before it rebuilds, so re-assigning an unchanged value
                 // on every SwiftUI update costs nothing.
                 button.content = content
-                button.style = style
-                button.size = size
-                button.configuration = configuration
-                button.theme = theme
+                button.style = settings.style ?? .primary
+                button.size = size(settings, in: context.environment)
+                button.configuration = settings.configuration
+                button.theme = settings.theme ?? .standard
                 // The material setter rebuilds unconditionally, and a protocol value cannot be
                 // compared — hence the identity.
-                if button.material?.identity != material?.identity {
-                    button.material = material
+                if button.material?.identity != settings.material?.identity {
+                    button.material = settings.material
                 }
                 // The kit's own state-change curve carries the change; SwiftUI only decides whether
                 // there is one at all.
                 button.setStatus(
-                    resolvedStatus(in: context.environment),
+                    status(settings, in: context.environment),
                     animated: !context.transaction.disablesAnimations,
                 )
                 wire(button)
@@ -127,7 +171,7 @@
 
             public func sizeThatFits(_ proposal: ProposedViewSize, uiView button: BNButton, context _: Context) -> CGSize? {
                 let offered = proposal.width.flatMap { $0.isFinite ? $0 : nil }
-                if configuration.width == .fill, offered == nil {
+                if button.configuration.width == .fill, offered == nil {
                     // A full-width button asked for its ideal width has no answer of its own; SwiftUI's
                     // default, which reads the intrinsic size, is as good as any.
                     return nil
@@ -139,8 +183,23 @@
 
             // MARK: - Internals
 
-            private func resolvedStatus(in environment: EnvironmentValues) -> BNButtonStatus {
-                environment.isEnabled ? status : .disabled
+            /// The environment's settings with this button's own laid over them.
+            private func settings(in environment: EnvironmentValues) -> BNButtonEnvironment {
+                var settings = environment.bnButton
+                for adjustment in adjustments {
+                    adjustment(&settings)
+                }
+                return settings
+            }
+
+            private func size(_ settings: BNButtonEnvironment, in environment: EnvironmentValues) -> BNButtonSize {
+                settings.size ?? BNButtonSize(environment.controlSize)
+            }
+
+            /// Disabled by SwiftUI's `.disabled()` or by the kit's `bnButtonDisabled`; busy wins over
+            /// both.
+            private func status(_ settings: BNButtonEnvironment, in environment: EnvironmentValues) -> BNButtonStatus {
+                .resolving(isLoading: isLoading, isEnabled: environment.isEnabled && !settings.isDisabled)
             }
 
             /// Re-wired on every update: the closures capture the view's current values, and yesterday's
@@ -149,6 +208,7 @@
                 button.onTap = action
                 button.onTouchDown = onTouchDown
                 button.onTouchUp = onTouchUp
+                button.onTouchCancel = onTouchCancel
                 button.onRejected = onRejected
             }
         }

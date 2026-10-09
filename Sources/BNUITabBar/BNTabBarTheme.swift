@@ -54,15 +54,20 @@
             public var title: UIFont
             public var selectedTitle: UIFont
             public var badge: UIFont
+            /// The largest text size a badge follows Dynamic Type to. The icon under it keeps one
+            /// size, and a badge that went on growing would cover it.
+            public var badgeMaximumContentSizeCategory: UIContentSizeCategory
 
             public init(
                 title: UIFont = .preferredFont(forTextStyle: .caption2),
                 selectedTitle: UIFont? = nil,
                 badge: UIFont = .preferredFont(forTextStyle: .caption2),
+                badgeMaximumContentSizeCategory: UIContentSizeCategory = .accessibilityMedium,
             ) {
                 self.title = title
                 self.selectedTitle = selectedTitle ?? title.withWeight(.semibold)
                 self.badge = badge
+                self.badgeMaximumContentSizeCategory = badgeMaximumContentSizeCategory
             }
 
             public static let standard = Typography()

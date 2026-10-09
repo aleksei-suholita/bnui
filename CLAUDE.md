@@ -115,7 +115,10 @@ arm64-apple-ios16.0-simulator`, not `xcodebuild`.
   SwiftUI; after the dot comes the name of the SwiftUI counterpart where there is one
   (`BN.TabView`), the control's name otherwise (`BN.TabBar`). The file is
   `<UIKit type>+SwiftUI.swift` next to the control and holds only the wrapper: no `#Preview`, no
-  gallery pages. `BNUICore/BNHostingView` puts SwiftUI in any `UIView` slot;
+  gallery pages. The initializer takes what the control is and its state; looks come from
+  `bn<Control><Property>` modifiers in `<UIKit type>+SwiftUIModifiers.swift`, each declared on
+  `View` (through the environment) and again on the face (returning it).
+  `BNUICore/BNHostingView` puts SwiftUI in any `UIView` slot;
   `BNUICore/BNSwiftUISupport` gives Core's types an `Animation` and a `Color`
 - `Tests/BNUITests/` — Swift Testing, pure logic only; one target over every module, each file
   `@testable import`s the modules it exercises

@@ -22,6 +22,9 @@
                 if let selectedID, !items.contains(where: { $0.id == selectedID }) {
                     self.selectedID = items.first?.id
                 }
+                // A change of badges alone is drawn in place: a counter that ticks while a finger
+                // drives the lens must not take the gesture away.
+                guard !updateBadgesInPlace(from: oldValue) else { return }
                 rebuild()
             }
         }
@@ -254,6 +257,15 @@
         /// The More slot, when there is one: right after the visible sections.
         var moreSlotIndex: Int? {
             overflowItems.isEmpty ? nil : visibleItems.count
+        }
+
+        /// What the More slot draws: the host's More item, with a dot while a section behind it
+        /// has a badge — a badge in a closed menu would otherwise go unseen. What the dot stands
+        /// for is said by the slot's accessibility value, not by the dot.
+        var moreSlotItem: BNTabBarItem {
+            let limit = activeTheme.geometry.badgeCountLimit
+            let hasBadge = overflowItems.contains { $0.badge?.appearance(countLimit: limit) != nil }
+            return configuration.moreItem.withBadge(hasBadge ? .dot(accessibilityLabel: "") : nil)
         }
 
         /// The slot the lens marks. A section chosen from the menu is marked on More itself —

@@ -62,6 +62,7 @@ control is enough.
 - ``BN/Button``
 - ``BN/TabBar``
 - ``BN/TabView``
+- ``BN/Tab``
 - ``BNHostingView``
 
 ### Foundation

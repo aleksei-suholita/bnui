@@ -13,7 +13,7 @@ iOS controls built on UIKit, with a SwiftUI face for each. Alpha.
 Add the package with Swift Package Manager:
 
 ```swift
-.package(url: "https://github.com/aleksei-suholita/bnui.git", exact: "0.1.0")
+.package(url: "https://github.com/aleksei-suholita/bnui.git", exact: "0.2.0")
 ```
 
 Then depend on the whole kit or only on the controls you use:
@@ -70,8 +70,12 @@ Every control has a SwiftUI face in the `BN` namespace — the same UIKit contro
 second implementation.
 
 ```swift
-BN.Button(.title("Finish"), style: .primary) { session.finish() }
+BN.Button("Finish") { session.finish() }
+    .bnButtonStyle(.primary)
 ```
+
+The initializer takes what the control is; looks come from `bn…` modifiers, which reach every
+control beneath them — set a theme once at the root.
 
 ## Theming
 

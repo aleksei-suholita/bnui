@@ -9,96 +9,88 @@
         /// ``BN/TabView`` instead.
         ///
         /// Selection is a binding: the bar writes the section the user chose and draws whatever the
-        /// binding holds, so the truth stays with the host exactly as it does in UIKit.
+        /// binding holds, so the truth stays with the host exactly as it does in UIKit. The sections
+        /// are ``BN/Tab`` values without a screen:
         ///
         /// ```swift
         /// content
         ///     .safeAreaInset(edge: .bottom) {
-        ///         BN.TabBar(selection: $tab, items: items)
-        ///             .onReselect { scrollToTop($0) }
-        ///             .padding(.horizontal, 16)
+        ///         BN.TabBar(selection: $section) {
+        ///             BN.Tab("Home", systemImage: "house", value: .home)
+        ///             BN.Tab("Stats", systemImage: "chart.bar", value: .stats)
+        ///         }
+        ///         .onReselect { scrollToTop($0) }
+        ///         .padding(.horizontal, 16)
         ///     }
         /// ```
         ///
-        /// Takes the offered width and its own height. The height does not collapse when the bar is
-        /// hidden — the slide off screen needs the room — so a host that insets its content by the bar
-        /// reads ``onEffectiveHeightChange(_:)``, which does drop to zero.
+        /// How it looks comes from the `bnTabBar…` modifiers, here or anywhere above it. Takes the
+        /// offered width and its own height. The height does not collapse when the bar is hidden —
+        /// the slide off screen needs the room — so a host that insets its content by the bar reads
+        /// ``onEffectiveHeightChange(_:)``, which does drop to zero.
         ///
         /// The material, the lens, the item renderer and the haptics are read once, when the bar is
         /// made: none of them can be compared, and replacing one rebuilds the whole bar.
-        struct TabBar: UIViewRepresentable {
-            @Binding public var selection: String
-            public var items: [BNTabBarItem]
-            public var action: BNTabBarAction?
-            /// Driven by the host — a full-screen scene, a modal sheet. The keyboard is handled by the
-            /// bar itself.
-            public var presentation: BNTabBarPresentation
-            public var configuration: BNTabBarConfiguration
-            public var theme: BNTabBarTheme
+        struct TabBar<Value: Hashable>: UIViewRepresentable {
+            @Binding var selection: Value
+            let tabs: [BN.Tab<Value, Void>]
+            let presentation: BNTabBarPresentation
+            var adjustments: [(inout BNTabBarEnvironment) -> Void] = []
 
-            let material: any BNTabBarMaterial
-            let lensRenderer: any BNTabBarLensRenderer
-            let itemRenderer: (any BNTabBarItemRenderer)?
-            let haptics: BNTabBarHaptics
-
-            var onReselect: ((String) -> Void)?
-            var onMultiTap: ((String, Int) -> Void)?
+            var action: BNTabBarAction?
             var onAction: (() -> Void)?
-            var onLongPress: ((String) -> Void)?
+            var onReselect: ((Value) -> Void)?
+            var onMultiTap: ((Value, Int) -> Void)?
+            var onLongPress: ((Value) -> Void)?
             var onEffectiveHeightChange: ((CGFloat) -> Void)?
             var onAccessoryTap: (() -> Void)?
             var accessory: Accessory?
 
+            /// - Parameters:
+            ///   - selection: the value of the chosen section. The bar writes it when the user
+            ///     chooses, and writing it from outside moves the selection.
+            ///   - presentation: driven by the host — a full-screen scene, a modal sheet. The
+            ///     keyboard is handled by the bar itself.
+            ///   - content: the sections in bar order.
             public init(
-                selection: Binding<String>,
-                items: [BNTabBarItem],
-                action: BNTabBarAction? = nil,
+                selection: Binding<Value>,
                 presentation: BNTabBarPresentation = .expanded,
-                configuration: BNTabBarConfiguration = BNTabBarConfiguration(),
-                theme: BNTabBarTheme = .standard,
-                material: any BNTabBarMaterial = BNTabBarView.standardMaterial,
-                lensRenderer: any BNTabBarLensRenderer = BNMaskedLensRenderer(),
-                itemRenderer: (any BNTabBarItemRenderer)? = nil,
-                haptics: BNTabBarHaptics = BNTabBarHaptics(),
+                @BN.TabBarContentBuilder < Value> content: () -> [BN.Tab<Value, Void>],
             ) {
                 _selection = selection
-                self.items = items
-                self.action = action
+                tabs = content()
                 self.presentation = presentation
-                self.configuration = configuration
-                self.theme = theme
-                self.material = material
-                self.lensRenderer = lensRenderer
-                self.itemRenderer = itemRenderer
-                self.haptics = haptics
             }
 
             // MARK: - Events and slots
 
+            /// The button beside the sections and what a tap on it does. Never a selection. `nil`
+            /// takes the button away.
+            public func action(_ action: BNTabBarAction?, perform handler: @escaping () -> Void) -> Self {
+                var copy = self
+                copy.action = action
+                copy.onAction = handler
+                return copy
+            }
+
             /// The already-active section was chosen again.
-            public func onReselect(_ handler: @escaping (String) -> Void) -> Self {
+            public func onReselect(_ handler: @escaping (Value) -> Void) -> Self {
                 var copy = self
                 copy.onReselect = handler
                 return copy
             }
 
-            /// A run of taps on one section: its id and the position in the run (1, 2, 3…).
-            public func onMultiTap(_ handler: @escaping (String, Int) -> Void) -> Self {
+            /// A run of taps on one section: its value and the position in the run (1, 2, 3…).
+            public func onMultiTap(_ handler: @escaping (Value, Int) -> Void) -> Self {
                 var copy = self
                 copy.onMultiTap = handler
                 return copy
             }
 
-            public func onAction(_ handler: @escaping () -> Void) -> Self {
-                var copy = self
-                copy.onAction = handler
-                return copy
-            }
-
             /// Long press on a section. Unlike UIKit's ``BNTabBarView/onLongPress``, no view comes with
-            /// the id: a SwiftUI menu is not anchored to a `UIView`. Handled or not also decides whether
-            /// VoiceOver offers the "Options" action.
-            public func onLongPress(_ handler: @escaping (String) -> Void) -> Self {
+            /// the value: a SwiftUI menu is not anchored to a `UIView`. Handled or not also decides
+            /// whether VoiceOver offers the "Options" action.
+            public func onLongPress(_ handler: @escaping (Value) -> Void) -> Self {
                 var copy = self
                 copy.onLongPress = handler
                 return copy
@@ -135,6 +127,13 @@
                 return copy
             }
 
+            /// Records a modifier set on this bar itself: it is applied over the environment.
+            func adjusting(_ adjustment: @escaping (inout BNTabBarEnvironment) -> Void) -> Self {
+                var copy = self
+                copy.adjustments.append(adjustment)
+                return copy
+            }
+
             // MARK: - UIViewRepresentable
 
             public func makeCoordinator() -> Coordinator {
@@ -142,17 +141,19 @@
             }
 
             public func makeUIView(context: Context) -> BNTabBarView {
+                let settings = settings(in: context.environment)
+                let ids = ids
                 let bar = BNTabBarView(
-                    items: items,
-                    selectedID: selection,
-                    configuration: configuration,
-                    theme: theme,
-                    material: material,
-                    lensRenderer: lensRenderer,
-                    haptics: haptics,
+                    items: items(ids),
+                    selectedID: ids.id(for: selection),
+                    configuration: settings.configuration,
+                    theme: settings.theme ?? .standard,
+                    material: settings.material ?? BNTabBarView.standardMaterial,
+                    lensRenderer: settings.lensRenderer ?? BNMaskedLensRenderer(),
+                    haptics: settings.haptics ?? BNTabBarHaptics(),
                 )
                 // Each of these setters rebuilds the bar, so an absent one is not set at all.
-                if let itemRenderer {
+                if let itemRenderer = settings.itemRenderer {
                     bar.itemRenderer = itemRenderer
                 }
                 if let action {
@@ -160,11 +161,21 @@
                 }
 
                 // Wired once, through the coordinator: it always holds the latest `BN.TabBar`, so
-                // these never go stale and never need re-assigning.
+                // these never go stale and never need re-assigning. The bar speaks in ids, the host
+                // in values, and the coordinator's bar translates.
                 let coordinator = context.coordinator
-                bar.onSelect = { coordinator.parent.selection = $0 }
-                bar.onReselect = { coordinator.parent.onReselect?($0) }
-                bar.onMultiTap = { coordinator.parent.onMultiTap?($0, $1) }
+                bar.onSelect = { id in
+                    guard let value = coordinator.parent.ids.value(for: id) else { return }
+                    coordinator.parent.selection = value
+                }
+                bar.onReselect = { id in
+                    guard let value = coordinator.parent.ids.value(for: id) else { return }
+                    coordinator.parent.onReselect?(value)
+                }
+                bar.onMultiTap = { id, count in
+                    guard let value = coordinator.parent.ids.value(for: id) else { return }
+                    coordinator.parent.onMultiTap?(value, count)
+                }
                 bar.onAction = { coordinator.parent.onAction?() }
                 bar.onEffectiveHeightChange = { height in
                     DispatchQueue.main.async {
@@ -180,25 +191,30 @@
             public func updateUIView(_ bar: BNTabBarView, context: Context) {
                 let coordinator = context.coordinator
                 coordinator.parent = self
+                let settings = settings(in: context.environment)
+                let ids = ids
                 let animated = !context.transaction.disablesAnimations
 
                 // The bar's setters rebuild without comparing, so each is guarded here. Items go
                 // first: a section that disappears takes the selection with it, and the binding is
                 // applied to what remains.
+                let items = items(ids)
                 if bar.items != items {
                     bar.items = items
                 }
+                let configuration = settings.configuration
                 if bar.configuration != configuration {
                     bar.configuration = configuration
                 }
+                let theme = settings.theme ?? .standard
                 if bar.theme != theme {
                     bar.theme = theme
                 }
                 if bar.action != action {
                     bar.action = action
                 }
-                if bar.selectedID != selection {
-                    bar.setSelectedID(selection, animated: animated)
+                if let id = ids.id(for: selection), bar.selectedID != id {
+                    bar.setSelectedID(id, animated: animated)
                 }
                 bar.setPresentation(presentation, animated: animated)
                 applyLongPress(to: bar, coordinator: coordinator)
@@ -225,12 +241,33 @@
 
             // MARK: - Internals
 
+            /// The sections' ids for the bar. The "More" section's id is kept out of them.
+            var ids: BNTabBarValueIDs<Value> {
+                BNTabBarValueIDs(tabs.map(\.value), reserving: [BNTabBarConfiguration().moreItem.id])
+            }
+
+            private func items(_ ids: BNTabBarValueIDs<Value>) -> [BNTabBarItem] {
+                zip(tabs, ids.ids).map { tab, id in tab.item(id: id) }
+            }
+
+            /// The environment's settings with this bar's own laid over them.
+            private func settings(in environment: EnvironmentValues) -> BNTabBarEnvironment {
+                var settings = environment.bnTabBar
+                for adjustment in adjustments {
+                    adjustment(&settings)
+                }
+                return settings
+            }
+
             /// Set only when whether there is a handler changes: the setter republishes the VoiceOver
             /// action on every section.
             private func applyLongPress(to bar: BNTabBarView, coordinator: Coordinator) {
                 let wantsLongPress = onLongPress != nil
                 guard (bar.onLongPress != nil) != wantsLongPress else { return }
-                bar.onLongPress = wantsLongPress ? { id, _ in coordinator.parent.onLongPress?(id) } : nil
+                bar.onLongPress = wantsLongPress ? { id, _ in
+                    guard let value = coordinator.parent.ids.value(for: id) else { return }
+                    coordinator.parent.onLongPress?(value)
+                } : nil
             }
 
             private func applyAccessory(to bar: BNTabBarView, context: Context) {
@@ -260,12 +297,14 @@
     }
 
     extension BN.TabBar {
+        /// Holds the latest bar for the closures wired once, and the hosted accessory between
+        /// updates.
         public final class Coordinator {
-            var parent: BN.TabBar
+            var parent: BN.TabBar<Value>
             var accessoryHost: BNHostingView<AnyView>?
             var accessoryShape: AccessoryShape?
 
-            init(parent: BN.TabBar) {
+            init(parent: BN.TabBar<Value>) {
                 self.parent = parent
             }
         }

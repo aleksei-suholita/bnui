@@ -76,6 +76,23 @@ animated.contentRenderer = BNCustomViewContentRenderer { PulsingGlyphView() }
 An icon on its own carries no words, so it owes VoiceOver a label — the control asserts on
 that rather than shipping a silent button.
 
+## Events
+
+``BNButton/onTap`` is the action, and a `UIControl` target hears the same moment as
+`.primaryActionTriggered`. That is the event to bind an action to: the keyboard, VoiceOver and
+Switch Control press the button without a touch, and they send the action alone.
+
+```swift
+finish.addAction(UIAction { _ in session.finish() }, for: .primaryActionTriggered)
+```
+
+A finger's touch also sends the standard touch events — `.touchDown` and `.touchDownRepeat`,
+the drags with their enter and exit, and one ending: `.touchUpInside`, `.touchUpOutside` or
+`.touchCancel`. `.touchUpInside` comes only with the action, so a target bound to it cannot
+slip past what stops the action: a lift the cooldown swallows, or one on a button that turned
+`disabled` or `loading` under the finger, ends as `.touchCancel`. A touch the button never
+accepted sends no touch events at all; ``BNButton/onRejected`` reports the refusal.
+
 ## State
 
 `loading` and `disabled` belong to the host; the control never starts work of its own.
@@ -167,6 +184,7 @@ The guarantees the control keeps whatever the theme asks for:
 - ``BNButton/onTap``
 - ``BNButton/onTouchDown``
 - ``BNButton/onTouchUp``
+- ``BNButton/onTouchCancel``
 - ``BNButtonHaptics``
 
 ### Drive its state

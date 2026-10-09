@@ -14,6 +14,15 @@
     /// let button = BNButton(content: .title("Finish"), style: .primary)
     /// button.onTap = { session.finish() }
     /// ```
+    ///
+    /// Targets hear it as they would any `UIControl`. The action is `.primaryActionTriggered`,
+    /// sent with ``onTap`` — bind to it rather than to `.touchUpInside`, because the keyboard,
+    /// VoiceOver and Switch Control press the button without a touch and send the action alone.
+    /// A finger's touch also sends the standard touch events, ending in exactly one of
+    /// `.touchUpInside`, `.touchUpOutside` and `.touchCancel`. `.touchUpInside` comes only with
+    /// the action: a lift the cooldown swallows, or one on a button that turned disabled or
+    /// loading under the finger, ends as `.touchCancel`. A touch the button never accepted sends
+    /// no touch events; ``onRejected`` reports the refusal.
     public final class BNButton: UIControl {
         // MARK: - Content and composition
 
@@ -112,14 +121,17 @@
             get { super.isEnabled }
             set {
                 super.isEnabled = newValue
-                // `loading` survives the flag: a host toggling `isEnabled` on a loading button
-                // meant "enabled", not "stop loading".
-                let target: BNButtonStatus = newValue ? (status == .loading ? .loading : .enabled) : .disabled
+                guard statusFollowsEnabledFlag else { return }
+                let target = status.settingEnabledFlag(newValue)
                 if status != target {
                     status = target
                 }
             }
         }
+
+        /// Whether setting ``isEnabled`` moves ``status``. The SwiftUI face turns it off: it works
+        /// the status out itself, and SwiftUI writes the flag on its own.
+        var statusFollowsEnabledFlag = true
 
         public var isLoading: Bool {
             status == .loading
@@ -137,9 +149,15 @@
         /// The finger lifted inside. Every such lift is reported; guarding against double taps is
         /// the host's job, as the contract says.
         public var onTap: (() -> Void)?
+        /// The button accepted a touch. Exactly one ``onTouchUp`` or ``onTouchCancel`` follows; a
+        /// touch the button does not accept — disabled, loading — reports none of the three.
         public var onTouchDown: (() -> Void)?
-        /// `true` when the finger lifted inside the touch area.
+        /// The finger lifted: `true` inside, together with the action, `false` outside. A lift
+        /// inside that does not fire ends in ``onTouchCancel`` instead, as `.touchUpInside` does.
         public var onTouchUp: ((Bool) -> Void)?
+        /// The touch ended without a lift that counts: the system took it, the button turned
+        /// disabled or loading under the finger, or the cooldown swallowed the lift.
+        public var onTouchCancel: (() -> Void)?
         /// A touch landed on the button while it was disabled and was refused.
         ///
         /// Worth reporting rather than swallowing: the control can say "no", but only the host
@@ -316,6 +334,7 @@
         /// Tracking is declined on purpose: every touch arrives through `pressRecognizer` instead.
         /// Tracking starts only for a touch that lands on the button itself — the margin the hit area
         /// adds — and accepting it there would run the whole state machine twice for one finger.
+        /// The touch events tracking would have sent come from the recognizer's phases instead.
         override public func beginTracking(_: UITouch, with _: UIEvent?) -> Bool {
             false
         }

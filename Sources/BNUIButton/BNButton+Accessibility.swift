@@ -73,8 +73,11 @@
 
         /// Rebuilding tears down the views, and doing that under a finger cancels the touch. An
         /// accessibility switch is not an interaction, so it waits for the finger to lift.
+        ///
+        /// The interaction is asked rather than `isTracking`: the button declines `UIControl`
+        /// tracking, so `isTracking` is always false.
         func rebuildForEnvironment() {
-            guard !isTracking else {
+            guard interaction.downTime == nil else {
                 pendingEnvironmentRebuild = true
                 return
             }

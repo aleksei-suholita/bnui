@@ -126,10 +126,23 @@
             ])
         }
 
+        /// The feed shows what a `UIControl` target hears, so the touch events are checked on the
+        /// bench. The drags inside and outside are left out: they come on every move and would
+        /// push everything else off the feed.
         private func wireEvents() {
-            button.onTouchDown = { [weak self] in self?.log("down") }
-            button.onTouchUp = { [weak self] inside in self?.log(inside ? "up inside" : "up outside") }
-            button.onTap = { [weak self] in self?.log("tap") }
+            let reported: [(event: UIControl.Event, name: String)] = [
+                (.touchDown, "touchDown"),
+                (.touchDownRepeat, "touchDownRepeat"),
+                (.touchDragEnter, "touchDragEnter"),
+                (.touchDragExit, "touchDragExit"),
+                (.touchUpInside, "touchUpInside"),
+                (.touchUpOutside, "touchUpOutside"),
+                (.touchCancel, "touchCancel"),
+                (.primaryActionTriggered, "primaryActionTriggered"),
+            ]
+            for entry in reported {
+                button.addAction(UIAction { [weak self] _ in self?.log(entry.name) }, for: entry.event)
+            }
             button.onRejected = { [weak self] in self?.log("rejected") }
         }
 

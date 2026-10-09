@@ -200,3 +200,89 @@ struct BNButtonInteractionTests {
         #expect(!moved.didFire)
     }
 }
+
+@Suite("BNButtonInteraction control events")
+struct BNButtonInteractionControlEventsTests {
+    @Test
+    func `a tap sends a touch down and a touch up inside`() {
+        var interaction = BNButtonInteraction()
+        #expect(interaction.handle(.down(at: 0), status: .enabled).controlEvents == .touchDown)
+        let release = interaction.handle(.up(inside: true, at: 0.1), status: .enabled)
+        #expect(release.controlEvents == .touchUpInside)
+        #expect(release.didFire)
+    }
+
+    @Test
+    func `a drag reports where the finger is and the crossing once`() {
+        var interaction = BNButtonInteraction()
+        _ = interaction.handle(.down(at: 0), status: .enabled)
+        #expect(interaction.handle(.moved(inside: true), status: .enabled).controlEvents == .touchDragInside)
+        #expect(interaction.handle(.moved(inside: false), status: .enabled).controlEvents == [.touchDragOutside, .touchDragExit])
+        #expect(interaction.handle(.moved(inside: false), status: .enabled).controlEvents == .touchDragOutside)
+        #expect(interaction.handle(.moved(inside: true), status: .enabled).controlEvents == [.touchDragInside, .touchDragEnter])
+    }
+
+    @Test
+    func `releasing outside sends a touch up outside`() {
+        var interaction = BNButtonInteraction()
+        _ = interaction.handle(.down(at: 0), status: .enabled)
+        _ = interaction.handle(.moved(inside: false), status: .enabled)
+        #expect(interaction.handle(.up(inside: false, at: 0.2), status: .enabled).controlEvents == .touchUpOutside)
+    }
+
+    @Test
+    func `a touch the system takes away ends cancelled`() {
+        var interaction = BNButtonInteraction()
+        _ = interaction.handle(.down(at: 0), status: .enabled)
+        #expect(interaction.handle(.cancelled, status: .enabled).controlEvents == .touchCancel)
+        // Nothing left to cancel the second time.
+        #expect(interaction.handle(.cancelled, status: .enabled).controlEvents.isEmpty)
+    }
+
+    @Test(arguments: [BNButtonStatus.disabled, .loading])
+    func `a touch the button never accepted sends nothing`(status: BNButtonStatus) {
+        // As on a disabled system control. The refusal has its own report, `didReject`.
+        var interaction = BNButtonInteraction()
+        #expect(interaction.handle(.down(at: 0), status: status).controlEvents.isEmpty)
+        #expect(interaction.handle(.moved(inside: false), status: status).controlEvents.isEmpty)
+        #expect(interaction.handle(.up(inside: true, at: 0.1), status: status).controlEvents.isEmpty)
+    }
+
+    @Test(arguments: [BNButtonStatus.disabled, .loading])
+    func `a button that stops accepting under the finger ends the touch cancelled`(status: BNButtonStatus) {
+        var interaction = BNButtonInteraction()
+        _ = interaction.handle(.down(at: 0), status: .enabled)
+        #expect(interaction.handle(.moved(inside: true), status: status).controlEvents == .touchCancel)
+        // Ended once: the lift that follows has nothing left to end.
+        #expect(interaction.handle(.up(inside: true, at: 0.1), status: .enabled).controlEvents.isEmpty)
+    }
+
+    @Test
+    func `a lift the cooldown swallows ends cancelled, not up inside`() {
+        // `touchUpInside` comes only with the action, so a target bound to it cannot slip past
+        // the barrier.
+        var interaction = BNButtonInteraction(cooldown: 0.5)
+        _ = interaction.handle(.down(at: 0), status: .enabled)
+        _ = interaction.handle(.up(inside: true, at: 0.05), status: .enabled)
+        _ = interaction.handle(.down(at: 0.1), status: .enabled)
+        let swallowed = interaction.handle(.up(inside: true, at: 0.15), status: .enabled)
+        #expect(!swallowed.didFire)
+        #expect(swallowed.controlEvents == .touchCancel)
+    }
+
+    @Test
+    func `a press that replaces a press cancels the first`() {
+        // An activation without a finger runs a press of its own; the finger's touch must not
+        // be left without an ending.
+        var interaction = BNButtonInteraction()
+        _ = interaction.handle(.down(at: 0), status: .enabled)
+        #expect(interaction.handle(.down(at: 0.1), status: .enabled).controlEvents == [.touchCancel, .touchDown])
+    }
+
+    @Test
+    func `a release without a press sends nothing`() {
+        var interaction = BNButtonInteraction()
+        #expect(interaction.handle(.up(inside: true, at: 0.1), status: .enabled).controlEvents.isEmpty)
+        #expect(interaction.handle(.moved(inside: true), status: .enabled).controlEvents.isEmpty)
+    }
+}

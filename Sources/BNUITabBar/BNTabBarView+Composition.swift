@@ -165,6 +165,31 @@
             refreshLongPressActions()
         }
 
+        /// Shows new badges on the sections already built, when nothing but badges changed.
+        /// `false` when anything else did, or when a renderer cannot draw a badge in place — the
+        /// caller rebuilds then.
+        func updateBadgesInPlace(from oldItems: [BNTabBarItem]) -> Bool {
+            guard !baseItemViews.isEmpty,
+                  oldItems.count == items.count,
+                  zip(oldItems, items).allSatisfy({ old, new in new.differsOnlyInBadge(from: old) })
+            else { return false }
+            let slots = Array(visibleItems) + (moreSlotIndex == nil ? [] : [moreSlotItem])
+            guard slots.count == baseItemViews.count, slots.count == selectedItemViews.count else { return false }
+
+            // The pop is decoration, so Reduce Motion shows the new badge at once.
+            let transition: BNTransition = UIAccessibility.isReduceMotionEnabled
+                ? .immediate
+                : .spring(activeTheme.motion.itemAccent)
+            for (index, item) in slots.enumerated() {
+                guard baseItemViews[index].updateBadge(item.badge, transition: transition),
+                      selectedItemViews[index].updateBadge(item.badge, transition: transition)
+                else { return false }
+            }
+            // More's spoken value names the badges behind it, so it is said anew.
+            refreshAccessibilitySelection()
+            return true
+        }
+
         func buildItems(in lens: any BNTabBarLens) {
             let renderer = itemRenderer
                 ?? BNStandardTabBarItemRenderer(theme: activeTheme, labelMode: configuration.labelMode)
@@ -175,7 +200,7 @@
 
             // More is drawn by the same renderer as a section, so the lens marks it and a crowded
             // bar shrinks it like any other slot.
-            let slots = Array(visibleItems) + (moreSlotIndex == nil ? [] : [configuration.moreItem])
+            let slots = Array(visibleItems) + (moreSlotIndex == nil ? [] : [moreSlotItem])
             for item in slots {
                 let base = renderer.makeItemView(for: item, layer: .base)
                 baseItemViews.append(base)
@@ -245,12 +270,14 @@
         }
 
         /// The sections behind More. The active one is ticked; a badge has no place of its own in
-        /// a system menu, so it goes under the title.
+        /// a system menu, so it goes under the title — a dot as its words, since a menu cannot
+        /// draw one.
         private func overflowMenuActions() -> [UIMenuElement] {
-            overflowItems.map { item in
+            let limit = activeTheme.geometry.badgeCountLimit
+            return overflowItems.map { item in
                 UIAction(
                     title: item.title,
-                    subtitle: item.badge,
+                    subtitle: item.badge?.menuText(countLimit: limit),
                     image: item.icon.templateImage,
                     state: item.id == selectedID ? .on : .off,
                 ) { [weak self] _ in

@@ -57,6 +57,11 @@
         ///   - theme: looks — colours, geometry, type and motion.
         ///   - margin: inset of the floating capsule from the safe-area edges.
         ///   - contentGap: distance kept between the bar and the content it must never cover.
+        ///   - material: the bar's surface, as ``BNTabBarView/material``.
+        ///   - lensRenderer: the selection lens, as ``BNTabBarView/lensRenderer``.
+        ///   - itemRenderer: draws the sections, as ``BNTabBarView/itemRenderer``; `nil` keeps the
+        ///     bar's own.
+        ///   - haptics: the bar's haptics, as ``BNTabBarView/haptics``.
         public init(
             tabs: [Tab],
             action: BNTabBarAction? = nil,
@@ -64,15 +69,30 @@
             theme: BNTabBarTheme = BNTabBarTheme(),
             margin: CGFloat = 16,
             contentGap: CGFloat = 16,
+            material: any BNTabBarMaterial = BNTabBarView.standardMaterial,
+            lensRenderer: any BNTabBarLensRenderer = BNMaskedLensRenderer(),
+            itemRenderer: (any BNTabBarItemRenderer)? = nil,
+            haptics: BNTabBarHaptics = BNTabBarHaptics(),
         ) {
             precondition(!tabs.isEmpty, "BNTabBarContainerViewController needs at least one tab")
             self.tabs = tabs
             barMargin = margin
             barContentGap = contentGap
-            tabBar = BNTabBarView(items: tabs.map(\.item), configuration: configuration, theme: theme)
+            tabBar = BNTabBarView(
+                items: tabs.map(\.item),
+                configuration: configuration,
+                theme: theme,
+                material: material,
+                lensRenderer: lensRenderer,
+                haptics: haptics,
+            )
             super.init(nibName: nil, bundle: nil)
             // Set after `super.init` rather than through the initialiser: an action fixes the bar's
             // composition (sections leading, action trailing), and the bar rebuilds itself for it.
+            // The item renderer rebuilds it too, so an absent one is not set at all.
+            if let itemRenderer {
+                tabBar.itemRenderer = itemRenderer
+            }
             tabBar.action = action
         }
 

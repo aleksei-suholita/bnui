@@ -51,14 +51,21 @@
         /// What VoiceOver hears as selected — the selection itself, not the drawing of it: under a
         /// revealing lens every base copy is drawn unselected. With a section chosen behind More,
         /// More is the selected tab and says which section that is.
+        ///
+        /// More also says what its dot stands for: each badged section behind it, by name, with
+        /// the badge's own words — "Inbox: 3 unread". The words are the host's; the kit adds none.
         func refreshAccessibilitySelection() {
             for (index, view) in baseItemViews.enumerated() {
                 view.accessibilityTraits = index == selectedIndex ? [.button, .selected] : .button
             }
             guard let moreSlotIndex, baseItemViews.indices.contains(moreSlotIndex) else { return }
-            baseItemViews[moreSlotIndex].accessibilityValue = overflowItems
-                .first { $0.id == selectedID }?
-                .accessibilityLabel
+            let limit = activeTheme.geometry.badgeCountLimit
+            let selected = overflowItems.first { $0.id == selectedID }?.accessibilityLabel
+            let badges = overflowItems.compactMap { item in
+                item.badge?.spokenText(countLimit: limit).map { "\(item.accessibilityLabel): \($0)" }
+            }
+            let value = ([selected].compactMap(\.self) + badges).joined(separator: ", ")
+            baseItemViews[moreSlotIndex].accessibilityValue = value.isEmpty ? nil : value
         }
 
         /// The marker wraps its section with the capsule's own padding and spans the full bar

@@ -15,8 +15,13 @@
         private let itemLayer: BNTabBarItemLayer
         private let titleLabel = UILabel()
         private let badgeLabel = BNBadgeLabel()
+        private let badgeDot = UIView()
         private let imageView = UIImageView()
         private var isSelected = false
+        /// The badge on show — the item's at first, then whatever the bar updated it to in place.
+        private var badge: BNTabBarBadge?
+        /// The badge's pop in or out, kept so the next change can take it over mid-flight.
+        private var badgeAnimation: BNAnimation?
 
         init(
             item: BNTabBarItem,
@@ -102,6 +107,11 @@
             }
         }
 
+        func updateBadge(_ badge: BNTabBarBadge?, transition: BNTransition) -> Bool {
+            showBadge(badge, transition: transition)
+            return true
+        }
+
         func measure() -> BNTabBarLayoutSolver.ItemMeasure {
             // Measured from content, not from `systemLayoutSizeFitting`: the solver drives the
             // width constraint, so measuring through it would just echo the answer back. The
@@ -164,8 +174,9 @@
                 stack.bottomAnchor.constraint(lessThanOrEqualTo: bottomAnchor),
             ])
 
-            buildBadgeIfNeeded()
+            buildBadge()
             configureAccessibility()
+            showBadge(item.badge, transition: .immediate)
         }
 
         private func shouldHideLabel(state: BNTabBarItemState) -> Bool {
@@ -177,24 +188,128 @@
             }
         }
 
-        private func buildBadgeIfNeeded() {
-            guard let badge = item.badge else { return }
-            badgeLabel.text = badge
+        // MARK: - Badge
+
+        /// Both kinds of badge are made once, hidden, so that a badge arriving later — or changing
+        /// kind — is shown in place instead of the view being made again.
+        private func buildBadge() {
             badgeLabel.font = theme.typography.badge
             badgeLabel.adjustsFontForContentSizeCategory = true
+            badgeLabel.maximumContentSizeCategory = theme.typography.badgeMaximumContentSizeCategory
             badgeLabel.textColor = theme.palette.badgeText
             badgeLabel.backgroundColor = theme.palette.badgeBackground
             badgeLabel.textAlignment = .center
             badgeLabel.bnApplyCapsule()
             badgeLabel.clipsToBounds = true
-            badgeLabel.translatesAutoresizingMaskIntoConstraints = false
-            addSubview(badgeLabel)
+
+            badgeDot.backgroundColor = theme.palette.badgeBackground
+            badgeDot.bnApplyCapsule()
+
+            for view in [badgeLabel, badgeDot] {
+                view.isHidden = true
+                view.isUserInteractionEnabled = false
+                view.translatesAutoresizingMaskIntoConstraints = false
+                addSubview(view)
+            }
+            let geometry = theme.geometry
             NSLayoutConstraint.activate([
-                // Perched on the icon's top-trailing corner, the way a badge is expected to sit.
-                badgeLabel.centerXAnchor.constraint(equalTo: imageView.trailingAnchor),
+                // Pinned by its leading edge just inside the icon's top-trailing corner: a longer
+                // badge grows away from the glyph instead of over it.
+                badgeLabel.leadingAnchor.constraint(equalTo: imageView.trailingAnchor, constant: -geometry.badgeOverlap),
                 badgeLabel.centerYAnchor.constraint(equalTo: imageView.topAnchor),
                 badgeLabel.widthAnchor.constraint(greaterThanOrEqualTo: badgeLabel.heightAnchor),
+                // A dot does not grow, so it sits centred on the corner itself.
+                badgeDot.centerXAnchor.constraint(equalTo: imageView.trailingAnchor),
+                badgeDot.centerYAnchor.constraint(equalTo: imageView.topAnchor),
+                badgeDot.widthAnchor.constraint(equalToConstant: geometry.badgeDotSide),
+                badgeDot.heightAnchor.constraint(equalTo: badgeDot.widthAnchor),
             ])
+        }
+
+        private func showBadge(_ newBadge: BNTabBarBadge?, transition: BNTransition) {
+            let limit = theme.geometry.badgeCountLimit
+            let old = badge?.appearance(countLimit: limit)
+            let new = newBadge?.appearance(countLimit: limit)
+            badge = newBadge
+            refreshBadgeAccessibility()
+            guard old != new else { return }
+
+            badgeAnimation?.interrupt()
+            switch new {
+            case let .text(text)?:
+                if case .text? = old {
+                    changeBadgeText(to: text, transition: transition)
+                } else {
+                    badgeLabel.text = text
+                    hideBadgeView(badgeDot, transition: transition)
+                    showBadgeView(badgeLabel, transition: transition)
+                }
+            case .dot?:
+                hideBadgeView(badgeLabel, transition: transition)
+                showBadgeView(badgeDot, transition: transition)
+            case nil:
+                hideBadgeView(badgeLabel, transition: transition)
+                hideBadgeView(badgeDot, transition: transition)
+            }
+        }
+
+        /// A badge arriving pops in from the theme's appear scale.
+        private func showBadgeView(_ view: UIView, transition: BNTransition) {
+            view.isHidden = false
+            guard transition != .immediate else {
+                view.alpha = 1
+                view.transform = .identity
+                return
+            }
+            let scale = theme.geometry.badgeAppearScale
+            view.alpha = 0
+            view.transform = CGAffineTransform(scaleX: scale, y: scale)
+            badgeAnimation = transition.run {
+                view.alpha = 1
+                view.transform = .identity
+            }
+        }
+
+        /// A badge leaving shrinks back the way it came. Hidden only once the animation reached
+        /// its end: one taken over by a badge arriving again must not hide the new one.
+        private func hideBadgeView(_ view: UIView, transition: BNTransition) {
+            guard !view.isHidden else { return }
+            guard transition != .immediate else {
+                view.isHidden = true
+                return
+            }
+            let scale = theme.geometry.badgeAppearScale
+            badgeAnimation = transition.run {
+                view.alpha = 0
+                view.transform = CGAffineTransform(scaleX: scale, y: scale)
+            } completion: { finished in
+                guard finished else { return }
+                view.isHidden = true
+                view.transform = .identity
+            }
+        }
+
+        /// A number changing cross-fades, and the capsule follows the new width.
+        private func changeBadgeText(to text: String, transition: BNTransition) {
+            guard transition != .immediate else {
+                badgeLabel.text = text
+                return
+            }
+            UIView.transition(
+                with: badgeLabel,
+                duration: theme.motion.crossFade.duration,
+                options: [.transitionCrossDissolve, .allowUserInteraction],
+            ) { [badgeLabel] in
+                badgeLabel.text = text
+            }
+            transition.run { [weak self] in
+                self?.layoutIfNeeded()
+            }
+        }
+
+        private func refreshBadgeAccessibility() {
+            guard itemLayer == .base else { return }
+            accessibilityValue = badge?.spokenText(countLimit: theme.geometry.badgeCountLimit)
         }
 
         private func configureAccessibility() {
@@ -207,9 +322,6 @@
             isAccessibilityElement = true
             accessibilityTraits = .button
             accessibilityLabel = item.accessibilityLabel
-            if let badge = item.badge {
-                accessibilityValue = badge
-            }
         }
     }
 #endif

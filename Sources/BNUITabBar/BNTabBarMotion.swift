@@ -19,9 +19,10 @@ public nonisolated struct BNTabBarMotion: Equatable, Sendable {
     public var unlift: BNSpring
     /// Showing and hiding the whole bar.
     public var visibility: BNCurve
-    /// Alpha and blur inside an item, and the sections fading to the glass's light or dark look.
+    /// Alpha and blur inside an item, the sections fading to the glass's light or dark look, and
+    /// a badge's number changing.
     public var crossFade: BNCurve
-    /// The accent an item plays at the moment it becomes selected.
+    /// The accent an item plays at the moment it becomes selected, and a badge popping in or out.
     public var itemAccent: BNSpring
 
     public init(

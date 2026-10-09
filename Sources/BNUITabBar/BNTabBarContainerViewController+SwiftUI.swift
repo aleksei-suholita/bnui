@@ -8,11 +8,15 @@
         /// `TabView`.
         ///
         /// ```swift
-        /// BN.TabView(selection: $tab, tabs: [
-        ///     .init(item: BNTabBarItem(id: "home", icon: .symbol("house"), title: "Home")) { HomeView() },
-        ///     .init(item: BNTabBarItem(id: "stats", icon: .symbol("chart.bar"), title: "Stats")) { StatsView() },
-        /// ])
-        /// .onAction { startSomething() }
+        /// enum Section { case home, stats }
+        /// @State private var section = Section.home
+        ///
+        /// BN.TabView(selection: $section) {
+        ///     BN.Tab("Home", systemImage: "house", value: .home) { HomeView() }
+        ///         .badge(2)
+        ///     BN.Tab("Stats", systemImage: "chart.bar", value: .stats) { StatsView() }
+        /// }
+        /// .action(BNTabBarAction(icon: .symbol("plus"), accessibilityLabel: "New")) { startSomething() }
         /// ```
         ///
         /// Each tab's content lives in a hosting controller of its own, kept for the container's life:
@@ -20,70 +24,65 @@
         /// stacks survive the round trip. The content keeps clear of the floating bar through its
         /// safe area, which the container grows by the bar's measured height.
         ///
-        /// The set of tabs is fixed per container. A different list of ids makes a new container —
+        /// The set of tabs is fixed per container. A different list of values makes a new container —
         /// the content state of every tab goes with the old one — while a changed badge or title
-        /// only redraws the bar. The configuration, theme, margin and gap are read when the
-        /// container is made.
+        /// only redraws the bar. Whatever the `bnTabBar…` and `bnTabView…` modifiers set is read
+        /// when the container is made.
         ///
         /// The SwiftUI environment reaches the tabs: it is handed across the hosting controllers,
         /// which do not pass it on by themselves.
-        struct TabView: View {
-            @Binding public var selection: String
-            public let tabs: [Tab]
-            /// Swappable while the container lives, as in UIKit: an action that changes meaning with
-            /// the app's state does not throw the tabs away.
-            public var action: BNTabBarAction?
-            let configuration: BNTabBarConfiguration
-            let theme: BNTabBarTheme
-            let margin: CGFloat
-            let contentGap: CGFloat
+        struct TabView<Value: Hashable>: View {
+            @Binding var selection: Value
+            let tabs: [BN.Tab<Value, AnyView>]
+            var adjustments: [(inout BNTabBarEnvironment) -> Void] = []
+            var action: BNTabBarAction?
             var onAction: (() -> Void)?
-            var onMultiTap: ((String, Int) -> Void)?
+            var onMultiTap: ((Value, Int) -> Void)?
 
             /// - Parameters:
-            ///   - selection: the ID of the tab on screen. The bar writes it when the user switches,
-            ///     and writing it from outside switches the tab.
-            ///   - tabs: the tabs in bar order, each a bar item and the view shown when it is selected.
-            ///   - action: the button beside the sections. Tapping it is reported, never selected.
-            ///   - configuration: composition — where the capsule sits, whether labels show.
-            ///   - theme: looks — colours, geometry, type and motion.
-            ///   - margin: inset of the floating capsule from the safe-area edges.
-            ///   - contentGap: distance kept between the bar and the content it must never cover.
+            ///   - selection: the value of the tab on screen. The bar writes it when the user
+            ///     switches, and writing it from outside switches the tab.
+            ///   - content: the tabs in bar order, each with the screen it shows.
             public init(
-                selection: Binding<String>,
-                tabs: [Tab],
-                action: BNTabBarAction? = nil,
-                configuration: BNTabBarConfiguration = BNTabBarConfiguration(),
-                theme: BNTabBarTheme = .standard,
-                margin: CGFloat = 16,
-                contentGap: CGFloat = 16,
+                selection: Binding<Value>,
+                @BN.TabContentBuilder < Value> content: () -> [BN.Tab<Value, AnyView>],
             ) {
                 _selection = selection
-                self.tabs = tabs
-                self.action = action
-                self.configuration = configuration
-                self.theme = theme
-                self.margin = margin
-                self.contentGap = contentGap
+                tabs = content()
             }
 
-            /// The bar's action button was tapped. Never a selection.
-            public func onAction(_ handler: @escaping () -> Void) -> Self {
+            /// The button beside the sections and what a tap on it does. Never a selection.
+            /// Swappable while the container lives, as in UIKit: an action that changes meaning with
+            /// the app's state does not throw the tabs away. `nil` takes the button away.
+            public func action(_ action: BNTabBarAction?, perform handler: @escaping () -> Void) -> Self {
                 var copy = self
+                copy.action = action
                 copy.onAction = handler
                 return copy
             }
 
-            /// A run of taps on one section: its id and the position in the run (1, 2, 3…).
-            public func onMultiTap(_ handler: @escaping (String, Int) -> Void) -> Self {
+            /// A run of taps on one section: its value and the position in the run (1, 2, 3…).
+            public func onMultiTap(_ handler: @escaping (Value, Int) -> Void) -> Self {
                 var copy = self
                 copy.onMultiTap = handler
                 return copy
             }
 
+            /// Records a modifier set on this tab view itself: it is applied over the environment.
+            func adjusting(_ adjustment: @escaping (inout BNTabBarEnvironment) -> Void) -> Self {
+                var copy = self
+                copy.adjustments.append(adjustment)
+                return copy
+            }
+
+            /// The tabs' ids for the bar. The "More" section's id is kept out of them.
+            var ids: BNTabBarValueIDs<Value> {
+                BNTabBarValueIDs(tabs.map(\.value), reserving: [BNTabBarConfiguration().moreItem.id])
+            }
+
             public var body: some View {
                 BNTabViewBridge(container: self)
-                    .id(tabs.map(\.item.id))
+                    .id(tabs.map(\.value))
                     // Full screen, as `TabView` is: the bar pins itself to the safe area, and the tabs'
                     // content reads its own.
                     .ignoresSafeArea()
@@ -91,23 +90,10 @@
         }
     }
 
-    public extension BN.TabView {
-        /// One tab: the bar item to draw and the SwiftUI content shown when it is selected.
-        struct Tab {
-            public let item: BNTabBarItem
-            let content: AnyView
-
-            public init(item: BNTabBarItem, @ViewBuilder content: () -> some View) {
-                self.item = item
-                self.content = AnyView(content())
-            }
-        }
-    }
-
     /// The UIKit bridge under ``BN/TabView``. Kept apart so the public type can
     /// be an ordinary view — the `.id` that rebuilds it for a new set of tabs has to sit outside.
-    struct BNTabViewBridge: UIViewControllerRepresentable {
-        let container: BN.TabView
+    struct BNTabViewBridge<Value: Hashable>: UIViewControllerRepresentable {
+        let container: BN.TabView<Value>
 
         func makeCoordinator() -> Coordinator {
             Coordinator(container: container)
@@ -115,27 +101,44 @@
 
         func makeUIViewController(context: Context) -> BNTabBarContainerViewController {
             let coordinator = context.coordinator
-            let tabs = container.tabs.map { tab in
+            var settings = context.environment.bnTabBar
+            for adjustment in container.adjustments {
+                adjustment(&settings)
+            }
+            let ids = container.ids
+            let tabs = zip(container.tabs, ids.ids).map { tab, id in
                 let host = UIHostingController(rootView: hosted(tab, in: context))
-                coordinator.hosts[tab.item.id] = host
-                return BNTabBarContainerViewController.Tab(item: tab.item, viewController: host)
+                coordinator.hosts[id] = host
+                return BNTabBarContainerViewController.Tab(item: tab.item(id: id), viewController: host)
             }
             let controller = BNTabBarContainerViewController(
                 tabs: tabs,
                 action: container.action,
-                configuration: container.configuration,
-                theme: container.theme,
-                margin: container.margin,
-                contentGap: container.contentGap,
+                configuration: settings.configuration,
+                theme: settings.theme ?? .standard,
+                margin: settings.margin ?? 16,
+                contentGap: settings.contentGap ?? 16,
+                material: settings.material ?? BNTabBarView.standardMaterial,
+                lensRenderer: settings.lensRenderer ?? BNMaskedLensRenderer(),
+                itemRenderer: settings.itemRenderer,
+                haptics: settings.haptics ?? BNTabBarHaptics(),
             )
-            controller.onSelect = { coordinator.container.selection = $0 }
+            // The container speaks in ids, the host in values, and the coordinator's tab view
+            // translates.
+            controller.onSelect = { id in
+                guard let value = coordinator.container.ids.value(for: id) else { return }
+                coordinator.container.selection = value
+            }
             controller.onAction = { coordinator.container.onAction?() }
-            controller.onMultiTap = { coordinator.container.onMultiTap?($0, $1) }
+            controller.onMultiTap = { id, count in
+                guard let value = coordinator.container.ids.value(for: id) else { return }
+                coordinator.container.onMultiTap?(value, count)
+            }
             // The container shows its first tab when its view loads; loading it now lets the
             // binding's tab replace that before anything reaches the screen.
             controller.loadViewIfNeeded()
-            if controller.selectedTabID != container.selection {
-                controller.select(tabID: container.selection, animated: false)
+            if let id = ids.id(for: container.selection), controller.selectedTabID != id {
+                controller.select(tabID: id, animated: false)
             }
             return controller
         }
@@ -143,28 +146,29 @@
         func updateUIViewController(_ controller: BNTabBarContainerViewController, context: Context) {
             let coordinator = context.coordinator
             coordinator.container = container
-            for tab in container.tabs {
-                coordinator.hosts[tab.item.id]?.rootView = hosted(tab, in: context)
+            let ids = container.ids
+            for (tab, id) in zip(container.tabs, ids.ids) {
+                coordinator.hosts[id]?.rootView = hosted(tab, in: context)
             }
-            // Guaranteed the same ids by the `.id` above; redraws only if a badge or title moved.
-            controller.updateItems(container.tabs.map(\.item))
+            // Guaranteed the same values by the `.id` above; redraws only if a badge or title moved.
+            controller.updateItems(zip(container.tabs, ids.ids).map { tab, id in tab.item(id: id) })
             if controller.action != container.action {
                 controller.action = container.action
             }
-            if controller.selectedTabID != container.selection {
-                controller.select(tabID: container.selection, animated: !context.transaction.disablesAnimations)
+            if let id = ids.id(for: container.selection), controller.selectedTabID != id {
+                controller.select(tabID: id, animated: !context.transaction.disablesAnimations)
             }
         }
 
-        private func hosted(_ tab: BN.TabView.Tab, in context: Context) -> AnyView {
-            AnyView(tab.content.environment(\.self, context.environment))
+        private func hosted(_ tab: BN.Tab<Value, AnyView>, in context: Context) -> AnyView {
+            AnyView((tab.content ?? AnyView(EmptyView())).environment(\.self, context.environment))
         }
 
         final class Coordinator {
-            var container: BN.TabView
+            var container: BN.TabView<Value>
             var hosts: [String: UIHostingController<AnyView>] = [:]
 
-            init(container: BN.TabView) {
+            init(container: BN.TabView<Value>) {
                 self.container = container
             }
         }

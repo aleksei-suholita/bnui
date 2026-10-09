@@ -85,6 +85,30 @@ mini player. The control owns its place, its appearance and the height it adds; 
 owns the content. The bar folds the accessory's height into ``BNTabBarView/effectiveHeight``
 and reports it through ``BNTabBarView/onEffectiveHeightChange``, so scroll views stay clear.
 
+## Badges
+
+A section's ``BNTabBarBadge`` is a count, a short text or a dot:
+
+```swift
+BNTabBarItem(id: "inbox", icon: .symbol("tray"), title: "Inbox",
+             badge: .count(unread, accessibilityLabel: "\(unread) unread"))
+BNTabBarItem(id: "news", icon: .symbol("newspaper"), title: "News",
+             badge: .dot(accessibilityLabel: "New posts"))
+```
+
+The bar formats a count: zero or less shows no badge, the user's digits are used, and past
+``BNTabBarMetrics/badgeCountLimit`` it reads "99+". A badge is pinned just inside the icon's
+top-trailing corner and grows away from it, and it follows Dynamic Type only up to the
+theme's ``BNTabBarTheme/Typography/badgeMaximumContentSizeCategory`` — the icon keeps one size.
+
+Changing nothing but badges redraws the badges alone: they pop in and out and a number
+cross-fades, while a finger on the bar keeps its gesture. A custom renderer joins in through
+``BNTabBarItemRendering/updateBadge(_:transition:)``; one that does not is rebuilt as before.
+
+VoiceOver reads a badge in the host's words, or as shown when there are none; a dot always
+brings its own. A section behind More shows its badge as the menu item's subtitle, and More
+wears a dot while any of them has one, naming them in its spoken value.
+
 ## Theming and motion
 
 Every value the bar draws comes from ``BNTabBarTheme`` — geometry, palette, typography, icon
@@ -105,6 +129,7 @@ as "Tab N of M" with its selected state, and a long press is published as a cust
 
 - ``BNTabBarView``
 - ``BNTabBarItem``
+- ``BNTabBarBadge``
 - ``BNTabBarConfiguration``
 
 ### Add slots

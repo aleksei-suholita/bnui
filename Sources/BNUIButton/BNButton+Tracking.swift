@@ -33,26 +33,27 @@
 
         // MARK: - Touch phases
 
-        func handleTouchDown() {
+        func handleTouchDown(tapCount: Int) {
             haptics.prepare()
             let outcome = interaction.handle(.down(at: CACurrentMediaTime()), status: status)
             // The press has to be on screen in the first frame, so it rides the press spring
             // immediately rather than waiting for anything else to settle.
             apply(outcome, transition: .spring(activeTheme.motion.press))
-            if outcome.isPressed {
-                onTouchDown?()
-            }
+            reportTouch(outcome.controlEvents, tapCount: tapCount)
         }
 
         func handleTouchMoved(inside: Bool) {
             let wasPressed = isPressedByTouch
             let outcome = interaction.handle(.moved(inside: inside), status: status)
-            guard outcome.isPressed != wasPressed else { return }
-            // Leaving is not a click, so the return here is the calm one; coming back re-presses.
-            let transition: BNTransition = outcome.isPressed
-                ? .spring(activeTheme.motion.press)
-                : .spring(activeTheme.motion.releaseSlow)
-            apply(outcome, transition: transition)
+            if outcome.isPressed != wasPressed {
+                // Leaving is not a click, so the return here is the calm one; coming back
+                // re-presses.
+                let transition: BNTransition = outcome.isPressed
+                    ? .spring(activeTheme.motion.press)
+                    : .spring(activeTheme.motion.releaseSlow)
+                apply(outcome, transition: transition)
+            }
+            reportTouch(outcome.controlEvents)
         }
 
         func handleTouchUp(inside: Bool) {
@@ -61,7 +62,7 @@
             // press returns calmly. Both come from the same snap the pure state machine measured.
             apply(outcome, transition: .spring(activeTheme.motion.releaseSpring(snap: outcome.snap)))
 
-            onTouchUp?(inside)
+            reportTouch(outcome.controlEvents)
             if outcome.didFire {
                 onTap?()
                 sendActions(for: .primaryActionTriggered)
@@ -72,7 +73,35 @@
         func handleTouchCancelled() {
             let outcome = interaction.handle(.cancelled, status: status)
             apply(outcome, transition: .spring(activeTheme.motion.releaseSlow))
+            reportTouch(outcome.controlEvents)
             applyPendingEnvironmentRebuild()
+        }
+
+        /// Tells the host what the touch did, twice over and in the same words: the closures, then
+        /// the `UIControl` touch events for its targets. Both come from the one rule the interaction
+        /// decided, so they cannot disagree. The button declines `UIControl` tracking, so nothing
+        /// else sends these events.
+        private func reportTouch(_ events: BNButtonInteraction.ControlEvents, tapCount: Int = 1) {
+            // A cancel first: a press that replaced another ends the old touch before it starts.
+            if events.contains(.touchCancel) {
+                onTouchCancel?()
+            }
+            if events.contains(.touchDown) {
+                onTouchDown?()
+            }
+            if events.contains(.touchUpInside) {
+                onTouchUp?(true)
+            }
+            if events.contains(.touchUpOutside) {
+                onTouchUp?(false)
+            }
+
+            var controlEvents = UIControl.Event(events)
+            if controlEvents.contains(.touchDown), tapCount > 1 {
+                controlEvents.insert(.touchDownRepeat)
+            }
+            guard !controlEvents.isEmpty else { return }
+            sendActions(for: controlEvents)
         }
 
         /// Programmatic activation: the keyboard, Switch Control and VoiceOver all arrive here, so
@@ -84,7 +113,10 @@
         func firePrimaryAction() {
             guard status.allowsInteraction else { return }
             let now = CACurrentMediaTime()
-            _ = interaction.handle(.down(at: now), status: status)
+            let press = interaction.handle(.down(at: now), status: status)
+            // There is no finger here, so no touch events of its own — but a finger already on the
+            // button has just lost its touch to this activation, and the host hears it end.
+            reportTouch(press.controlEvents.intersection(.touchCancel))
             let outcome = interaction.handle(.up(inside: true, at: now), status: status)
             guard outcome.didFire else { return }
             haptics.triggered(emphasis: activeStyle.hapticEmphasis)
@@ -134,7 +166,7 @@
         @objc private func bnHandlePress(_ recognizer: BNButtonPressRecognizer) {
             let point = recognizer.location(in: self)
             switch recognizer.state {
-            case .began: handleTouchDown()
+            case .began: handleTouchDown(tapCount: recognizer.tapCount)
             case .changed: handleTouchMoved(inside: containsTouch(point))
             case .ended: handleTouchUp(inside: containsTouch(point))
             case .cancelled, .failed: handleTouchCancelled()
@@ -225,6 +257,26 @@
             shouldRecognizeSimultaneouslyWith _: UIGestureRecognizer,
         ) -> Bool {
             true
+        }
+    }
+
+    private extension UIControl.Event {
+        init(_ events: BNButtonInteraction.ControlEvents) {
+            let pairs: [(BNButtonInteraction.ControlEvents, UIControl.Event)] = [
+                (.touchDown, .touchDown),
+                (.touchDragInside, .touchDragInside),
+                (.touchDragOutside, .touchDragOutside),
+                (.touchDragEnter, .touchDragEnter),
+                (.touchDragExit, .touchDragExit),
+                (.touchUpInside, .touchUpInside),
+                (.touchUpOutside, .touchUpOutside),
+                (.touchCancel, .touchCancel),
+            ]
+            self = pairs.reduce(into: []) { result, pair in
+                if events.contains(pair.0) {
+                    result.insert(pair.1)
+                }
+            }
         }
     }
 #endif

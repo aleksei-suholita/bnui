@@ -37,6 +37,16 @@ public nonisolated struct BNTabBarMetrics: Equatable, Sendable {
     /// How far labels may shrink, all by one factor, before a crowded bar drops them for icons
     /// alone. 1 skips the shrinking and goes straight to icons.
     public var minimumLabelScale: CGFloat
+    /// The largest count a badge shows as is; past it, the limit and a plus — "99+". A cap on the
+    /// badge's width as much as on its number.
+    public var badgeCountLimit: Int
+    /// How far a text badge reaches over the icon from its top-trailing corner. The badge is
+    /// pinned there and grows away from the icon, so a long one never covers the glyph.
+    public var badgeOverlap: CGFloat
+    /// The side of a dot badge, which sits centred on the icon's top-trailing corner.
+    public var badgeDotSide: CGFloat
+    /// The scale a badge pops in from and shrinks back to; 1 makes it only fade.
+    public var badgeAppearScale: CGFloat
 
     /// Height actually used: never below the touch target.
     public var effectiveItemHeight: CGFloat {
@@ -61,6 +71,10 @@ public nonisolated struct BNTabBarMetrics: Equatable, Sendable {
         actionSpacing: CGFloat = 8,
         fillWidthFromSectionCount: Int = 3,
         minimumLabelScale: CGFloat = 0.8,
+        badgeCountLimit: Int = 99,
+        badgeOverlap: CGFloat = 9,
+        badgeDotSide: CGFloat = 8,
+        badgeAppearScale: CGFloat = 0.5,
     ) {
         self.itemHeight = itemHeight
         self.preferredItemWidth = preferredItemWidth
@@ -74,6 +88,10 @@ public nonisolated struct BNTabBarMetrics: Equatable, Sendable {
         self.actionSpacing = actionSpacing
         self.fillWidthFromSectionCount = fillWidthFromSectionCount
         self.minimumLabelScale = minimumLabelScale
+        self.badgeCountLimit = badgeCountLimit
+        self.badgeOverlap = badgeOverlap
+        self.badgeDotSide = badgeDotSide
+        self.badgeAppearScale = badgeAppearScale
     }
 
     public static let standard = BNTabBarMetrics()

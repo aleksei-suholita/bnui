@@ -92,9 +92,14 @@
                     initial: BNTabBarDemoView.Defaults.labels,
                     onChange: { demo.setLabelMode(index: $0) },
                 )),
-                GalleryKnob(label: "Badge", control: .toggle(
+                GalleryKnob(label: "Badge", control: .segmented(
+                    options: ["Off", "Count", "Text", "Dot"],
                     initial: BNTabBarDemoView.Defaults.badge,
-                    onChange: { demo.setBadge($0) },
+                    onChange: { demo.setBadge(index: $0) },
+                )),
+                GalleryKnob(label: "Ticking count", control: .toggle(
+                    initial: false,
+                    onChange: { demo.setTickingBadge($0) },
                 )),
                 GalleryKnob(label: "Symbol effect", control: .segmented(
                     options: ["Bounce", "Pulse", "Wiggle", "Rotate", "Breathe", "Off"],
