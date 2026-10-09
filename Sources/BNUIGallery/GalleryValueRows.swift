@@ -1,4 +1,4 @@
-#if DEBUG && canImport(UIKit)
+#if (DEBUG || GalleryInRelease) && canImport(UIKit)
     import BNUI
     import UIKit
 
@@ -27,11 +27,11 @@
             abs(Double(slider.value) - initial) > span * 0.0005
         }
 
-        init(knob: GalleryKnob, range: ClosedRange<Double>, initial: Double, onChange: @escaping (Double) -> Void) {
+        init(knob: BNGalleryKnob, range: ClosedRange<Double>, initial: Double, onChange: @escaping (Double) -> Void) {
             self.range = range
             self.initial = initial
             self.onChange = onChange
-            decimals = Self.decimals(for: range)
+            decimals = knob.wholeNumbers ? 0 : Self.decimals(for: range)
             super.init(knob: knob)
 
             slider.minimumValue = Float(range.lowerBound)
@@ -67,6 +67,10 @@
 
         private func sliderMoved() {
             var value = Double(slider.value)
+            if knob.wholeNumbers {
+                value = value.rounded()
+                slider.value = Float(value)
+            }
             if abs(value - initial) < span * 0.015 {
                 value = initial
                 slider.value = Float(initial)
@@ -81,7 +85,8 @@
         }
 
         private func set(_ value: Double, animated: Bool) {
-            let clamped = min(max(value, range.lowerBound), range.upperBound)
+            let stepped = knob.wholeNumbers ? value.rounded() : value
+            let clamped = min(max(stepped, range.lowerBound), range.upperBound)
             slider.setValue(Float(clamped), animated: animated)
             isOnInitial = abs(clamped - initial) < span * 0.015
             commit(clamped)
@@ -162,7 +167,7 @@
             selected != initial
         }
 
-        init(knob: GalleryKnob, options: [String], initial: Int, onChange: @escaping (Int) -> Void) {
+        init(knob: BNGalleryKnob, options: [String], initial: Int, onChange: @escaping (Int) -> Void) {
             self.options = options
             self.initial = initial
             self.onChange = onChange

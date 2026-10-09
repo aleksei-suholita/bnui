@@ -1,4 +1,4 @@
-#if DEBUG && canImport(UIKit)
+#if (DEBUG || GalleryInRelease) && canImport(UIKit)
     import BNUI
     import UIKit
 
@@ -8,7 +8,7 @@
     /// Staged the way an app shows it: the bar floats at the bottom of the stage, 16 pt from its
     /// edges, over whatever the stage's backdrop is — a list, photos, a bright or a dark image.
     /// That is where the glass and the label contrast get judged.
-    final class BNTabBarDemoView: UIView, GalleryEventReporting {
+    final class BNTabBarDemoView: UIView, BNGalleryEventReporting {
         enum Defaults {
             static let labels = 0
             static let alignment = 1

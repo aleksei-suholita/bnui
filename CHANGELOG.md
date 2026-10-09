@@ -4,6 +4,50 @@ Every release of BNUI. The kit follows semantic versioning; while it is at 0.x, 
 may break the API and a patch release does not. Each entry lists what is breaking, what is added
 and what is fixed, by product.
 
+## 0.3.0 — 2026-10-09
+
+### Breaking
+
+- `BNUIGallery`: every public type carries the `BN` prefix — `BNGalleryPage`, `BNGalleryKnob`,
+  `BNGalleryViewController`, `BNGalleryPageViewController`, `BNGalleryBackdrop`,
+  `BNGalleryEventReporting`, `BNGalleryEventFeedEdge`.
+- `BNUIGallery`: a page's `fillsDemoArea`, `demoAreaFraction` and `isBackground` are one
+  `layout: BNGalleryLayout` — `.centred`, `.width(at:)`, `.fill(share:)`, `.background`.
+
+### Added
+
+- `BNUIGallery`: `BNGallery.present(_:from:openingPageTitled:animated:)` opens the gallery from
+  any app; `BNGallery.launchPageTitle` reads `-OpenGallery <Title>`; `BNGallery.post(_:)` writes
+  to the event feed of the page on screen.
+- `BNUIGallery`: `BNGalleryDemoPage` — a page from a demo and knobs bound to its properties by
+  key path. A knob reads its starting value off the demo, and Reset writes it back.
+- `BNUIGallery`: `.width(at:)` lays a demo across the stage at its own height — a field in the
+  middle with the screen's margins, a bar at an edge from edge to edge.
+- `BNUIGallery`: `BNGalleryDemoPage(_:presenting:controller:knobs:)` — a page for an alert, a
+  sheet, a popover or a cover. The stage shows a Present button; each tap builds the controller
+  from the props the knobs drive and presents it in the stage's appearance, text size and
+  direction. The feed says when it is presented and when it is gone; Reset dismisses it.
+- `BNUIGallery`: typing into a demo moves the inspector out of the way, so a field or a composer
+  sits on the keyboard; a button in the navigation bar puts the keyboard down.
+- `BNUIGallery`: `BNGalleryDemoPage(_:props:content:knobs:)` — a page for a SwiftUI view drawn
+  from props the knobs drive, `ObservableObject` or, from iOS 17, `@Observable`. The view is
+  hosted by a child controller, so a `.sheet` or an `.alert` inside it presents.
+- `BNUIGallery`: `.states(_:)` on a demo page shows the demo in several named states at once; a
+  knob moves them all, and brought back to its start puts each back in its state.
+- `BNUIGallery`: the stage menu's tools — Width (320, 375 or 430 points, with a compact size
+  class), Animation Speed (×0.5, ×0.25, ×0.1; Core Animation on the stage only), Frame Rate
+  (frames per second and hitches since the page opened) and View Outlines.
+- `BNUIGallery`: the package trait `GalleryInRelease` compiles the gallery in every
+  configuration — for a TestFlight build, or a configuration Xcode does not take for debug by
+  its name. Off by default: without it the gallery is Debug only, as before.
+- `BNUIGallery`: its public API is listed in `api/BNUI.api` with the rest of the kit, so a change
+  to it shows in the diff.
+
+### Fixed
+
+- `BNUIGallery`: on iOS 26 a horizontal swipe anywhere on a page no longer pops it; the content
+  swipe back is switched off along with the edge one.
+
 ## 0.2.0 — 2026-10-09
 
 ### Breaking

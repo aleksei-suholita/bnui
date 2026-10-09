@@ -1,4 +1,4 @@
-#if DEBUG && canImport(UIKit)
+#if (DEBUG || GalleryInRelease) && canImport(UIKit)
     import UIKit
 
     /// The system materials a blur material can be made of: the thickness scale, thinnest first,

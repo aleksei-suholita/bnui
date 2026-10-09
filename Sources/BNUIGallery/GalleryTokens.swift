@@ -1,4 +1,4 @@
-#if DEBUG && canImport(UIKit)
+#if (DEBUG || GalleryInRelease) && canImport(UIKit)
     import BNUI
     import UIKit
 
@@ -71,6 +71,17 @@
         /// A label drawn on top of a filled surface, where the fill stays the same in both themes.
         static var onMedia: UIColor {
             .white
+        }
+
+        /// The stage's view outlines by depth, from the demo's root inward: violet, through
+        /// magenta, to pink.
+        ///
+        /// Those are the hues an interface uses least — blue is the tint, red destruction, green
+        /// and orange status, the neutrals everything else — so an outline is not taken for a line
+        /// of the demo's own. And it is one run of hue, not a cycle of colours: the order of the
+        /// hues is the order of the depths. Deeper than the last, the last.
+        static let outlineDepths: [UIColor] = (0 ..< 7).map { level in
+            UIColor(hue: (268 + CGFloat(level) * 10) / 360, saturation: 0.9, brightness: 1, alpha: 1)
         }
     }
 

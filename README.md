@@ -13,7 +13,7 @@ iOS controls built on UIKit, with a SwiftUI face for each. Alpha.
 Add the package with Swift Package Manager:
 
 ```swift
-.package(url: "https://github.com/aleksei-suholita/bnui.git", exact: "0.2.0")
+.package(url: "https://github.com/aleksei-suholita/bnui.git", exact: "0.3.0")
 ```
 
 Then depend on the whole kit or only on the controls you use:
@@ -24,7 +24,7 @@ Then depend on the whole kit or only on the controls you use:
 | `BNUIButton` | `BNButton` and its SwiftUI face `BN.Button` | `BNUICore` |
 | `BNUITabBar` | `BNTabBarView`, `BNTabBarContainerViewController` and their SwiftUI faces | `BNUIButton` |
 | `BNUICore` | motion, haptics, shapes and materials every control is made of | — |
-| `BNUIGallery` | a debug-only showcase with a page per control | `BNUI` |
+| `BNUIGallery` | a bench with a page per control, open to an app's own pages; Debug, or Release with a trait | `BNUI` |
 
 ```swift
 .target(
@@ -76,6 +76,37 @@ BN.Button("Finish") { session.finish() }
 
 The initializer takes what the control is; looks come from `bn…` modifiers, which reach every
 control beneath them — set a theme once at the root.
+
+### Gallery
+
+`BNUIGallery` is a bench for controls — the kit's and an app's own — with knobs, backdrops, light
+and dark, text sizes and right-to-left. A page is a demo and knobs bound to its properties:
+
+```swift
+#if DEBUG
+import BNUIGallery
+
+let pill = BNGalleryDemoPage("Reaction Pill", symbol: "face.smiling") {
+    ReactionPillView()
+} knobs: { pill in [
+    .slider("Count", \.count, in: 0 ... 999),
+    .toggle("Selected", \.isSelected),
+    .button("Bump") { pill.bump(animated: true) },
+] }
+
+BNGallery.present([pill] + BNUIGalleryPages.all(), from: self)
+#endif
+```
+
+A knob reads where the demo starts and Reset puts it back. `-OpenGallery <Title>` at launch is
+`BNGallery.launchPageTitle`. A page can also present an alert or a sheet (`presenting:`), draw a
+SwiftUI view from props (`props:`) and show every state of a control at once (`.states(_:)`).
+
+The gallery is compiled in Debug. To have it in TestFlight, which is a Release build, enable the
+`GalleryInRelease` trait — `traits: ["GalleryInRelease"]` on the package's line in `Package.swift`,
+or in the package dependency's settings in Xcode 26.4 and later. TestFlight and the App Store get
+the same binary, so with the trait on the gallery ships to the App Store too: keep the way in
+closed at run time.
 
 ## Theming
 

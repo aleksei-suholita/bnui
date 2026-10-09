@@ -1,4 +1,4 @@
-#if DEBUG && canImport(UIKit)
+#if (DEBUG || GalleryInRelease) && canImport(UIKit)
     import BNUI
     import UIKit
 
@@ -7,7 +7,7 @@
     /// The row holds the knob's current value itself, which is what lets the inspector say what
     /// changed and put it back — the widget and the demo together, never one without the other.
     class GalleryKnobRow: UIView {
-        let knob: GalleryKnob
+        let knob: BNGalleryKnob
         /// Tells the inspector the row moved to or from its initial value.
         var onModifiedChange: (() -> Void)?
 
@@ -25,7 +25,7 @@
         /// One dot's width of air after the text: close enough to read as the title's, clear of the glyph.
         private static let markGap: CGFloat = 6
 
-        init(knob: GalleryKnob) {
+        init(knob: BNGalleryKnob) {
             self.knob = knob
             super.init(frame: .zero)
 
@@ -137,7 +137,7 @@
 
     extension GalleryKnobRow {
         /// The row for a knob, or nil for a header — headers become section titles, not rows.
-        static func make(for knob: GalleryKnob) -> GalleryKnobRow? {
+        static func make(for knob: BNGalleryKnob) -> GalleryKnobRow? {
             switch knob.control {
             case let .toggle(initial, onChange):
                 GalleryToggleRow(knob: knob, initial: initial, onChange: onChange)
@@ -181,7 +181,7 @@
             toggle.isOn != initial
         }
 
-        init(knob: GalleryKnob, initial: Bool, onChange: @escaping (Bool) -> Void) {
+        init(knob: BNGalleryKnob, initial: Bool, onChange: @escaping (Bool) -> Void) {
             self.initial = initial
             self.onChange = onChange
             super.init(knob: knob)
@@ -218,7 +218,7 @@
             (field.text ?? "") != initial
         }
 
-        init(knob: GalleryKnob, initial: String, onChange: @escaping (String) -> Void) {
+        init(knob: BNGalleryKnob, initial: String, onChange: @escaping (String) -> Void) {
             self.initial = initial
             self.onChange = onChange
             super.init(knob: knob)
@@ -265,7 +265,7 @@
     final class GalleryActionRow: GalleryKnobRow {
         private let onTap: () -> Void
 
-        init(knob: GalleryKnob, onTap: @escaping () -> Void) {
+        init(knob: BNGalleryKnob, onTap: @escaping () -> Void) {
             self.onTap = onTap
             super.init(knob: knob)
             titleLabel.textColor = BNGalleryColor.accent

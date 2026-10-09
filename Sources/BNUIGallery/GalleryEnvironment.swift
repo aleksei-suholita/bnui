@@ -1,12 +1,14 @@
-#if DEBUG && canImport(UIKit)
+#if (DEBUG || GalleryInRelease) && canImport(UIKit)
     import BNUI
     import UIKit
 
     /// The settings the stage is shown under — the ones a checklist asks about and Settings.app
-    /// would otherwise have to be opened for: appearance, text size, layout direction.
+    /// would otherwise have to be opened for: appearance, text size, layout direction — and the
+    /// stage's tools: a phone's width, slowed animation, a frame meter, view outlines.
     ///
-    /// Applied as trait overrides to the stage alone. The inspector keeps the app's own traits, so
-    /// the panel stays readable while the demo is judged at an accessibility size or in RTL.
+    /// Applied to the stage alone, traits as overrides. The inspector keeps the app's own traits
+    /// and speed, so the panel stays readable and quick while the demo is judged at an
+    /// accessibility size, in RTL or at a tenth of its speed.
     struct GalleryEnvironment: Equatable {
         enum Appearance: CaseIterable {
             case system, light, dark
@@ -74,9 +76,69 @@
             }
         }
 
+        /// The stage's width, for a layout judged on a phone narrower than the one at hand.
+        enum Width: CaseIterable {
+            case device, points320, points375, points430
+
+            var title: String {
+                switch self {
+                case .device: "Device"
+                case .points320: "320 pt"
+                case .points375: "375 pt"
+                case .points430: "430 pt"
+                }
+            }
+
+            /// The phone the width belongs to, as the menu's subtitle.
+            var phone: String? {
+                switch self {
+                case .device: nil
+                case .points320: "iPhone SE (1st generation)"
+                case .points375: "iPhone SE, mini"
+                case .points430: "Pro Max, Plus"
+                }
+            }
+
+            var points: CGFloat? {
+                switch self {
+                case .device: nil
+                case .points320: 320
+                case .points375: 375
+                case .points430: 430
+                }
+            }
+        }
+
+        /// Core Animation's speed on the stage — a spring watched phase by phase.
+        enum Speed: CaseIterable {
+            case normal, half, quarter, tenth
+
+            var title: String {
+                switch self {
+                case .normal: "Normal"
+                case .half: "×0.5"
+                case .quarter: "×0.25"
+                case .tenth: "×0.1"
+                }
+            }
+
+            var factor: Float {
+                switch self {
+                case .normal: 1
+                case .half: 0.5
+                case .quarter: 0.25
+                case .tenth: 0.1
+                }
+            }
+        }
+
         var appearance = Appearance.system
         var textSize = TextSize.system
         var direction = Direction.system
+        var width = Width.device
+        var speed = Speed.normal
+        var showsFrameRate = false
+        var showsOutlines = false
 
         /// Kept for the session: moving between pages does not throw away a dark, RTL stage the
         /// tester just set up.
@@ -103,103 +165,12 @@
             } else {
                 traits.remove(UITraitLayoutDirection.self)
             }
-        }
-
-        /// The stage menu, rebuilt after every pick so its checkmarks tell the truth. The backdrop
-        /// belongs to the page, the rest to the session, so they report back separately; a page
-        /// that is itself a background passes no backdrop and gets no backdrop section.
-        func menu(
-            backdrop: GalleryBackdrop?,
-            onBackdrop: @escaping (GalleryBackdrop) -> Void,
-            onChange: @escaping (GalleryEnvironment) -> Void,
-        ) -> UIMenu {
-            let backdropMenu = backdrop.map { current in
-                // Each backdrop with the question it answers, so the choice is made by purpose.
-                UIMenu(
-                    title: "Backdrop",
-                    subtitle: current.title,
-                    image: UIImage(systemName: "photo.on.rectangle"),
-                    options: .singleSelection,
-                    children: GalleryBackdrop.allCases.map { option in
-                        UIAction(title: option.title, subtitle: option.purpose, state: option == current ? .on : .off) { _ in
-                            onBackdrop(option)
-                        }
-                    },
-                )
+            // A phone's width is a compact one, on an iPad stage too.
+            if width.points != nil {
+                traits.horizontalSizeClass = .compact
+            } else {
+                traits.remove(UITraitHorizontalSizeClass.self)
             }
-            let reset = UIAction(
-                title: "Reset Environment",
-                image: UIImage(systemName: "arrow.counterclockwise"),
-                attributes: isDefault ? .disabled : [],
-            ) { _ in
-                onChange(GalleryEnvironment())
-            }
-            return UIMenu(
-                title: "Stage",
-                children: [backdropMenu].compactMap(\.self) + environmentSections(onChange: onChange)
-                    + [UIMenu(options: .displayInline, children: [reset])],
-            )
-        }
-
-        private func environmentSections(onChange: @escaping (GalleryEnvironment) -> Void) -> [UIMenu] {
-            let sections = [
-                Self.section(
-                    (title: "Appearance", image: "circle.lefthalf.filled"),
-                    options: Appearance.allCases,
-                    selected: appearance,
-                    name: \.title,
-                ) { choice in
-                    var copy = self
-                    copy.appearance = choice
-                    onChange(copy)
-                },
-                Self.section(
-                    (title: "Text Size", image: "textformat.size"),
-                    options: TextSize.allCases,
-                    selected: textSize,
-                    name: \.title,
-                ) { choice in
-                    var copy = self
-                    copy.textSize = choice
-                    onChange(copy)
-                },
-                Self.section(
-                    (title: "Layout Direction", image: "arrow.left.arrow.right"),
-                    options: Direction.allCases,
-                    selected: direction,
-                    name: \.title,
-                ) { choice in
-                    var copy = self
-                    copy.direction = choice
-                    onChange(copy)
-                },
-            ]
-            // Text size and direction are trait overrides, which arrive with iOS 17; iOS 16 can
-            // override only the appearance.
-            guard #available(iOS 17.0, *) else { return Array(sections.prefix(1)) }
-            return sections
-        }
-
-        /// A submenu that shows the current pick as its subtitle, so the closed menu already says
-        /// what the stage is set to.
-        private static func section<Option: Equatable>(
-            _ heading: (title: String, image: String),
-            options: [Option],
-            selected: Option,
-            name: (Option) -> String,
-            pick: @escaping (Option) -> Void,
-        ) -> UIMenu {
-            UIMenu(
-                title: heading.title,
-                subtitle: name(selected),
-                image: UIImage(systemName: heading.image),
-                options: .singleSelection,
-                children: options.map { option in
-                    UIAction(title: name(option), state: option == selected ? .on : .off) { _ in
-                        pick(option)
-                    }
-                },
-            )
         }
     }
 #endif

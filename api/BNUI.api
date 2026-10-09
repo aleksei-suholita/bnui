@@ -467,6 +467,113 @@ BNUICore | BNTransition.run(afterDelay:_:completion:) | @discardableResult @Main
 BNUICore | BNTransition.spring(_:) | case spring(BNSpring)
 BNUICore | BNTransition.timingParameters | @MainActor var timingParameters: (any UITimingCurveProvider)? { get }
 BNUICore | UIFont.withWeight(_:) | @MainActor func withWeight(_ weight: UIFont.Weight) -> UIFont
+BNUIGallery | BNGallery | @MainActor enum BNGallery
+BNUIGallery | BNGallery.launchPageTitle | @MainActor static var launchPageTitle: String? { get }
+BNUIGallery | BNGallery.post(_:) | @MainActor static func post(_ event: String)
+BNUIGallery | BNGallery.present(_:from:openingPageTitled:animated:) | @MainActor static func present(_ pages: [any BNGalleryPage], from presenter: UIViewController, openingPageTitled title: String? = nil, animated: Bool = true)
+BNUIGallery | BNGalleryBackdrop | @MainActor enum BNGalleryBackdrop
+BNUIGallery | BNGalleryBackdrop.bright | case bright
+BNUIGallery | BNGalleryBackdrop.interface | case interface
+BNUIGallery | BNGalleryBackdrop.night | case night
+BNUIGallery | BNGalleryBackdrop.photos | case photos
+BNUIGallery | BNGalleryBackdrop.plain | case plain
+BNUIGallery | BNGalleryDemoPage | @MainActor struct BNGalleryDemoPage<Subject> where Subject : AnyObject
+BNUIGallery | BNGalleryDemoPage.Knob | @MainActor struct Knob
+BNUIGallery | BNGalleryDemoPage.Knob.button(_:note:action:) | @MainActor static func button(_ label: String, note: String? = nil, action: @escaping () -> Void) -> BNGalleryDemoPage<Subject>.Knob
+BNUIGallery | BNGalleryDemoPage.Knob.choice(_:_:note:) | @MainActor static func choice<Value>(_ label: String, _ property: ReferenceWritableKeyPath<Subject, Value>, note: String? = nil) -> BNGalleryDemoPage<Subject>.Knob where Value : CaseIterable, Value : Equatable
+BNUIGallery | BNGalleryDemoPage.Knob.choice(_:_:options:note:) | @MainActor static func choice<Value>(_ label: String, _ property: ReferenceWritableKeyPath<Subject, Value>, options: KeyValuePairs<String, Value>, note: String? = nil) -> BNGalleryDemoPage<Subject>.Knob where Value : Equatable
+BNUIGallery | BNGalleryDemoPage.Knob.header(_:) | @MainActor static func header(_ title: String) -> BNGalleryDemoPage<Subject>.Knob
+BNUIGallery | BNGalleryDemoPage.Knob.knob(_:) | @MainActor static func knob(_ knob: BNGalleryKnob) -> BNGalleryDemoPage<Subject>.Knob
+BNUIGallery | BNGalleryDemoPage.Knob.slider(_:_:in:unit:note:) | @MainActor static func slider(_ label: String, _ property: ReferenceWritableKeyPath<Subject, CGFloat>, in range: ClosedRange<CGFloat>, unit: String? = nil, note: String? = nil) -> BNGalleryDemoPage<Subject>.Knob
+BNUIGallery | BNGalleryDemoPage.Knob.slider(_:_:in:unit:note:) | @MainActor static func slider(_ label: String, _ property: ReferenceWritableKeyPath<Subject, Double>, in range: ClosedRange<Double>, unit: String? = nil, note: String? = nil) -> BNGalleryDemoPage<Subject>.Knob
+BNUIGallery | BNGalleryDemoPage.Knob.slider(_:_:in:unit:note:) | @MainActor static func slider(_ label: String, _ property: ReferenceWritableKeyPath<Subject, Int>, in range: ClosedRange<Int>, unit: String? = nil, note: String? = nil) -> BNGalleryDemoPage<Subject>.Knob
+BNUIGallery | BNGalleryDemoPage.Knob.text(_:_:note:) | @MainActor static func text(_ label: String, _ property: ReferenceWritableKeyPath<Subject, String>, note: String? = nil) -> BNGalleryDemoPage<Subject>.Knob
+BNUIGallery | BNGalleryDemoPage.Knob.text(_:_:note:) | @MainActor static func text(_ label: String, _ property: ReferenceWritableKeyPath<Subject, String?>, note: String? = nil) -> BNGalleryDemoPage<Subject>.Knob
+BNUIGallery | BNGalleryDemoPage.Knob.toggle(_:_:note:) | @MainActor static func toggle(_ label: String, _ property: ReferenceWritableKeyPath<Subject, Bool>, note: String? = nil) -> BNGalleryDemoPage<Subject>.Knob
+BNUIGallery | BNGalleryDemoPage.State | @MainActor struct State
+BNUIGallery | BNGalleryDemoPage.State.state(_:_:) | @MainActor static func state(_ name: String, _ configure: @escaping (Subject) -> Void = { _ in }) -> BNGalleryDemoPage<Subject>.State
+BNUIGallery | BNGalleryDemoPage.backdrop | @MainActor let backdrop: BNGalleryBackdrop
+BNUIGallery | BNGalleryDemoPage.eventFeedEdge | @MainActor let eventFeedEdge: BNGalleryEventFeedEdge
+BNUIGallery | BNGalleryDemoPage.init(_:symbol:summary:section:backdrop:eventFeedEdge:presenting:controller:knobs:) | @MainActor init(_ title: String, symbol: String = "square.on.square", summary: String? = nil, section: String = "Controls", backdrop: BNGalleryBackdrop = .plain, eventFeedEdge: BNGalleryEventFeedEdge = .top, presenting props: @escaping @autoclosure () -> Subject, controller: @escaping (Subject) -> UIViewController, knobs: @escaping (Subject) -> [Knob] = { _ in [] })
+BNUIGallery | BNGalleryDemoPage.init(_:symbol:summary:section:layout:backdrop:eventFeedEdge:demo:knobs:) | @MainActor init(_ title: String, symbol: String = "square.on.square", summary: String? = nil, section: String = "Controls", layout: BNGalleryLayout = .centred, backdrop: BNGalleryBackdrop = .plain, eventFeedEdge: BNGalleryEventFeedEdge = .top, demo: @escaping () -> Subject, knobs: @escaping (Subject) -> [Knob] = { _ in [] }) where Subject : UIView
+BNUIGallery | BNGalleryDemoPage.init(_:symbol:summary:section:layout:backdrop:eventFeedEdge:props:content:knobs:) | @MainActor init(_ title: String, symbol: String = "square.on.square", summary: String? = nil, section: String = "Controls", layout: BNGalleryLayout = .centred, backdrop: BNGalleryBackdrop = .plain, eventFeedEdge: BNGalleryEventFeedEdge = .top, props: @escaping @autoclosure () -> Subject, @ViewBuilder content: @escaping (Subject) -> some View, knobs: @escaping (Subject) -> [Knob] = { _ in [] }) where Subject : Observable
+BNUIGallery | BNGalleryDemoPage.init(_:symbol:summary:section:layout:backdrop:eventFeedEdge:props:content:knobs:) | @MainActor init(_ title: String, symbol: String = "square.on.square", summary: String? = nil, section: String = "Controls", layout: BNGalleryLayout = .centred, backdrop: BNGalleryBackdrop = .plain, eventFeedEdge: BNGalleryEventFeedEdge = .top, props: @escaping @autoclosure () -> Subject, @ViewBuilder content: @escaping (Subject) -> some View, knobs: @escaping (Subject) -> [Knob] = { _ in [] }) where Subject : ObservableObject
+BNUIGallery | BNGalleryDemoPage.layout | @MainActor var layout: BNGalleryLayout { get }
+BNUIGallery | BNGalleryDemoPage.makeDemoView() | @MainActor func makeDemoView() -> UIView
+BNUIGallery | BNGalleryDemoPage.makeDemoViewController() | @MainActor func makeDemoViewController() -> UIViewController?
+BNUIGallery | BNGalleryDemoPage.makeKnobs(for:) | @MainActor func makeKnobs(for demoView: UIView) -> [BNGalleryKnob]
+BNUIGallery | BNGalleryDemoPage.resetDemo(_:) | @MainActor func resetDemo(_ demoView: UIView)
+BNUIGallery | BNGalleryDemoPage.section | @MainActor let section: String
+BNUIGallery | BNGalleryDemoPage.states(_:) | @MainActor func states(_ states: [State]) -> BNGalleryDemoPage<Subject>
+BNUIGallery | BNGalleryDemoPage.summary | @MainActor let summary: String?
+BNUIGallery | BNGalleryDemoPage.symbol | @MainActor let symbol: String
+BNUIGallery | BNGalleryDemoPage.title | @MainActor let title: String
+BNUIGallery | BNGalleryEventFeedEdge | @MainActor enum BNGalleryEventFeedEdge
+BNUIGallery | BNGalleryEventFeedEdge.bottom | case bottom
+BNUIGallery | BNGalleryEventFeedEdge.top | case top
+BNUIGallery | BNGalleryEventReporting | @MainActor protocol BNGalleryEventReporting : AnyObject
+BNUIGallery | BNGalleryEventReporting.onGalleryEvent | @MainActor var onGalleryEvent: ((String) -> Void)? { get set }
+BNUIGallery | BNGalleryKnob | @MainActor struct BNGalleryKnob
+BNUIGallery | BNGalleryKnob.Control | @MainActor enum Control
+BNUIGallery | BNGalleryKnob.Control.button(onTap:) | case button(onTap: () -> Void)
+BNUIGallery | BNGalleryKnob.Control.header | case header
+BNUIGallery | BNGalleryKnob.Control.segmented(options:initial:onChange:) | case segmented(options: [String], initial: Int, onChange: (Int) -> Void)
+BNUIGallery | BNGalleryKnob.Control.slider(min:max:initial:onChange:) | case slider(min: Double, max: Double, initial: Double, onChange: (Double) -> Void)
+BNUIGallery | BNGalleryKnob.Control.textField(initial:onChange:) | case textField(initial: String, onChange: (String) -> Void)
+BNUIGallery | BNGalleryKnob.Control.toggle(initial:onChange:) | case toggle(initial: Bool, onChange: (Bool) -> Void)
+BNUIGallery | BNGalleryKnob.control | @MainActor let control: Control
+BNUIGallery | BNGalleryKnob.header(_:) | @MainActor static func header(_ title: String) -> BNGalleryKnob
+BNUIGallery | BNGalleryKnob.init(label:control:unit:note:) | @MainActor init(label: String, control: Control, unit: String? = nil, note: String? = nil)
+BNUIGallery | BNGalleryKnob.label | @MainActor let label: String
+BNUIGallery | BNGalleryKnob.note | @MainActor let note: String?
+BNUIGallery | BNGalleryKnob.unit | @MainActor let unit: String?
+BNUIGallery | BNGalleryLayout | @MainActor enum BNGalleryLayout
+BNUIGallery | BNGalleryLayout.Position | @MainActor enum Position
+BNUIGallery | BNGalleryLayout.Position.bottom | case bottom
+BNUIGallery | BNGalleryLayout.Position.center | case center
+BNUIGallery | BNGalleryLayout.Position.top | case top
+BNUIGallery | BNGalleryLayout.background | case background
+BNUIGallery | BNGalleryLayout.centred | case centred
+BNUIGallery | BNGalleryLayout.fill(share:) | case fill(share: CGFloat = 0.5)
+BNUIGallery | BNGalleryLayout.width(at:) | case width(at: Position = .center)
+BNUIGallery | BNGalleryPage | @MainActor protocol BNGalleryPage
+BNUIGallery | BNGalleryPage.backdrop | @MainActor var backdrop: BNGalleryBackdrop { get }
+BNUIGallery | BNGalleryPage.backdrop | @MainActor var backdrop: BNGalleryBackdrop { get }
+BNUIGallery | BNGalleryPage.eventFeedEdge | @MainActor var eventFeedEdge: BNGalleryEventFeedEdge { get }
+BNUIGallery | BNGalleryPage.eventFeedEdge | @MainActor var eventFeedEdge: BNGalleryEventFeedEdge { get }
+BNUIGallery | BNGalleryPage.layout | @MainActor var layout: BNGalleryLayout { get }
+BNUIGallery | BNGalleryPage.layout | @MainActor var layout: BNGalleryLayout { get }
+BNUIGallery | BNGalleryPage.makeDemoView() | @MainActor func makeDemoView() -> UIView
+BNUIGallery | BNGalleryPage.makeDemoViewController() | @MainActor func makeDemoViewController() -> UIViewController?
+BNUIGallery | BNGalleryPage.makeDemoViewController() | @MainActor func makeDemoViewController() -> UIViewController?
+BNUIGallery | BNGalleryPage.makeKnobs(for:) | @MainActor func makeKnobs(for demoView: UIView) -> [BNGalleryKnob]
+BNUIGallery | BNGalleryPage.resetDemo(_:) | @MainActor func resetDemo(_ demoView: UIView)
+BNUIGallery | BNGalleryPage.resetDemo(_:) | @MainActor func resetDemo(_: UIView)
+BNUIGallery | BNGalleryPage.section | @MainActor var section: String { get }
+BNUIGallery | BNGalleryPage.section | @MainActor var section: String { get }
+BNUIGallery | BNGalleryPage.summary | @MainActor var summary: String? { get }
+BNUIGallery | BNGalleryPage.summary | @MainActor var summary: String? { get }
+BNUIGallery | BNGalleryPage.symbol | @MainActor var symbol: String { get }
+BNUIGallery | BNGalleryPage.symbol | @MainActor var symbol: String { get }
+BNUIGallery | BNGalleryPage.title | @MainActor var title: String { get }
+BNUIGallery | BNGalleryPageViewController | @MainActor final class BNGalleryPageViewController
+BNUIGallery | BNGalleryPageViewController.init(page:) | @MainActor init(page: any BNGalleryPage)
+BNUIGallery | BNGalleryPageViewController.traitCollectionDidChange(_:) | @MainActor override func traitCollectionDidChange(_ previous: UITraitCollection?)
+BNUIGallery | BNGalleryPageViewController.viewDidAppear(_:) | @MainActor override func viewDidAppear(_ animated: Bool)
+BNUIGallery | BNGalleryPageViewController.viewDidLayoutSubviews() | @MainActor override func viewDidLayoutSubviews()
+BNUIGallery | BNGalleryPageViewController.viewDidLoad() | @MainActor override func viewDidLoad()
+BNUIGallery | BNGalleryPageViewController.viewWillAppear(_:) | @MainActor override func viewWillAppear(_ animated: Bool)
+BNUIGallery | BNGalleryPageViewController.viewWillDisappear(_:) | @MainActor override func viewWillDisappear(_ animated: Bool)
+BNUIGallery | BNGalleryViewController | @MainActor final class BNGalleryViewController
+BNUIGallery | BNGalleryViewController.collectionView(_:didSelectItemAt:) | @MainActor func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath)
+BNUIGallery | BNGalleryViewController.init(pages:) | @MainActor init(pages: [any BNGalleryPage])
+BNUIGallery | BNGalleryViewController.onClose | @MainActor var onClose: (() -> Void)? { get set }
+BNUIGallery | BNGalleryViewController.openPage(titled:) | @MainActor func openPage(titled title: String)
+BNUIGallery | BNGalleryViewController.updateSearchResults(for:) | @MainActor func updateSearchResults(for searchController: UISearchController)
+BNUIGallery | BNGalleryViewController.viewDidLoad() | @MainActor override func viewDidLoad()
+BNUIGallery | BNGalleryViewController.viewWillAppear(_:) | @MainActor override func viewWillAppear(_ animated: Bool)
+BNUIGallery | BNUIGalleryPages | @MainActor enum BNUIGalleryPages
+BNUIGallery | BNUIGalleryPages.all() | @MainActor static func all() -> [any BNGalleryPage]
 BNUITabBar | BN.Tab | @MainActor struct Tab<Value, Content> where Value : Hashable
 BNUITabBar | BN.Tab.accessibilityLabel(_:) | @MainActor func accessibilityLabel(_ label: String) -> BN.Tab<Value, Content>
 BNUITabBar | BN.Tab.badge(_:) | @MainActor func badge(_ badge: BNTabBarBadge?) -> BN.Tab<Value, Content>

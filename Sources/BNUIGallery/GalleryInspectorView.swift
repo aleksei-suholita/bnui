@@ -1,4 +1,4 @@
-#if DEBUG && canImport(UIKit)
+#if (DEBUG || GalleryInRelease) && canImport(UIKit)
     import BNUI
     import UIKit
 
@@ -42,7 +42,7 @@
         private let outline = CAShapeLayer()
         private var layout = Layout.drawer
 
-        init(knobs: [GalleryKnob]) {
+        init(knobs: [BNGalleryKnob]) {
             super.init(frame: .zero)
             backgroundColor = BNGalleryColor.groupedBackground
             layer.shadowColor = UIColor.black.cgColor
@@ -216,7 +216,7 @@
             ])
         }
 
-        private func buildSections(from knobs: [GalleryKnob]) {
+        private func buildSections(from knobs: [BNGalleryKnob]) {
             sections.axis = .vertical
             sections.spacing = BNGallerySpacing.l
             sections.translatesAutoresizingMaskIntoConstraints = false

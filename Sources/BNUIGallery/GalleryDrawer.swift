@@ -1,4 +1,4 @@
-#if DEBUG && canImport(UIKit)
+#if (DEBUG || GalleryInRelease) && canImport(UIKit)
     import BNUI
     import UIKit
 
@@ -46,6 +46,21 @@
             }
         }
 
+        /// Hidden while the demo is typed into, the stage then running down to the keyboard —
+        /// the page moves the stage's edge; the drawer only fades and stays on its stop, since its
+        /// header has a height no constraint of the drawer's can take away.
+        var isTucked = false {
+            didSet {
+                guard isTucked != oldValue else { return }
+                animation?.interrupt()
+                let tucked = isTucked
+                animation = BNTransition.spring(BNSpring(duration: 0.42, bounce: 0)).run { [weak self] in
+                    self?.inspector.alpha = tucked ? 0 : 1
+                    self?.host?.layoutIfNeeded()
+                }
+            }
+        }
+
         private(set) var detent: Detent
         private weak var host: UIView?
         private let inspector: GalleryInspectorView
@@ -69,11 +84,16 @@
         private lazy var headerPan = UIPanGestureRecognizer(target: self, action: #selector(handleHeaderPan))
         private lazy var headerTap = UITapGestureRecognizer(target: self, action: #selector(handleHeaderTap))
 
-        init(host: UIView, inspector: GalleryInspectorView, stage: GalleryStageView, page: any GalleryPage) {
+        init(host: UIView, inspector: GalleryInspectorView, stage: GalleryStageView, page: any BNGalleryPage) {
             self.host = host
             self.inspector = inspector
             self.stage = stage
-            demoAreaFraction = page.demoAreaFraction
+            // A demo that sizes itself is measured instead; a background takes the default half.
+            demoAreaFraction = if case let .fill(share) = page.layout {
+                share
+            } else {
+                0.5
+            }
             memoryKey = page.title
             detent = Self.remembered[page.title] ?? .medium
             height = inspector.heightAnchor.constraint(equalToConstant: BNGalleryMetrics.inspectorHeaderHeight)
@@ -93,7 +113,7 @@
         /// safe area or a text size, so this runs on every layout — and does nothing mid-drag or
         /// mid-settle, where the height is owned by the finger or the spring.
         func snapToCurrentStop() {
-            guard isEnabled, !isDragging, animation?.isRunning != true else { return }
+            guard isEnabled, !isTucked, !isDragging, animation?.isRunning != true else { return }
             let target = stop(nearest: detent).height
             if abs(height.constant - target) > 0.5 {
                 height.constant = target

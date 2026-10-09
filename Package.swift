@@ -36,8 +36,18 @@ let package = Package(
         .library(name: "BNUICore", targets: ["BNUICore"]),
         .library(name: "BNUIButton", targets: ["BNUIButton"]),
         .library(name: "BNUITabBar", targets: ["BNUITabBar"]),
-        // The showcase. Debug-only by construction: every file is behind `#if DEBUG`.
+        // The showcase. Debug only unless the app enables the trait below: every file is behind
+        // `#if DEBUG || GalleryInRelease`.
         .library(name: "BNUIGallery", targets: ["BNUIGallery"]),
+    ],
+    traits: [
+        // A TestFlight build is a Release build, and so is any configuration Xcode does not take
+        // for debug by its name. Enabled, the gallery is compiled there too. TestFlight and the
+        // App Store get the same binary, so the app keeps the way in closed at run time.
+        .trait(
+            name: "GalleryInRelease",
+            description: "Compiles BNUIGallery in every configuration, not only in Debug.",
+        ),
     ],
     dependencies: [
         // Apple-style API documentation. `swift package generate-documentation` builds for macOS,

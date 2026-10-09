@@ -1,4 +1,4 @@
-#if DEBUG && canImport(UIKit)
+#if (DEBUG || GalleryInRelease) && canImport(UIKit)
     import BNUI
     import UIKit
 
@@ -8,20 +8,20 @@
     /// Grouped by each page's `section`, searchable, with a Settings-style icon per row — the list
     /// grows with every control and every host app's own pages, and a bare column of titles stops
     /// being scannable long before it stops fitting the screen.
-    public final class GalleryViewController: UIViewController, UICollectionViewDelegate, UISearchResultsUpdating {
+    public final class BNGalleryViewController: UIViewController, UICollectionViewDelegate, UISearchResultsUpdating {
         /// Set it when the gallery is presented modally — the catalogue then shows a Close button.
         /// Left nil when the gallery is pushed onto an existing stack (Back is enough).
         public var onClose: (() -> Void)? {
             didSet { updateCloseButton() }
         }
 
-        private let pages: [any GalleryPage]
+        private let pages: [any BNGalleryPage]
         private let collectionView: UICollectionView
         private let searchController = UISearchController(searchResultsController: nil)
         private var dataSource: UICollectionViewDiffableDataSource<String, Int>?
         private var query = ""
 
-        public init(pages: [any GalleryPage]) {
+        public init(pages: [any BNGalleryPage]) {
             self.pages = pages
             var list = UICollectionLayoutListConfiguration(appearance: .insetGrouped)
             list.headerMode = .supplementary
@@ -70,7 +70,7 @@
 
         public func openPage(titled title: String) {
             guard let page = pages.first(where: { $0.title == title }) else { return }
-            navigationController?.pushViewController(GalleryPageViewController(page: page), animated: false)
+            navigationController?.pushViewController(BNGalleryPageViewController(page: page), animated: false)
         }
 
         // MARK: - Data
@@ -130,7 +130,7 @@
             }
         }
 
-        private func matches(_ page: any GalleryPage) -> Bool {
+        private func matches(_ page: any BNGalleryPage) -> Bool {
             guard !query.isEmpty else { return true }
             return [page.title, page.summary ?? "", page.section].contains {
                 $0.localizedStandardContains(query)
@@ -141,7 +141,7 @@
 
         public func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
             guard let index = dataSource?.itemIdentifier(for: indexPath) else { return }
-            navigationController?.pushViewController(GalleryPageViewController(page: pages[index]), animated: true)
+            navigationController?.pushViewController(BNGalleryPageViewController(page: pages[index]), animated: true)
         }
 
         public func updateSearchResults(for searchController: UISearchController) {

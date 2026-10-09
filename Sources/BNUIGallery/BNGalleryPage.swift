@@ -1,4 +1,4 @@
-#if DEBUG && canImport(UIKit)
+#if (DEBUG || GalleryInRelease) && canImport(UIKit)
     import BNUI
     import UIKit
 
@@ -7,7 +7,13 @@
     ///
     /// Everything past `title`, `makeDemoView()` and `makeKnobs(for:)` has a default, so a page
     /// written for an older engine keeps compiling and simply looks plainer in the catalogue.
-    public protocol GalleryPage {
+    ///
+    /// A page that is a demo and knobs bound to its properties needs no type of its own: see
+    /// ``BNGalleryDemoPage``. Conforming here is for a page that needs more — a demo controller,
+    /// a reset for state no knob owns, knobs worked out from the demo's own tables.
+    public protocol BNGalleryPage {
+        /// The page's name in the catalogue and in its navigation bar, and what
+        /// `-OpenGallery <Title>` asks for.
         var title: String { get }
 
         /// SF Symbol drawn in the catalogue next to the title.
@@ -20,6 +26,7 @@
         /// first page, so the order pages are handed to the gallery still decides the layout.
         var section: String { get }
 
+        /// A fresh demo, made each time the page opens.
         func makeDemoView() -> UIView
 
         /// A demo that has to be a view controller — one hosting children of its own, such as a
@@ -27,32 +34,19 @@
         /// `view` is the demo view and `makeDemoView()` is never called.
         func makeDemoViewController() -> UIViewController?
 
-        /// Pin the demo view to the whole stage instead of centring it at its own size.
-        ///
-        /// Centring is right for a control that knows how big it is — a button, a tab bar. A
-        /// control sized by its container has no size to be centred at and collapses to nothing,
-        /// which is exactly what a full-bleed control is supposed to do.
-        var fillsDemoArea: Bool { get }
-
-        /// Share of the screen a full-bleed demo gets at the middle height of the inspector. A demo
-        /// that sizes itself is measured instead, and this is ignored.
-        var demoAreaFraction: CGFloat { get }
+        /// How the demo sits on the stage: centred at its own size, across the width, over the
+        /// whole demo area or as the stage's background.
+        var layout: BNGalleryLayout { get }
 
         /// What the stage puts behind the demo when the page opens; the stage menu changes it.
-        var backdrop: GalleryBackdrop { get }
-
-        /// The demo is itself a background — a texture, a surface a screen is built on.
-        ///
-        /// It then takes the whole stage, under the navigation bar and under the inspector, the way
-        /// it would take a whole screen, and replaces the stage backdrop: the stage menu offers no
-        /// backdrop for it. A background laid over another background answers no question, and a
-        /// background framed inside a strip is judged on the wrong room.
-        var isBackground: Bool { get }
+        var backdrop: BNGalleryBackdrop { get }
 
         /// The edge of the stage the event feed sits on — the one the control does not use.
-        var eventFeedEdge: GalleryEventFeedEdge { get }
+        var eventFeedEdge: BNGalleryEventFeedEdge { get }
 
-        func makeKnobs(for demoView: UIView) -> [GalleryKnob]
+        /// The inspector's rows for the demo just made, in order. Each knob captures the demo it
+        /// drives.
+        func makeKnobs(for demoView: UIView) -> [BNGalleryKnob]
 
         /// Called by the inspector's Reset before every knob is put back to its initial value.
         ///
@@ -61,43 +55,43 @@
         func resetDemo(_ demoView: UIView)
     }
 
-    public extension GalleryPage {
+    public extension BNGalleryPage {
+        /// Two stacked squares — a generic control.
         var symbol: String {
             "square.on.square"
         }
 
+        /// No line under the title.
         var summary: String? {
             nil
         }
 
+        /// Listed under "Controls".
         var section: String {
             "Controls"
         }
 
+        /// No controller: the demo is `makeDemoView()`.
         func makeDemoViewController() -> UIViewController? {
             nil
         }
 
-        var fillsDemoArea: Bool {
-            false
+        /// Centred at the demo's own size.
+        var layout: BNGalleryLayout {
+            .centred
         }
 
-        var demoAreaFraction: CGFloat {
-            0.5
-        }
-
-        var backdrop: GalleryBackdrop {
+        /// The system background.
+        var backdrop: BNGalleryBackdrop {
             .plain
         }
 
-        var isBackground: Bool {
-            false
-        }
-
-        var eventFeedEdge: GalleryEventFeedEdge {
+        /// Along the top of the stage.
+        var eventFeedEdge: BNGalleryEventFeedEdge {
             .top
         }
 
+        /// Nothing to reset beyond the knobs.
         func resetDemo(_: UIView) {}
     }
 #endif

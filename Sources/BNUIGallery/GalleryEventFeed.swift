@@ -1,4 +1,4 @@
-#if DEBUG && canImport(UIKit)
+#if (DEBUG || GalleryInRelease) && canImport(UIKit)
     import BNUI
     import UIKit
 
@@ -6,12 +6,12 @@
     ///
     /// The page wires it to the stage's event feed, so every page shows events the same way and
     /// in the same place instead of each demo squeezing a log label of its own into its corner.
-    public protocol GalleryEventReporting: AnyObject {
+    public protocol BNGalleryEventReporting: AnyObject {
         var onGalleryEvent: ((String) -> Void)? { get set }
     }
 
     /// The edge of the stage the event feed sits on — away from wherever the control itself lives.
-    public enum GalleryEventFeedEdge: Sendable {
+    public enum BNGalleryEventFeedEdge: Sendable {
         case top, bottom
     }
 
@@ -23,10 +23,10 @@
         /// Opacity by age, newest first.
         private static let fade: [CGFloat] = [1, 0.8, 0.62, 0.46, 0.32]
 
-        private let edge: GalleryEventFeedEdge
+        private let edge: BNGalleryEventFeedEdge
         private let stack = UIStackView()
 
-        init(edge: GalleryEventFeedEdge) {
+        init(edge: BNGalleryEventFeedEdge) {
             self.edge = edge
             super.init(frame: .zero)
             isUserInteractionEnabled = false

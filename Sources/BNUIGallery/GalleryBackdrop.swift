@@ -1,4 +1,4 @@
-#if DEBUG && canImport(UIKit)
+#if (DEBUG || GalleryInRelease) && canImport(UIKit)
     import BNUI
     import UIKit
 
@@ -8,7 +8,7 @@
     /// subtitle in the stage menu. One setting for every page rather than a knob per demo: the
     /// questions are the same for every control, and a backdrop that is part of the stage fills
     /// the screen instead of a card in its middle.
-    public enum GalleryBackdrop: CaseIterable, Sendable {
+    public enum BNGalleryBackdrop: CaseIterable, Sendable {
         /// The system background, light or dark with the stage.
         case plain
         /// An app's content — a featured card and grouped lists — light or dark with the stage.
@@ -48,7 +48,7 @@
     /// appearance changes, and nothing at all while the inspector is dragged — the stage's size
     /// does not change then.
     final class GalleryBackdropView: UIView {
-        var backdrop: GalleryBackdrop = .plain {
+        var backdrop: BNGalleryBackdrop = .plain {
             didSet {
                 guard backdrop != oldValue else { return }
                 setNeedsDisplay()

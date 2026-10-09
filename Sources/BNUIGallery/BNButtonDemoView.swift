@@ -1,4 +1,4 @@
-#if DEBUG && canImport(UIKit)
+#if (DEBUG || GalleryInRelease) && canImport(UIKit)
     import BNUI
     import UIKit
 
@@ -9,7 +9,7 @@
     /// that is only judgeable side by side. What the control reports goes to the stage's event
     /// feed, so a tap that did not fire is visible rather than merely suspected. Full-bleed on
     /// purpose: a Fill button is judged against a screen's width, not a card's.
-    final class BNButtonDemoView: UIView, GalleryEventReporting {
+    final class BNButtonDemoView: UIView, BNGalleryEventReporting {
         enum Defaults {
             static let title = "Continue"
             static let sizeIndex = 1

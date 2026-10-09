@@ -1,4 +1,4 @@
-#if DEBUG && canImport(UIKit)
+#if (DEBUG || GalleryInRelease) && canImport(UIKit)
     import BNUI
     import UIKit
 
@@ -8,31 +8,45 @@
     /// inspector, so the drawer's rounded corners show stage rather than a gap and a translucent
     /// control has the same thing behind it wherever it sits. The demo is kept inside `demoArea`,
     /// whose bottom the page pins to the inspector's top — no height of the drawer hides it.
+    ///
+    /// The stage menu's tools act here: a phone's width in the middle of the demo area, Core
+    /// Animation slowed down for the stage alone, a frame meter and outlines over the demo.
     final class GalleryStageView: UIView {
         /// The part of the stage the demo may use.
         let demoArea = UILayoutGuide()
 
+        /// Where the demo is placed: the demo area, or a phone's width in its middle.
+        private let demoBounds = UILayoutGuide()
+        private lazy var widthCap = demoBounds.widthAnchor.constraint(lessThanOrEqualToConstant: 0)
+        /// Hairlines at the edges of a narrowed stage, so its width is seen and not guessed.
+        private let widthEdges = [UIView(), UIView()]
         private let backdropView = GalleryBackdropView()
         private let feed: GalleryEventFeedView
+        private let frameMeter = GalleryFrameMeter()
+        private let outlines: GalleryOutlineView
         private let demoView: UIView
-        private let placement: Placement
+        private let layout: BNGalleryLayout
+        /// A background demo's sides: the stage's own, or a narrowed stage's.
+        private var backgroundAcross: [NSLayoutConstraint] = []
+        private var backgroundNarrowed: [NSLayoutConstraint] = []
 
-        /// How the demo sits on the stage.
-        enum Placement {
-            /// Sizes itself: centred in the demo area, scrolling if the area gets shorter.
-            case centred
-            /// Sized by its container: pinned to the demo area.
-            case filling
-            /// Is a background: pinned to the whole stage, in place of the backdrop.
-            case background
-        }
-
-        init(demoView: UIView, placement: Placement, feedEdge: GalleryEventFeedEdge) {
+        init(demoView: UIView, layout: BNGalleryLayout, feedEdge: BNGalleryEventFeedEdge) {
             self.demoView = demoView
-            self.placement = placement
+            self.layout = layout
             feed = GalleryEventFeedView(edge: feedEdge)
+            outlines = GalleryOutlineView(target: demoView)
             super.init(frame: .zero)
             addLayoutGuide(demoArea)
+            addLayoutGuide(demoBounds)
+            let fullWidth = demoBounds.widthAnchor.constraint(equalTo: demoArea.widthAnchor)
+            fullWidth.priority = .defaultHigh
+            NSLayoutConstraint.activate([
+                demoBounds.topAnchor.constraint(equalTo: demoArea.topAnchor),
+                demoBounds.bottomAnchor.constraint(equalTo: demoArea.bottomAnchor),
+                demoBounds.centerXAnchor.constraint(equalTo: demoArea.centerXAnchor),
+                demoBounds.widthAnchor.constraint(lessThanOrEqualTo: demoArea.widthAnchor),
+                fullWidth,
+            ])
             backdropView.translatesAutoresizingMaskIntoConstraints = false
             addSubview(backdropView)
             NSLayoutConstraint.activate([
@@ -42,12 +56,16 @@
                 backdropView.trailingAnchor.constraint(equalTo: trailingAnchor),
             ])
             demoView.translatesAutoresizingMaskIntoConstraints = false
-            switch placement {
-            case .centred: placeCentred()
-            case .filling: placeFilling()
+            switch layout {
+            case .centred: placeFitting(acrossWidth: false)
+            case .width(at: .center): placeFitting(acrossWidth: true)
+            case let .width(at: position): placeAtEdge(position)
+            case .fill: placeFilling()
             case .background: placeAsBackground()
             }
+            placeTools()
             placeFeed(at: feedEdge)
+            placeFrameMeter()
             setBackdrop(.plain)
         }
 
@@ -56,9 +74,9 @@
             fatalError("init(coder:) is not supported")
         }
 
-        func setBackdrop(_ backdrop: GalleryBackdrop) {
+        func setBackdrop(_ backdrop: BNGalleryBackdrop) {
             // A background demo covers the whole stage; nothing of the stage's own should draw.
-            backdropView.isHidden = placement == .background
+            backdropView.isHidden = layout == .background
             backdropView.backdrop = backdrop
         }
 
@@ -66,15 +84,109 @@
             feed.post(event)
         }
 
+        /// Reset: the feed empties and the hitch count starts again.
         func clearEvents() {
             feed.clear()
+            frameMeter.reset()
+        }
+
+        /// The stage menu's tools: the width, Core Animation's speed and the overlays.
+        func apply(_ environment: GalleryEnvironment) {
+            setWidth(environment.width.points)
+            setAnimationSpeed(environment.speed.factor)
+            frameMeter.isRunning = environment.showsFrameRate
+            outlines.isRunning = environment.showsOutlines
+        }
+
+        private func setWidth(_ points: CGFloat?) {
+            widthCap.constant = points ?? 0
+            widthCap.isActive = points != nil
+            for edge in widthEdges {
+                edge.isHidden = points == nil
+            }
+            guard layout == .background else { return }
+            NSLayoutConstraint.deactivate(points == nil ? backgroundNarrowed : backgroundAcross)
+            NSLayoutConstraint.activate(points == nil ? backgroundAcross : backgroundNarrowed)
+        }
+
+        /// Re-based on the moment of the switch, so what is in flight carries on from where it is
+        /// instead of jumping to where the new speed says it would be by now.
+        private func setAnimationSpeed(_ speed: Float) {
+            guard layer.speed != speed else { return }
+            let now = CACurrentMediaTime()
+            layer.timeOffset = layer.convertTime(now, from: nil)
+            layer.beginTime = layer.superlayer?.convertTime(now, from: nil) ?? now
+            layer.speed = speed
+        }
+
+        /// The width's hairlines and the outlines, over the demo and under the feed.
+        private func placeTools() {
+            for (index, edge) in widthEdges.enumerated() {
+                edge.isHidden = true
+                edge.backgroundColor = BNGalleryColor.separator
+                edge.isUserInteractionEnabled = false
+                edge.translatesAutoresizingMaskIntoConstraints = false
+                addSubview(edge)
+                NSLayoutConstraint.activate([
+                    edge.topAnchor.constraint(equalTo: topAnchor),
+                    edge.bottomAnchor.constraint(equalTo: bottomAnchor),
+                    edge.widthAnchor.constraint(equalToConstant: 1),
+                    index == 0
+                        ? edge.trailingAnchor.constraint(equalTo: demoBounds.leadingAnchor)
+                        : edge.leadingAnchor.constraint(equalTo: demoBounds.trailingAnchor),
+                ])
+            }
+            outlines.translatesAutoresizingMaskIntoConstraints = false
+            addSubview(outlines)
+            NSLayoutConstraint.activate([
+                outlines.topAnchor.constraint(equalTo: topAnchor),
+                outlines.bottomAnchor.constraint(equalTo: bottomAnchor),
+                outlines.leadingAnchor.constraint(equalTo: leadingAnchor),
+                outlines.trailingAnchor.constraint(equalTo: trailingAnchor),
+            ])
+        }
+
+        /// At the top corner the feed leaves free.
+        private func placeFrameMeter() {
+            frameMeter.translatesAutoresizingMaskIntoConstraints = false
+            addSubview(frameMeter)
+            NSLayoutConstraint.activate([
+                frameMeter.topAnchor.constraint(equalTo: demoBounds.topAnchor, constant: BNGallerySpacing.s + 4),
+                frameMeter.trailingAnchor.constraint(equalTo: demoBounds.trailingAnchor, constant: -BNGallerySpacing.m),
+            ])
         }
 
         /// The height a self-sizing demo needs, margins included — what the inspector's middle
         /// height leaves the stage. `nil` for a full-bleed demo, which takes whatever it is given.
         var demoFittingHeight: CGFloat? {
-            guard placement == .centred else { return nil }
-            return demoView.systemLayoutSizeFitting(UIView.layoutFittingCompressedSize).height + 2 * BNGallerySpacing.m
+            let margins = 2 * BNGallerySpacing.m
+            switch layout {
+            case .centred:
+                return demoView.systemLayoutSizeFitting(UIView.layoutFittingCompressedSize).height + margins
+            case let .width(at: position):
+                // Measured at the width it will be given: a field's or a bar's height can depend on it.
+                let width = demoBounds.layoutFrame.width - (position == .center ? margins : 0)
+                let size = demoView.systemLayoutSizeFitting(
+                    CGSize(width: max(width, 0), height: UIView.layoutFittingCompressedSize.height),
+                    withHorizontalFittingPriority: .required,
+                    verticalFittingPriority: .fittingSizeLevel,
+                )
+                return size.height + margins
+            case .fill, .background:
+                return nil
+            }
+        }
+
+        /// A bar at an edge of the demo area, edge to edge, the way it sits on a screen.
+        private func placeAtEdge(_ position: BNGalleryLayout.Position) {
+            addSubview(demoView)
+            NSLayoutConstraint.activate([
+                demoView.leadingAnchor.constraint(equalTo: demoBounds.leadingAnchor),
+                demoView.trailingAnchor.constraint(equalTo: demoBounds.trailingAnchor),
+                position == .bottom
+                    ? demoView.bottomAnchor.constraint(equalTo: demoBounds.bottomAnchor)
+                    : demoView.topAnchor.constraint(equalTo: demoBounds.topAnchor),
+            ])
         }
 
         /// The whole stage, edge to edge. The demo lays its sample content out against its own
@@ -84,38 +196,46 @@
             NSLayoutConstraint.activate([
                 demoView.topAnchor.constraint(equalTo: topAnchor),
                 demoView.bottomAnchor.constraint(equalTo: bottomAnchor),
+            ])
+            backgroundAcross = [
                 demoView.leadingAnchor.constraint(equalTo: leadingAnchor),
                 demoView.trailingAnchor.constraint(equalTo: trailingAnchor),
-            ])
+            ]
+            backgroundNarrowed = [
+                demoView.leadingAnchor.constraint(equalTo: demoBounds.leadingAnchor),
+                demoView.trailingAnchor.constraint(equalTo: demoBounds.trailingAnchor),
+            ]
+            NSLayoutConstraint.activate(backgroundAcross)
         }
 
-        private func placeFeed(at edge: GalleryEventFeedEdge) {
+        private func placeFeed(at edge: BNGalleryEventFeedEdge) {
             feed.translatesAutoresizingMaskIntoConstraints = false
             addSubview(feed)
             let margin = BNGallerySpacing.m
             NSLayoutConstraint.activate([
-                feed.leadingAnchor.constraint(equalTo: demoArea.leadingAnchor, constant: margin),
-                feed.trailingAnchor.constraint(lessThanOrEqualTo: demoArea.trailingAnchor, constant: -margin),
+                feed.leadingAnchor.constraint(equalTo: demoBounds.leadingAnchor, constant: margin),
+                feed.trailingAnchor.constraint(lessThanOrEqualTo: demoBounds.trailingAnchor, constant: -margin),
                 edge == .top
-                    ? feed.topAnchor.constraint(equalTo: demoArea.topAnchor, constant: BNGallerySpacing.s + 4)
-                    : feed.bottomAnchor.constraint(equalTo: demoArea.bottomAnchor, constant: -(BNGallerySpacing.s + 4)),
+                    ? feed.topAnchor.constraint(equalTo: demoBounds.topAnchor, constant: BNGallerySpacing.s + 4)
+                    : feed.bottomAnchor.constraint(equalTo: demoBounds.bottomAnchor, constant: -(BNGallerySpacing.s + 4)),
             ])
         }
 
         private func placeFilling() {
             addSubview(demoView)
             NSLayoutConstraint.activate([
-                demoView.topAnchor.constraint(equalTo: demoArea.topAnchor),
-                demoView.bottomAnchor.constraint(equalTo: demoArea.bottomAnchor),
-                demoView.leadingAnchor.constraint(equalTo: demoArea.leadingAnchor),
-                demoView.trailingAnchor.constraint(equalTo: demoArea.trailingAnchor),
+                demoView.topAnchor.constraint(equalTo: demoBounds.topAnchor),
+                demoView.bottomAnchor.constraint(equalTo: demoBounds.bottomAnchor),
+                demoView.leadingAnchor.constraint(equalTo: demoBounds.leadingAnchor),
+                demoView.trailingAnchor.constraint(equalTo: demoBounds.trailingAnchor),
             ])
         }
 
-        /// A control that sizes itself is centred. When the stage gets shorter than the control —
-        /// the drawer pulled up — it scrolls instead of being clipped, and only then: a scroll view
-        /// that is always live would claim the vertical half of every drag made on the demo.
-        private func placeCentred() {
+        /// A control that sizes itself is centred; one across the width keeps the screen's margins
+        /// instead of its own width. When the stage gets shorter than the control — the drawer
+        /// pulled up — it scrolls instead of being clipped, and only then: a scroll view that is
+        /// always live would claim the vertical half of every drag made on the demo.
+        private func placeFitting(acrossWidth: Bool) {
             let scroll = GalleryFitScrollView()
             scroll.translatesAutoresizingMaskIntoConstraints = false
             scroll.delaysContentTouches = false
@@ -133,10 +253,10 @@
             let fitsFrame = content.heightAnchor.constraint(equalTo: scroll.frameLayoutGuide.heightAnchor)
             fitsFrame.priority = .defaultLow
             NSLayoutConstraint.activate([
-                scroll.topAnchor.constraint(equalTo: demoArea.topAnchor),
-                scroll.bottomAnchor.constraint(equalTo: demoArea.bottomAnchor),
-                scroll.leadingAnchor.constraint(equalTo: demoArea.leadingAnchor),
-                scroll.trailingAnchor.constraint(equalTo: demoArea.trailingAnchor),
+                scroll.topAnchor.constraint(equalTo: demoBounds.topAnchor),
+                scroll.bottomAnchor.constraint(equalTo: demoBounds.bottomAnchor),
+                scroll.leadingAnchor.constraint(equalTo: demoBounds.leadingAnchor),
+                scroll.trailingAnchor.constraint(equalTo: demoBounds.trailingAnchor),
                 content.topAnchor.constraint(equalTo: scroll.contentLayoutGuide.topAnchor),
                 content.bottomAnchor.constraint(equalTo: scroll.contentLayoutGuide.bottomAnchor),
                 content.leadingAnchor.constraint(equalTo: scroll.contentLayoutGuide.leadingAnchor),
@@ -149,6 +269,12 @@
                 demoView.topAnchor.constraint(greaterThanOrEqualTo: content.topAnchor, constant: BNGallerySpacing.m),
                 demoView.bottomAnchor.constraint(lessThanOrEqualTo: content.bottomAnchor, constant: -BNGallerySpacing.m),
             ])
+            if acrossWidth {
+                NSLayoutConstraint.activate([
+                    demoView.leadingAnchor.constraint(equalTo: content.leadingAnchor, constant: BNGallerySpacing.m),
+                    demoView.trailingAnchor.constraint(equalTo: content.trailingAnchor, constant: -BNGallerySpacing.m),
+                ])
+            }
         }
     }
 

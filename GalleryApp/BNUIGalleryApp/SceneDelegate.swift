@@ -19,25 +19,19 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     #if DEBUG
         /// The kit's own pages and nothing else: a host app shows its pages in its own gallery.
         private func makeRootViewController() -> UIViewController {
-            let gallery = GalleryViewController(pages: BNUIGalleryPages.all())
+            let gallery = BNGalleryViewController(pages: BNUIGalleryPages.all())
             let navigationController = UINavigationController(rootViewController: gallery)
             // The catalogue asks for a large title; the bar has to allow one.
             navigationController.navigationBar.prefersLargeTitles = true
-            if let title = requestedPageTitle() {
+            // Straight to a page: simctl launch <UDID> com.oleksii-sukholita.bnui-gallery -OpenGallery Button
+            if let title = BNGallery.launchPageTitle {
                 gallery.openPage(titled: title)
             }
             return navigationController
         }
-
-        /// Straight to a page: simctl launch <UDID> com.oleksii-sukholita.bnui-gallery -OpenGallery Button
-        private func requestedPageTitle() -> String? {
-            let arguments = ProcessInfo.processInfo.arguments
-            guard let flagIndex = arguments.firstIndex(of: "-OpenGallery"),
-                  arguments.indices.contains(flagIndex + 1) else { return nil }
-            return arguments[flagIndex + 1]
-        }
     #else
-        /// `BNUIGallery` is Debug-only by construction, so a Release build has nothing to show.
+        /// `BNUIGallery` is Debug only unless an app enables its `GalleryInRelease` trait, and
+        /// this app does not: a Release build has nothing to show.
         /// A plain label rather than a content-unavailable configuration, which arrives with iOS 17.
         private func makeRootViewController() -> UIViewController {
             let placeholder = UIViewController()

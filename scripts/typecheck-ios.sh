@@ -52,8 +52,9 @@ ios_build --target BNUIGallery --enable-index-store \
     -Xswiftc -symbol-graph-skip-synthesized-members
 echo "$SHAPE" >"$SYMBOL_GRAPHS/.shape"
 
-echo "› BNUI (release, without DEBUG)"
-ios_build --target BNUI -c release
+echo "› BNUI + BNUIGallery (release, without DEBUG — the gallery by its trait)"
+# Release is how a TestFlight build is made; an app gets the gallery there by enabling the trait.
+ios_build --target BNUIGallery -c release --traits GalleryInRelease
 
 # The standalone app that hosts the gallery is an Xcode project, not a package target, so it is
 # type-checked directly against the modules built above. Debug is the only configuration with
