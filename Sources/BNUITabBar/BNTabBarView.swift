@@ -189,6 +189,15 @@
             applySelection(transition: animated ? .spring(activeTheme.motion.selection) : .immediate)
         }
 
+        /// Shows `badge` on the section with `id`, or takes its badge away with `nil` — drawn in
+        /// place, as a change to ``items`` that touches only badges is. Found by id rather than by
+        /// position, so it holds when the host orders its sections differently. Unknown ids are
+        /// ignored rather than trapped: an id is data, and a stale one must not crash the app.
+        public func setBadge(_ badge: BNBadge?, for id: String) {
+            guard let index = items.firstIndex(where: { $0.id == id }), items[index].badge != badge else { return }
+            items[index].badge = badge
+        }
+
         public func setPresentation(_ presentation: BNTabBarPresentation, animated: Bool) {
             guard presentation != self.presentation else { return }
             self.presentation = presentation
@@ -279,7 +288,7 @@
         /// has a badge — a badge in a closed menu would otherwise go unseen. What the dot stands
         /// for is said by the slot's accessibility value, not by the dot.
         var moreSlotItem: BNTabBarItem {
-            let limit = activeTheme.geometry.badgeCountLimit
+            let limit = activeTheme.badge.countLimit
             let hasBadge = overflowItems.contains { $0.badge?.appearance(countLimit: limit) != nil }
             var item = configuration.moreItem
             item.badge = hasBadge ? .dot(accessibilityLabel: "") : nil

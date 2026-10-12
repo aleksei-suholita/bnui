@@ -4,6 +4,54 @@ Every release of BNUI. The kit follows semantic versioning; while it is at 0.x, 
 may break the API and a patch release does not. Each entry lists what is breaking, what is added
 and what is fixed, by product.
 
+## 0.5.0 — 2026-10-12
+
+### Breaking
+
+- `BNUICore`: `BNTabBarBadge` is `BNBadge`, moved from `BNUITabBar` — the badge a button wears
+  too. Its cases and rules are as before.
+- `BNUITabBar`: a badge's look is `BNTabBarTheme.badge`, a `BNBadgeTheme`. `Palette.badgeBackground`
+  and `.badgeText` are `badge.background` and `.text`; `Typography.badge` and
+  `.badgeMaximumContentSizeCategory` are `badge.font` and `.maximumContentSizeCategory`;
+  `BNTabBarMetrics.badgeCountLimit`, `.badgeOverlap`, `.badgeDotSide` and `.badgeAppearScale` are
+  `badge.countLimit`, `.overlap`, `.dotSide` and `.appearScale`. A badge's text is semibold
+  `caption2` by default, rather than regular; a theme with a font of its own keeps it.
+- `BNUITabBar`: `BNTabBarItem.ImageRendering` is `BNImageRendering` in `BNUICore`.
+  `.image(_:size:rendering:)` reads as before.
+- `BNUIButton`: `BNButtonIcon.image` carries a rendering — `.image(_:flipsForRTL:rendering:)`.
+  `.image(picture)` reads as before; a pattern that matches it binds three values.
+
+### Added
+
+- `BNUIButton`: an image icon in its own colours — `.image(logo, rendering: .original)`. A disabled
+  button dims it rather than recolouring it.
+- `BNUIButton`: `BNButton.badge` — a count, a text or a dot on the button's outline, moving with
+  its press and read by VoiceOver with the button; its look is `BNButtonTheme.badge`. `BN.Button`
+  takes it through `.badge(_:)`.
+- `BNUIButton`: `BNButton.menu`, with `showsMenuAsPrimaryAction` as on `UIButton`: a tap opens the
+  menu and sends `.menuActionTriggered` instead of the action, or a long press opens it and a tap
+  still fires.
+- `BNUICore`: `BNBadgeTheme.position` — a badge at the top or the bottom trailing corner, on a
+  button's outline and on a section's icon alike.
+- `BNUITabBar`: a long badge — "99+" — stays inside its section, sliding back over the icon where
+  there is no room, instead of lying on the next section.
+- `BNUITabBar`: `setBadge(_:for:)` on `BNTabBarView` and `BNTabBarContainerViewController` — one
+  badge by its section's id, drawn in place; an unknown id is passed over.
+- `BNUITabBar`: the action button draws an `.original` image in its own colours.
+- `BNUIGallery`: the Button page has knobs for a badge, a menu and a picture icon.
+- `BNUIButton`: a button without a title no longer needs a label — `.icon(_:accessibilityLabel:)`
+  takes none, and a debug build no longer stops on one without it. VoiceOver then reads it only as
+  a button.
+
+### Fixed
+
+- `BNUIButton`: a label set through the button's own `accessibilityLabel` is no longer wiped when
+  the button rebuilds — on a new theme, a text size, light or dark. It wins over the content's
+  label, as on `UIButton`.
+- `BNUIButton`: an image taller than the size holds — an 80 pt asset beside a title, or one of two
+  icons — no longer grows the button to its height. It is shrunk to one line of the size, both
+  icons together, as a lone icon is shrunk into its circle.
+
 ## 0.4.1 — 2026-10-12
 
 No change to the API.

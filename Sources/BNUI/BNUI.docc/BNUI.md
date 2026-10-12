@@ -90,10 +90,13 @@ control is enough.
 
 ### Foundation
 
-The layer under every control: the outline a theme gives a control, and the springs and curves
-each control's motion vocabulary is built from.
+The layer under every control: the outline a theme gives a control, the badge and the images
+the controls share, and the springs and curves each control's motion vocabulary is built from.
 
 - ``BNShape``
+- ``BNBadge``
+- ``BNBadgeTheme``
+- ``BNImageRendering``
 - ``BNSpring``
 - ``BNCurve``
 - ``BNTransition``

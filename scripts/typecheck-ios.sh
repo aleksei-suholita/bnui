@@ -45,11 +45,23 @@ if [[ "$(cat "$SYMBOL_GRAPHS/.shape" 2>/dev/null)" != "$SHAPE" ]]; then
     rm -rf "$SYMBOL_GRAPHS" "$BUILD/out/Products" "$BUILD/out/Intermediates.noindex"
 fi
 mkdir -p "$SYMBOL_GRAPHS"
+# The umbrella only re-exports. Its graph is the whole kit's — the API dump and DocC read it — but
+# the compiler sees no reason to rebuild a module of imports when a control's API changes, and the
+# graph kept the old API: a declaration added to BNUICore was missing from it. Its intermediates go
+# before every build, so it is compiled and its graph written afresh; one file, about a second.
+UMBRELLA="$BUILD/out/Intermediates.noindex/BNUI.build/Debug-iphonesimulator/BNUI-t.build"
+rm -rf "$UMBRELLA"
 ios_build --target BNUIGallery --enable-index-store \
     -Xswiftc -emit-symbol-graph \
     -Xswiftc -emit-symbol-graph-dir -Xswiftc "$PWD/$SYMBOL_GRAPHS" \
     -Xswiftc -symbol-graph-minimum-access-level -Xswiftc public \
     -Xswiftc -symbol-graph-skip-synthesized-members
+# The path is the build system's, not ours: if a toolchain moves it, the line above removes nothing
+# and the graph silently goes stale again.
+if [[ ! -d "$UMBRELLA" ]]; then
+    echo "✗ the umbrella's intermediates are no longer at $UMBRELLA — update the path in $0" >&2
+    exit 1
+fi
 echo "$SHAPE" >"$SYMBOL_GRAPHS/.shape"
 
 echo "› BNUI + BNUIGallery (release)"

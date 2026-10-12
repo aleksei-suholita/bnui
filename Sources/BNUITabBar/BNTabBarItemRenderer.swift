@@ -58,12 +58,12 @@
         /// A badge lies over the section and takes no part in its measure, so changing one moves
         /// nothing else. The default answers `false`: a renderer that does not draw badges in
         /// place keeps working, and the bar rebuilds it the way it did before badges updated alone.
-        func updateBadge(_ badge: BNTabBarBadge?, transition: BNTransition) -> Bool
+        func updateBadge(_ badge: BNBadge?, transition: BNTransition) -> Bool
     }
 
     public extension BNTabBarItemRendering {
         /// Draws no badge in place: the bar rebuilds the sections instead.
-        func updateBadge(_: BNTabBarBadge?, transition _: BNTransition) -> Bool {
+        func updateBadge(_: BNBadge?, transition _: BNTransition) -> Bool {
             false
         }
     }

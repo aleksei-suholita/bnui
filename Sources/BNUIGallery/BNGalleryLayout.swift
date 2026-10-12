@@ -20,6 +20,10 @@
         /// it runs edge to edge, the way a bar sits on a screen. `margin` insets it from the sides
         /// instead — and at an edge from that edge too, for a bar that floats the way a tab bar
         /// does in its container.
+        ///
+        /// A demo with a width of its own is stretched too, alone and on a page of states alike.
+        /// For one that decides for itself — a button that hugs beside one that fills — the
+        /// layout is ``centred``.
         case width(at: Position = .center, margin: CGFloat? = nil)
 
         /// Takes the whole demo area — a control sized by its container, such as a carousel or a

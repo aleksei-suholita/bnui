@@ -133,15 +133,21 @@
         /// the status out itself, and SwiftUI writes the flag on its own.
         var statusFollowsEnabledFlag = true
 
-        public var isLoading: Bool {
-            status == .loading
+        /// A count, a text or a dot on the outline at a trailing corner, top or bottom by the theme's
+        /// ``BNBadgeTheme/position``; `nil` shows none. Outside the button's size, it moves with the
+        /// press, is read with the button, and stays while it is disabled or loading.
+        public var badge: BNBadge? {
+            didSet {
+                guard badge != oldValue else { return }
+                showBadge(transition: window == nil || reducesMotion ? .immediate : .curve(activeTheme.motion.stateChange))
+            }
         }
 
-        public func setStatus(_ status: BNButtonStatus, animated: Bool) {
-            guard status != self.status else { return }
-            pendingStatusTransition = animated ? nil : .immediate
-            self.status = status
-            pendingStatusTransition = nil
+        /// A menu the button opens, as on `UIButton`: with `showsMenuAsPrimaryAction` a tap opens it
+        /// as the finger lands and UIKit sends `.menuActionTriggered` instead of the action; without,
+        /// a long press does and a tap still fires. Disabled or loading, it answers as to a tap.
+        public var menu: UIMenu? {
+            didSet { isContextMenuInteractionEnabled = menu != nil }
         }
 
         // MARK: - Events
@@ -183,6 +189,13 @@
         var indicatorView: (any BNButtonLoadingIndicating)?
         var rejectionOverlay: UIView?
         var rejectionAnimation: BNAnimation?
+        /// The surface's twin above it, holding the badge — see ``makeBadge()``.
+        var badgeHost: UIView?
+        var badgeView: BNBadgeView?
+        /// Where the badge hangs: its centre this far in from the top-trailing corner, on the outline.
+        var badgeAnchors: [NSLayoutConstraint] = []
+        /// What the host set through ``accessibilityLabel``; `nil` leaves the content's words.
+        var hostAccessibilityLabel: String?
         /// The button's one source of touches. Sits on the button itself, so it hears a touch wherever
         /// in the hit area it lands — inside the material or in the margin around it. See
         /// ``BNButtonPressRecognizer``.
@@ -239,13 +252,6 @@
             fatalError("init(coder:) is not supported")
         }
 
-        func syncEnabledFlag() {
-            let shouldBeEnabled = status != .disabled
-            if isEnabled != shouldBeEnabled {
-                isEnabled = shouldBeEnabled
-            }
-        }
-
         // MARK: - UIKit overrides
 
         //
@@ -265,6 +271,7 @@
         override public func layoutSubviews() {
             super.layoutSubviews()
             refreshSolvedLayout()
+            updateBadgeAnchors()
             updateFocusEffect()
             updateHitOverlay()
         }
@@ -341,14 +348,52 @@
 
         /// Fires the action without a finger. `UIControl` declares this for the keyboard and
         /// Switch Control; the button routes it through the same state machine a touch uses, so a
-        /// keyboard press cannot take a different path than a tap.
+        /// keyboard press cannot take a different path than a tap. A button whose menu is its
+        /// action leaves the key to UIKit, as it leaves the tap.
         override public func performPrimaryAction() {
+            guard !opensMenuOnTouch else {
+                if #available(iOS 17.4, *) {
+                    super.performPrimaryAction()
+                }
+                return
+            }
             firePrimaryAction()
         }
 
+        /// The host's label wins, as on `UIButton`, and outlives a rebuild; else the content's words.
+        override public var accessibilityLabel: String? {
+            get { hostAccessibilityLabel ?? content.resolvedAccessibilityLabel }
+            set { hostAccessibilityLabel = newValue }
+        }
+
+        /// Declined for a button whose menu is its action: VoiceOver then taps the button, and the
+        /// tap opens the menu.
         override public func accessibilityActivate() -> Bool {
+            guard !opensMenuOnTouch else { return false }
             firePrimaryAction()
             return true
+        }
+
+        /// The press stands aside while the menu is what a touch does — see ``menu``.
+        override public func gestureRecognizerShouldBegin(_ recognizer: UIGestureRecognizer) -> Bool {
+            guard recognizer === pressRecognizer else { return super.gestureRecognizerShouldBegin(recognizer) }
+            return !opensMenuOnTouch
+        }
+
+        override public func contextMenuInteraction(
+            _: UIContextMenuInteraction,
+            configurationForMenuAtLocation _: CGPoint,
+        ) -> UIContextMenuConfiguration? {
+            menuConfiguration()
+        }
+
+        override public func contextMenuInteraction(
+            _ interaction: UIContextMenuInteraction,
+            willDisplayMenuFor configuration: UIContextMenuConfiguration,
+            animator: (any UIContextMenuInteractionAnimating)?,
+        ) {
+            super.contextMenuInteraction(interaction, willDisplayMenuFor: configuration, animator: animator)
+            endPressForMenu()
         }
     }
 #endif

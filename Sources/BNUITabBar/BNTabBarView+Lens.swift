@@ -68,7 +68,7 @@
                 view.accessibilityTraits = index == selectedIndex ? [.button, .selected] : .button
             }
             guard let moreSlotIndex, baseItemViews.indices.contains(moreSlotIndex) else { return }
-            let limit = activeTheme.geometry.badgeCountLimit
+            let limit = activeTheme.badge.countLimit
             let selected = overflowItems.first { $0.id == selectedID }?.accessibilityLabel
             let badges = overflowItems.compactMap { item in
                 item.badge?.spokenText(countLimit: limit).map { "\(item.accessibilityLabel): \($0)" }

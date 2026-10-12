@@ -12,6 +12,8 @@
 - ``style``
 - ``size``
 - ``configuration``
+- ``badge``
+- ``menu``
 
 ### Appearance
 

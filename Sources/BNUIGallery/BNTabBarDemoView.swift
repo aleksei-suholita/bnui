@@ -24,7 +24,7 @@
             static let minimumItemWidth = Double(BNTabBarMetrics.standard.minimumItemWidth)
             static let motion = BNTabBarMotion.standard
             static let haptics = true
-            /// Off, Count, Text, Dot.
+            /// Off, Count, 120, Text, Dot.
             static let badge = 0
             static let badgeCount = 12
             static let selectionAnimation = 0
@@ -124,9 +124,13 @@
             }
         }
 
+        /// By id, the way an app counts: where the section stands in the bar does not matter, and
+        /// one that is not there is passed over.
         private func tickBadge() {
             badgeCount += 1
-            tabBar?.items = makeItems()
+            for id in Self.badgedIDs {
+                tabBar?.setBadge(makeBadge(), for: id)
+            }
         }
 
         override func didMoveToWindow() {
@@ -305,15 +309,6 @@
             setHaptics(Defaults.haptics)
         }
 
-        private func makeBadge() -> BNTabBarBadge? {
-            switch badgeKind {
-            case 1: .count(badgeCount, accessibilityLabel: "\(badgeCount) new")
-            case 2: .text("New")
-            case 3: .dot(accessibilityLabel: "New")
-            default: nil
-            }
-        }
-
         private func makeItems() -> [BNTabBarItem] {
             Self.catalogue.prefix(sectionCount).enumerated().map { index, entry in
                 BNTabBarItem(
@@ -322,16 +317,37 @@
                     title: entry.title,
                     // The last one is the first behind More: its badge goes to the menu, and a dot
                     // to More.
-                    badge: index == 1 || index == Self.catalogue.count - 1 ? makeBadge() : nil,
+                    badge: Self.badgedIDs.contains(entry.title.lowercased()) ? makeBadge() : nil,
                     selectionAnimation: selectionAnimation,
                 )
             }
         }
     }
 
+    extension BNTabBarDemoView {
+        func setBadgePosition(index: Int) {
+            tabBar?.theme.badge.position = index == 1 ? .bottomTrailing : .topTrailing
+        }
+    }
+
     // MARK: - View builders
 
     private extension BNTabBarDemoView {
+        /// The sections that carry the badge knob's badge.
+        static var badgedIDs: [String] {
+            [catalogue[1], catalogue[catalogue.count - 1]].map { $0.title.lowercased() }
+        }
+
+        func makeBadge() -> BNBadge? {
+            switch badgeKind {
+            case 1: .count(badgeCount, accessibilityLabel: "\(badgeCount) new")
+            case 2: .count(120, accessibilityLabel: "120 new")
+            case 3: .text("New")
+            case 4: .dot(accessibilityLabel: "New")
+            default: nil
+            }
+        }
+
         private func makeAccessoryView() -> UIView {
             let label = UILabel()
             label.text = "Accessory slot"

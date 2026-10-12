@@ -1,14 +1,14 @@
 import Foundation
 
-/// A section's badge: a count, a short text, or a dot.
+/// A badge on a tab bar's section or on a button: a count, a short text, or a dot.
 ///
 /// Typed rather than a string, the way the system's bar button badge is from iOS 26: a count is
-/// formatted by the bar — capped, in the user's digits — and a dot is a badge of its own rather
+/// formatted by the control — capped, in the user's digits — and a dot is a badge of its own rather
 /// than an empty string that may or may not draw. Pure, so the rules are testable without UIKit.
 ///
 /// What VoiceOver says is the host's to word: the kit knows no app and no language. Without a
 /// label a count or a text is read as shown; a dot has nothing to show and needs one.
-public nonisolated enum BNTabBarBadge: Equatable, Sendable {
+public nonisolated enum BNBadge: Equatable, Sendable {
     /// A number. Zero or less shows no badge; past the theme's limit it reads "99+".
     case count(Int, accessibilityLabel: String? = nil)
     /// A short word or sign — "New", "!". An empty text shows no badge.
@@ -56,7 +56,7 @@ public nonisolated enum BNTabBarBadge: Equatable, Sendable {
 
     /// The badge as a menu item's subtitle, for a section behind More: a system menu draws no
     /// badge of its own. What it shows, or a dot's label, since a menu cannot draw a dot.
-    func menuText(countLimit: Int, locale: Locale = .current) -> String? {
+    package func menuText(countLimit: Int, locale: Locale = .current) -> String? {
         switch appearance(countLimit: countLimit, locale: locale) {
         case let .text(shown)?: shown
         case .dot?: spokenText(countLimit: countLimit, locale: locale)

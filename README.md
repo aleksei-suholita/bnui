@@ -67,7 +67,7 @@ let tabs = BNTabBarContainerViewController(
     action: BNTabBarAction(icon: .symbol("plus"), accessibilityLabel: "New", style: .prominent)
 )
 tabs.onAction = { coordinator.create() }
-tabs.items[0].badge = .count(3)
+tabs.setBadge(.count(3), for: "home")
 window.rootViewController = tabs
 ```
 

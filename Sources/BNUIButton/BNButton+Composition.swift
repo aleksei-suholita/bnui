@@ -10,10 +10,12 @@
 
         /// ```
         /// BNButton (UIControl)                ← pressRecognizer; hit area ≥ 44 pt
-        /// └── surface.view                    ← the material; the press compression lives here
-        ///     └── surface.contentContainer
-        ///         ├── borderView?             (isUserInteractionEnabled = false)
-        ///         └── contentView             (isUserInteractionEnabled = false)
+        /// ├── surface.view                    ← the material; the press compression lives here
+        /// │   └── surface.contentContainer
+        /// │       ├── borderView?             (isUserInteractionEnabled = false)
+        /// │       └── contentView             (isUserInteractionEnabled = false)
+        /// └── badgeHost                       ← the surface's frame and compression; the badge
+        ///     └── badgeView                   (isUserInteractionEnabled = false)
         /// ```
         ///
         /// The content takes no touches, so a finger lands on the material — on glass, inside it,
@@ -31,6 +33,9 @@
             rejectionAnimation?.interrupt()
             rejectionAnimation = nil
             surface = nil
+            badgeHost = nil
+            badgeView = nil
+            badgeAnchors = []
 
             let surface = resolvedMaterial.makeSurface(style: activeStyle, size: size, theme: activeTheme)
             self.surface = surface
@@ -59,6 +64,7 @@
             if activeStyle.border != nil {
                 borderView = makeBorderView(in: container)
             }
+            makeBadge()
         }
 
         /// The spinner is built once and kept, whatever the status.
@@ -154,8 +160,10 @@
             guard let surface else { return }
             guard resolvedMaterial.pressResponse == .control else {
                 // The material compresses itself, so the control keeps its own scale out of the
-                // way. It still owns the haptics, the loading mode and the speed reward.
+                // way. It still owns the haptics, the loading mode and the speed reward. The badge
+                // stays where it is: what the system does to its glass is not ours to follow.
                 surface.view.transform = .identity
+                badgeHost?.transform = .identity
                 return
             }
 
@@ -166,12 +174,20 @@
             scaleAnimation?.interrupt()
             scaleAnimation = nil
 
+            // The badge's host has the surface's frame, so one transform moves the badge with the
+            // outline it hangs on.
+            let views = [surface.view] + [badgeHost].compactMap(\.self)
             guard transition.isAnimated else {
-                surface.view.transform = transform
+                for view in views {
+                    view.transform = transform
+                }
                 return
             }
-            let view = surface.view
-            scaleAnimation = transition.run { view.transform = transform }
+            scaleAnimation = transition.run {
+                for view in views {
+                    view.transform = transform
+                }
+            }
         }
 
         func applyLoading(transition: BNTransition) {
@@ -245,7 +261,7 @@
             let sizeID = size.id
             Self.logger.debug("""
             BNButton “\(label, privacy: .public)”: the icon is shrunk to \(Double(scale), format: .fixed(precision: 2)) \
-            to fit the “\(sizeID, privacy: .public)” circle. A larger size or a narrower symbol keeps its stroke.
+            to fit the “\(sizeID, privacy: .public)” size. A larger size or a smaller image keeps it whole.
             """)
         }
 

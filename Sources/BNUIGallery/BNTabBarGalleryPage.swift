@@ -111,10 +111,15 @@
                     onChange: { demo.setLabelMode(index: $0) },
                 )),
                 BNGalleryKnob(label: "Badge", control: .segmented(
-                    options: ["Off", "Count", "Text", "Dot"],
+                    options: ["Off", "Count", "120", "Text", "Dot"],
                     initial: BNTabBarDemoView.Defaults.badge,
                     onChange: { demo.setBadge(index: $0) },
                 )),
+                BNGalleryKnob(
+                    label: "Badge corner",
+                    control: .segmented(options: ["Top", "Bottom"], initial: 0, onChange: { demo.setBadgePosition(index: $0) }),
+                    note: "A badge stays inside its section: try 120 with five sections. At the bottom it lies over a shown title.",
+                ),
                 BNGalleryKnob(label: "Ticking count", control: .toggle(
                     initial: false,
                     onChange: { demo.setTickingBadge($0) },

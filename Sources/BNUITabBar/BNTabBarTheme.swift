@@ -17,21 +17,15 @@
             public var unselected: UIColor
             /// Tint of the lens that marks the active section.
             public var lensTint: UIColor
-            public var badgeBackground: UIColor
-            public var badgeText: UIColor
 
             public init(
                 selected: UIColor = .label,
                 unselected: UIColor = .secondaryLabel,
                 lensTint: UIColor = Palette.systemLensTint,
-                badgeBackground: UIColor = .systemRed,
-                badgeText: UIColor = .white,
             ) {
                 self.selected = selected
                 self.unselected = unselected
                 self.lensTint = lensTint
-                self.badgeBackground = badgeBackground
-                self.badgeText = badgeText
             }
 
             /// The colour of the system tab bar's lens at rest.
@@ -53,21 +47,13 @@
         public struct Typography: Equatable {
             public var title: UIFont
             public var selectedTitle: UIFont
-            public var badge: UIFont
-            /// The largest text size a badge follows Dynamic Type to. The icon under it keeps one
-            /// size, and a badge that went on growing would cover it.
-            public var badgeMaximumContentSizeCategory: UIContentSizeCategory
 
             public init(
                 title: UIFont = .preferredFont(forTextStyle: .caption2),
                 selectedTitle: UIFont? = nil,
-                badge: UIFont = .preferredFont(forTextStyle: .caption2),
-                badgeMaximumContentSizeCategory: UIContentSizeCategory = .accessibilityMedium,
             ) {
                 self.title = title
                 self.selectedTitle = selectedTitle ?? title.withWeight(.semibold)
-                self.badge = badge
-                self.badgeMaximumContentSizeCategory = badgeMaximumContentSizeCategory
             }
 
             public static let standard = Typography()
@@ -102,12 +88,15 @@
             palette != other.palette
                 || typography != other.typography
                 || icon != other.icon
+                || badge != other.badge
         }
 
         public var geometry: BNTabBarMetrics
         public var palette: Palette
         public var typography: Typography
         public var icon: IconSpec
+        /// The sections' badges — the same look a button's badge takes from its own theme.
+        public var badge: BNBadgeTheme
         public var motion: BNTabBarMotion
 
         public init(
@@ -115,12 +104,14 @@
             palette: Palette = .standard,
             typography: Typography = .standard,
             icon: IconSpec = .standard,
+            badge: BNBadgeTheme = .standard,
             motion: BNTabBarMotion = .standard,
         ) {
             self.geometry = geometry
             self.palette = palette
             self.typography = typography
             self.icon = icon
+            self.badge = badge
             self.motion = motion
         }
 

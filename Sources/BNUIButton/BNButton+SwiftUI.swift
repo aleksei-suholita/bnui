@@ -39,6 +39,7 @@
             let isLoading: Bool
             let action: () -> Void
             var adjustments: [(inout BNButtonEnvironment) -> Void] = []
+            var badge: BNBadge?
 
             var onTouchDown: (() -> Void)?
             var onTouchUp: ((Bool) -> Void)?
@@ -80,6 +81,27 @@
                 self.content = content
                 self.isLoading = isLoading
                 self.action = action
+            }
+
+            // MARK: - Badge
+
+            /// A badge with a count: zero or less shows none, and past the theme's limit it reads
+            /// "99+". See ``BNButton/badge``.
+            public func badge(_ count: Int) -> Self {
+                badge(.count(count))
+            }
+
+            /// A badge with a short word or sign — "New", "!".
+            public func badge(_ text: String) -> Self {
+                badge(.text(text))
+            }
+
+            /// Any badge — a dot, or a count or text with its own words for VoiceOver. `nil` shows
+            /// none.
+            public func badge(_ badge: BNBadge?) -> Self {
+                var copy = self
+                copy.badge = badge
+                return copy
             }
 
             // MARK: - Events
@@ -142,6 +164,7 @@
                 button.statusFollowsEnabledFlag = false
                 // A button that appears already loading appears that way; it does not animate into it.
                 button.setStatus(status(settings, in: context.environment), animated: false)
+                button.badge = badge
                 wire(button)
                 return button
             }
@@ -166,6 +189,7 @@
                     status(settings, in: context.environment),
                     animated: !context.transaction.disablesAnimations,
                 )
+                button.badge = badge
                 wire(button)
             }
 

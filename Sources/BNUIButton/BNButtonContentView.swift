@@ -66,6 +66,7 @@
 
         private func makeIconView(for icon: BNButtonIcon) -> BNButtonIconView {
             let view = BNButtonIconView(image: image(for: icon))
+            view.keepsOwnColours = icon.rendering == .original
             view.contentMode = .scaleAspectFit
             view.isUserInteractionEnabled = false
             view.setContentHuggingPriority(.required, for: .horizontal)
@@ -83,14 +84,14 @@
             switch icon {
             case let .symbol(name):
                 return UIImage(systemName: name, withConfiguration: configuration)
-            case let .image(image, flipsForRTL):
+            case let .image(image, flipsForRTL, rendering):
                 // A symbol from the host's asset catalog takes the same configuration as a system
                 // one, so it stands at the same size and weight beside them. A bitmap has none to take.
                 let configured = image.isSymbolImage
                     ? image.applyingSymbolConfiguration(configuration) ?? image
                     : image
                 let base = flipsForRTL ? configured.imageFlippedForRightToLeftLayoutDirection() : configured
-                return base.withRenderingMode(.alwaysTemplate)
+                return base.withRenderingMode(rendering == .original ? .alwaysOriginal : .alwaysTemplate)
             }
         }
 
@@ -113,6 +114,7 @@
 
             let titleColor = state.style.title.color(for: state.status, isPressed: state.isPressed)
             let iconColor = state.style.resolvedIcon.color(for: state.status, isPressed: state.isPressed)
+            let pictureAlpha = state.status == .disabled ? BNCustomContentView.disabledAlpha : 1
             let axis: NSLayoutConstraint.Axis = state.axis == .vertical ? .vertical : .horizontal
 
             titleLabel.font = state.theme.typography.font(for: state.size)
@@ -131,7 +133,13 @@
             transition.run { [titleLabel, iconViews] in
                 titleLabel.textColor = titleColor
                 for view in iconViews {
-                    view.tintColor = iconColor
+                    // A picture keeps its own colours, so the state reaches it as dimming alone, the
+                    // way it reaches a view the host brings.
+                    if view.keepsOwnColours {
+                        view.alpha = pictureAlpha
+                    } else {
+                        view.tintColor = iconColor
+                    }
                 }
             }
         }
@@ -198,6 +206,9 @@
     /// holding the full-size glyph, which is exactly what did not fit. The image follows the
     /// frame through `scaleAspectFit`.
     final class BNButtonIconView: UIImageView {
+        /// Drawn in the image's own colours rather than tinted by the state.
+        var keepsOwnColours = false
+
         var scale: CGFloat = 1 {
             didSet {
                 guard scale != oldValue else { return }
@@ -236,8 +247,11 @@
             fatalError("init(coder:) is not supported")
         }
 
+        /// How far a disabled button dims what keeps its own colours — this view, a picture icon.
+        static let disabledAlpha: CGFloat = 0.35
+
         func apply(state: BNButtonContentState, transition: BNTransition) {
-            let alpha: CGFloat = state.status == .disabled ? 0.35 : 1
+            let alpha: CGFloat = state.status == .disabled ? Self.disabledAlpha : 1
             guard wrapped.alpha != alpha else { return }
             transition.run { [wrapped] in wrapped.alpha = alpha }
         }

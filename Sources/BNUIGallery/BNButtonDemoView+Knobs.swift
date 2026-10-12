@@ -19,9 +19,10 @@
             applyContent()
         }
 
+        /// One past the symbols is the picture in its own colours.
         func setIcon(index: Int) {
-            guard Self.iconNames.indices.contains(index) else { return }
-            iconName = Self.iconNames[index]
+            guard (0 ... Self.iconNames.count).contains(index) else { return }
+            iconIndex = index
             applyContent()
         }
 
@@ -42,7 +43,9 @@
         /// title knob cannot each half-apply their own version.
         private func applyContent() {
             let title = usesLongTitle ? Self.longTitle : titleText
-            let icon = BNButtonIcon.symbol(iconName)
+            let icon: BNButtonIcon = Self.iconNames.indices.contains(iconIndex)
+                ? .symbol(Self.iconNames[iconIndex])
+                : .image(Self.picture, rendering: .original)
 
             // Only the custom-view case swaps the renderer; everything else goes back to standard,
             // or a stale custom renderer would keep drawing over the title.
@@ -145,6 +148,26 @@
             log("status → \(index == 1 ? "disabled" : index == 2 ? "loading" : "enabled")")
         }
 
+        func setBadge(index: Int) {
+            button.badge = switch index {
+            case 1: .count(3, accessibilityLabel: "3 unread")
+            case 2: .count(120, accessibilityLabel: "120 unread")
+            case 3: .text("New")
+            case 4: .dot(accessibilityLabel: "Unread")
+            default: nil
+            }
+        }
+
+        func setBadgePosition(index: Int) {
+            button.theme.badge.position = index == 1 ? .bottomTrailing : .topTrailing
+        }
+
+        /// None, a tap that opens the menu, or a long press that does while a tap fires.
+        func setMenu(index: Int) {
+            button.menu = index == 0 ? nil : makeMenu()
+            button.showsMenuAsPrimaryAction = index == 1
+        }
+
         func setCooldown(_ cooldown: Double) {
             button.theme.motion.cooldown = cooldown
         }
@@ -200,6 +223,8 @@
             setReduceMotion(Defaults.forcedAccessibility)
             setReduceTransparency(Defaults.forcedAccessibility)
             setStatus(index: Defaults.statusIndex)
+            setBadge(index: Defaults.badgeIndex)
+            setMenu(index: Defaults.menuIndex)
             setCooldown(Defaults.cooldown)
             setRejection(Defaults.rejectionEnabled)
             setRejectionTravel(Defaults.rejectionTravel)

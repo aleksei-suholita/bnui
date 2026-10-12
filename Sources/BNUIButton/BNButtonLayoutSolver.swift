@@ -97,7 +97,8 @@ public nonisolated enum BNButtonLayoutSolver {
         /// The room the content keeps from the button's edges — the text paddings, or
         /// ``BNButtonSize/iconOnlyInset`` on every side of a lone icon.
         public var contentInsets: BNButtonInsets
-        /// How far a lone icon is shrunk to fit its circle. 1 unless the glyph would cross the inset.
+        /// How far the icons are shrunk: a lone one to fit its circle, icons beside a title or each
+        /// other to fit the size's height. 1 unless an icon would cross the inset or the padding.
         public var iconScale: CGFloat
 
         /// The area a finger actually hits. Never smaller than the platform minimum.
@@ -118,7 +119,10 @@ public nonisolated enum BNButtonLayoutSolver {
             return solveLoneIcon(input: input, iconWidth: icon)
         }
 
-        let horizontalContent = horizontalContentWidth(icons: icons, titleWidth: input.titleWidth, spacing: size.iconSpacing)
+        let iconScale = iconScaleBesideContent(input: input)
+        let scaledIcons = icons.map { $0 * iconScale }
+        let iconHeight = icons.isEmpty ? 0 : input.iconHeight * iconScale
+        let horizontalContent = horizontalContentWidth(icons: scaledIcons, titleWidth: input.titleWidth, spacing: size.iconSpacing)
         let ceiling = max(input.availableWidth, 0)
         let roomForContent = max(ceiling - 2 * size.horizontalPadding, 0)
 
@@ -133,18 +137,18 @@ public nonisolated enum BNButtonLayoutSolver {
 
         let axis: BNButtonContentAxis = stacks ? .vertical : .horizontal
         let contentWidth = stacks
-            ? max(input.titleWidth, icons.max() ?? 0)
+            ? max(input.titleWidth, scaledIcons.max() ?? 0)
             : horizontalContent
 
         let numberOfLines = input.titleBehavior.numberOfLines
         let contentHeight = stacks
-            ? verticalContentHeight(input: input, spacing: size.iconSpacing)
-            : max(input.titleHeight, icons.isEmpty ? 0 : input.iconHeight)
+            ? verticalContentHeight(input: input, iconHeight: iconHeight, spacing: size.iconSpacing)
+            : max(input.titleHeight, iconHeight)
 
         // The size's height holds until the content genuinely needs more: Dynamic Type grows the
         // button rather than cropping the label. Icon over title has no single line to hold in
         // place, so a stack keeps the plain padding.
-        let verticalInset = stacks ? size.verticalPadding : restingVerticalInset(input: input, icons: icons)
+        let verticalInset = stacks ? size.verticalPadding : restingVerticalInset(input: input, iconHeight: iconHeight)
         let buttonHeight = max(size.height, contentHeight + 2 * verticalInset)
         let buttonWidth = resolveWidth(input: input, contentWidth: contentWidth, ceiling: ceiling)
 
@@ -156,8 +160,18 @@ public nonisolated enum BNButtonLayoutSolver {
             numberOfLines: numberOfLines,
             hitOutsets: input.metrics.hitOutsets(forVisualSize: CGSize(width: buttonWidth, height: buttonHeight)),
             contentInsets: BNButtonInsets(vertical: verticalInset, horizontal: size.horizontalPadding),
-            iconScale: 1,
+            iconScale: iconScale,
         )
+    }
+
+    /// Icons beside a title, or beside each other, are no taller than one line the size holds —
+    /// its height less the vertical padding. A taller one is shrunk rather than the button grown,
+    /// as a lone icon is shrunk into its circle: the height belongs to the size, and only text,
+    /// wrapped or grown by Dynamic Type, is allowed past it. Two icons shrink together, by the
+    /// taller one, so the pair keeps its proportions.
+    private static func iconScaleBesideContent(input: Input) -> CGFloat {
+        let room = max(input.size.height - 2 * input.size.verticalPadding, 0)
+        return min(1, fit(input.iconHeight, into: room))
     }
 
     /// One icon and nothing else: the size decides the button, and the icon fits into it.
@@ -198,9 +212,9 @@ public nonisolated enum BNButtonLayoutSolver {
     /// was, and every line after it adds exactly its own height. `verticalPadding` is the floor,
     /// for type so large that one line no longer fits the size. An icon taller than a line of text
     /// is what one line holds, or a single line beside it would grow the button.
-    private static func restingVerticalInset(input: Input, icons: [CGFloat]) -> CGFloat {
+    private static func restingVerticalInset(input: Input, iconHeight: CGFloat) -> CGFloat {
         let size = input.size
-        let line = max(input.titleLineHeight, icons.isEmpty ? 0 : input.iconHeight)
+        let line = max(input.titleLineHeight, iconHeight)
         return max(size.verticalPadding, (size.height - line) / 2)
     }
 
@@ -215,11 +229,11 @@ public nonisolated enum BNButtonLayoutSolver {
         return pieces.reduce(0, +) + spacing * CGFloat(pieces.count - 1)
     }
 
-    private static func verticalContentHeight(input: Input, spacing: CGFloat) -> CGFloat {
+    private static func verticalContentHeight(input: Input, iconHeight: CGFloat, spacing: CGFloat) -> CGFloat {
         // Wrapping is allowed to add lines here; truncation keeps one. Either way the icon sits
         // above the title with a single gap.
         let lines = max(input.titleBehavior.numberOfLines, 1)
-        return input.iconHeight + spacing + input.titleHeight * CGFloat(lines)
+        return iconHeight + spacing + input.titleHeight * CGFloat(lines)
     }
 
     private static func resolveWidth(input: Input, contentWidth: CGFloat, ceiling: CGFloat) -> CGFloat {

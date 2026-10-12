@@ -22,6 +22,13 @@ public nonisolated enum BNShape: Equatable, Sendable {
         }
         return min(radius, max(maximumRadius, 0))
     }
+
+    /// How far inside the corner of its bounds the outline passes on the corner's diagonal — the
+    /// same distance from the top and from the side. Where a badge hangs on a control: on the rim
+    /// of a circle at 45°, at the very corner of a square.
+    package func cornerInset(forHeight height: CGFloat, maximumRadius: CGFloat = .infinity) -> CGFloat {
+        cornerRadius(forHeight: height, maximumRadius: maximumRadius) * (1 - 1 / CGFloat(2).squareRoot())
+    }
 }
 
 #if canImport(UIKit)

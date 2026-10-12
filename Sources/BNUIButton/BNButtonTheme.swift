@@ -1,4 +1,5 @@
 #if canImport(UIKit)
+    import BNUICore
     import UIKit
 
     /// Look and feel of the button. Every value the control draws comes from here — there are no
@@ -77,6 +78,8 @@
         public var typography: Typography
         public var icon: IconSpec
         public var focus: Focus
+        /// The badge — the same look a tab bar's badge takes from its own theme.
+        public var badge: BNBadgeTheme
         /// Colour of the flash when a disabled button refuses a touch. The shape of that refusal
         /// lives in ``BNButtonMotion/rejection``; this is only what it is painted with.
         public var rejectionColor: UIColor
@@ -88,6 +91,7 @@
             typography != other.typography
                 || icon != other.icon
                 || focus != other.focus
+                || badge != other.badge
                 || rejectionColor != other.rejectionColor
         }
 
@@ -97,6 +101,7 @@
             typography: Typography = .standard,
             icon: IconSpec = .standard,
             focus: Focus = .standard,
+            badge: BNBadgeTheme = .standard,
             rejectionColor: UIColor = .systemRed,
         ) {
             self.geometry = geometry
@@ -104,6 +109,7 @@
             self.typography = typography
             self.icon = icon
             self.focus = focus
+            self.badge = badge
             self.rejectionColor = rejectionColor
         }
 

@@ -302,7 +302,7 @@
         /// a system menu, so it goes under the title — a dot as its words, since a menu cannot
         /// draw one.
         private func overflowMenuActions() -> [UIMenuElement] {
-            let limit = activeTheme.geometry.badgeCountLimit
+            let limit = activeTheme.badge.countLimit
             return overflowItems.map { item in
                 UIAction(
                     title: item.title,

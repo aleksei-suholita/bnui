@@ -9,7 +9,7 @@
         public var isFocused: Bool
         public var axis: BNButtonContentAxis
         public var numberOfLines: Int
-        /// How far a lone icon is shrunk to fit its circle — see
+        /// How far the icons are shrunk to fit the size — see
         /// ``BNButtonLayoutSolver/Output/iconScale``. A custom view is not scaled; it is its host's.
         public var iconScale: CGFloat
         public var alignment: BNButtonAlignment

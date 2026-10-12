@@ -29,7 +29,7 @@
             let value: Value
             /// `nil` for a section of a bar alone, whose content is `Void`.
             let content: Content?
-            var badge: BNTabBarBadge?
+            var badge: BNBadge?
             var selectionAnimation: BNTabBarSymbolAnimation = .bounce
             var accessibilityLabel: String?
 
@@ -72,7 +72,7 @@
             _ title: String,
             image: UIImage,
             size: CGSize? = nil,
-            rendering: BNTabBarItem.ImageRendering = .template,
+            rendering: BNImageRendering = .template,
             value: Value,
             @ViewBuilder content: () -> Content,
         ) {
@@ -94,7 +94,7 @@
 
         /// Any badge — a dot, or a count or text with its own words for VoiceOver. `nil` shows
         /// none.
-        func badge(_ badge: BNTabBarBadge?) -> Self {
+        func badge(_ badge: BNBadge?) -> Self {
             var copy = self
             copy.badge = badge
             return copy
@@ -138,7 +138,7 @@
             _ title: String,
             image: UIImage,
             size: CGSize? = nil,
-            rendering: BNTabBarItem.ImageRendering = .template,
+            rendering: BNImageRendering = .template,
             value: Value,
         ) {
             self.init(title: title, icon: .image(image, size: size, rendering: rendering), value: value, content: nil)

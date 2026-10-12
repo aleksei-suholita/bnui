@@ -60,6 +60,11 @@ rather than the button grown, and says so in the console. The size's `minWidth` 
 buttons carrying words and does not apply here. Two icons without a title are content, not a
 glyph, and size like a title does.
 
+Beside a title, or beside each other, icons are no taller than one line the size holds — its
+height less ``BNButtonSize/verticalPadding``. A larger image is shrunk, both icons together,
+rather than growing the button: only text, wrapped or grown by Dynamic Type, takes a button past
+its size.
+
 ## Content
 
 Title, title with a leading or trailing icon, an icon alone, or an arbitrary view:
@@ -73,8 +78,46 @@ let animated = BNButton(content: BNButtonContent(accessibilityLabel: "Recording"
 animated.contentRenderer = BNCustomViewContentRenderer { PulsingGlyphView() }
 ```
 
-An icon on its own carries no words, so it owes VoiceOver a label — the control asserts on
-that rather than shipping a silent button.
+An icon on its own carries no words. A label gives it some — in the content, or through the
+button's own `accessibilityLabel`, which wins over the content's and survives every rebuild, as on
+`UIButton`. Without one, VoiceOver reads it only as a button.
+
+An image is drawn as a glyph in the style's colours, as a symbol is. A mark that has colours of
+its own — a brand's logo on a sign-in button — keeps them:
+
+```swift
+BNButton(content: BNButtonContent(title: "Continue", leadingIcon: .image(logo, rendering: .original)))
+```
+
+The state cannot recolour such a picture, so a disabled button dims it instead.
+
+## Badge
+
+``BNButton/badge`` hangs a ``BNBadge`` — a count, a short text or a dot, the same a tab bar's
+section wears — on the button's outline at a trailing corner, the top unless
+``BNBadgeTheme/position`` says the bottom:
+
+```swift
+chat.badge = .count(unread, accessibilityLabel: "\(unread) unread")
+```
+
+It takes no part in the button's size and moves with its press. VoiceOver reads it with the
+button, and it stays as it is while the button is disabled or loading. Its look is
+``BNButtonTheme/badge``.
+
+## Menu
+
+``BNButton/menu`` gives the button a menu, as on `UIButton`. With `showsMenuAsPrimaryAction`
+the menu is what a tap does: it opens as the finger lands, the system owns that touch, and
+targets hear `.menuActionTriggered` instead of the action. Without it a long press opens the
+menu and a tap still fires.
+
+```swift
+more.menu = UIMenu(children: [rename, share, delete])
+more.showsMenuAsPrimaryAction = true
+```
+
+A disabled or loading button opens no menu; it answers the touch as it would a tap.
 
 ## Events
 
@@ -186,6 +229,11 @@ The guarantees the control keeps whatever the theme asks for:
 - ``BNButton/onTouchUp``
 - ``BNButton/onTouchCancel``
 - ``BNButtonHaptics``
+
+### Add a badge or a menu
+
+- ``BNButton/badge``
+- ``BNButton/menu``
 
 ### Drive its state
 

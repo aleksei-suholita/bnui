@@ -17,6 +17,7 @@
 ### Sections
 
 - ``items``
+- ``setBadge(_:for:)``
 - ``updateItems(_:)``
 
 ### The action button

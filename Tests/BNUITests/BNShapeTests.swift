@@ -32,3 +32,26 @@ struct BNShapeTests {
         #expect(rounded.maximumCornerRadius == 12)
     }
 }
+
+@Suite("BNShape corner inset")
+struct BNShapeCornerInsetTests {
+    @Test
+    func `a circle's inset lands on its rim at 45 degrees`() {
+        // A 44 pt circle: the rim at 45° is 22 − 22·cos 45° in from the top and from the side.
+        let inset = BNShape.capsule.cornerInset(forHeight: 44)
+        let point = CGPoint(x: 44 - inset, y: inset)
+        let distance = ((point.x - 22) * (point.x - 22) + (point.y - 22) * (point.y - 22)).squareRoot()
+        #expect(abs(distance - 22) < 0.0001)
+    }
+
+    @Test
+    func `square corners leave the badge on the corner itself`() {
+        #expect(BNShape.rounded(radius: 0).cornerInset(forHeight: 44) == 0)
+    }
+
+    @Test
+    func `the inset follows the radius the shape is drawn with`() {
+        let limited = BNShape.capsule.cornerInset(forHeight: 104, maximumRadius: 22)
+        #expect(limited == BNShape.rounded(radius: 22).cornerInset(forHeight: 104))
+    }
+}

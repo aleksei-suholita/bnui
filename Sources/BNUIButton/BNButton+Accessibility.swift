@@ -92,18 +92,11 @@
 
         // MARK: - VoiceOver
 
+        /// The label is not set here: ``BNButton/accessibilityLabel`` answers from the host's label
+        /// or the content on every read, so a rebuild cannot wipe what the host set.
         func updateAccessibility() {
             isAccessibilityElement = true
-            accessibilityLabel = content.resolvedAccessibilityLabel
             updateAccessibilityState()
-
-            // Compiled out of release builds by the optimiser, so no `#if` is needed — and unlike
-            // one, this fires no matter how the library itself was built.
-            assert(
-                content.resolvedAccessibilityLabel != nil,
-                "BNButton without a title needs an accessibilityLabel — a symbol is not a word, "
-                    + "and VoiceOver has nothing to read without one.",
-            )
         }
 
         func updateAccessibilityState() {
@@ -113,8 +106,10 @@
             }
             accessibilityTraits = traits
             // Loading is reported as a value rather than by disabling the button: a busy button is
-            // still there, it is just not ready.
-            accessibilityValue = status == .loading ? configuration.accessibility.busyValue : nil
+            // still there, it is just not ready. The badge's words join it — "3 unread".
+            let values = [status == .loading ? configuration.accessibility.busyValue : nil, badgeView?.spokenText]
+            let value = values.compactMap(\.self).joined(separator: ", ")
+            accessibilityValue = value.isEmpty ? nil : value
             accessibilityHint = status == .disabled ? configuration.accessibility.disabledHint : nil
         }
     }

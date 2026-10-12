@@ -1,4 +1,5 @@
 #if canImport(UIKit)
+    import BNUICore
     import UIKit
 
     /// Replaces `UITabBarController`: it hosts the tab content controllers and floats a
@@ -186,10 +187,20 @@
         }
 
         /// The sections as the bar draws them, in bar order. Set it to redraw them, as
-        /// ``updateItems(_:)`` does — one badge at a time reads `container.items[1].badge = .count(3)`.
+        /// ``updateItems(_:)`` does; one badge at a time is ``setBadge(_:for:)``.
         public var items: [BNTabBarItem] {
             get { tabs.map(\.item) }
             set { updateItems(newValue) }
+        }
+
+        /// Shows `badge` on the tab with `tabID`, or takes its badge away with `nil` — drawn in place,
+        /// under a finger on the bar too. Found by id rather than by position, so it holds when the
+        /// host orders its tabs differently. Unknown ids are ignored, as in ``select(tabID:animated:)``.
+        public func setBadge(_ badge: BNBadge?, for tabID: String) {
+            guard let index = tabs.firstIndex(where: { $0.item.id == tabID }) else { return }
+            var items = items
+            items[index].badge = badge
+            updateItems(items)
         }
 
         /// Redraws the sections — a badge that counts something, a title that follows the locale —

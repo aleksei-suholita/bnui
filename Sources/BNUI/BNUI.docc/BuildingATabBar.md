@@ -33,11 +33,12 @@ scroll position and its navigation stack.
 
 The container owns which tab is on screen. ``BNTabBarContainerViewController/onSelect`` reports
 a switch the user made, after it is done; ``BNTabBarContainerViewController/select(tabID:animated:)``
-makes one from the outside — after a modal flow saves, say — and is not reported back. A badge or
-a title changes through ``BNTabBarContainerViewController/items``:
+makes one from the outside — after a modal flow saves, say — and is not reported back. A badge
+changes by the tab's id, so it holds whatever order the tabs stand in; a title changes through
+``BNTabBarContainerViewController/items``:
 
 ```swift
-tabs.items[1].badge = .count(3)
+tabs.setBadge(.count(3), for: "inbox")
 ```
 
 The tabs themselves are fixed when the container is made; a different set of tabs is a different
@@ -134,7 +135,7 @@ and reports it through ``BNTabBarView/onEffectiveHeightChange``, so scroll views
 
 ## Badges
 
-A section's ``BNTabBarBadge`` is a count, a short text or a dot:
+A section's ``BNBadge`` is a count, a short text or a dot — the same badge a ``BNButton`` wears:
 
 ```swift
 BNTabBarItem(id: "inbox", icon: .symbol("tray"), title: "Inbox",
@@ -144,12 +145,17 @@ BNTabBarItem(id: "news", icon: .symbol("newspaper"), title: "News",
 ```
 
 The bar formats a count: zero or less shows no badge, the user's digits are used, and past
-``BNTabBarMetrics/badgeCountLimit`` it reads "99+". A badge is pinned just inside the icon's
-top-trailing corner and grows away from it, and it follows Dynamic Type only up to the
-theme's ``BNTabBarTheme/Typography/badgeMaximumContentSizeCategory`` — the icon keeps one size.
+``BNBadgeTheme/countLimit`` it reads "99+". A badge is pinned just inside a trailing corner of
+the icon — the top, or the bottom by ``BNBadgeTheme/position``, where it lies over a shown
+title — and grows away from the icon, but never past its own section: where the section is too
+narrow, it slides back over the icon rather than onto the next one. It follows Dynamic Type only
+up to ``BNBadgeTheme/maximumContentSizeCategory`` — the icon keeps one size. Its look is the
+theme's ``BNTabBarTheme/badge``.
 
-Changing nothing but badges redraws the badges alone: they pop in and out and a number
-cross-fades, while a finger on the bar keeps its gesture. A custom renderer joins in through
+One badge changes by its section's id — ``BNTabBarView/setBadge(_:for:)``, and the same on the
+container — and an id the bar does not have is passed over. Changing nothing but badges redraws
+the badges alone: they pop in and out and a number cross-fades, while a finger on the bar keeps
+its gesture. A custom renderer joins in through
 ``BNTabBarItemRendering/updateBadge(_:transition:)``; one that does not is rebuilt as before.
 
 VoiceOver reads a badge in the host's words, or as shown when there are none; a dot always
@@ -191,7 +197,7 @@ as "Tab N of M" with its selected state, and a long press is published as a cust
 - ``BNTabBarContainerViewController``
 - ``BNTabBarView``
 - ``BNTabBarItem``
-- ``BNTabBarBadge``
+- ``BNBadge``
 - ``BNTabBarConfiguration``
 
 ### Add slots

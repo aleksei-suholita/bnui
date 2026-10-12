@@ -6,6 +6,7 @@
 
 - ``init(items:selectedID:configuration:theme:material:lensRenderer:haptics:)``
 - ``items``
+- ``setBadge(_:for:)``
 - ``selectedID``
 - ``setSelectedID(_:animated:)``
 

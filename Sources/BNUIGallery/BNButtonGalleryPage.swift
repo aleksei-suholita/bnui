@@ -47,11 +47,15 @@
                     initial: BNButtonDemoView.Defaults.contentIndex,
                     onChange: { demo.setContentKind(index: $0) },
                 )),
-                BNGalleryKnob(label: "Icon", control: .segmented(
-                    options: ["Gear", "Plus", "Chevron", "Tall", "Wide", "Wider"],
-                    initial: BNButtonDemoView.Defaults.iconIndex,
-                    onChange: { demo.setIcon(index: $0) },
-                )),
+                BNGalleryKnob(
+                    label: "Icon",
+                    control: .segmented(
+                        options: ["Gear", "Plus", "Chevron", "Tall", "Wide", "Wider", "Picture"],
+                        initial: BNButtonDemoView.Defaults.iconIndex,
+                        onChange: { demo.setIcon(index: $0) },
+                    ),
+                    note: "Picture is an 80 pt image in its own colours: the size holds it, beside a title too.",
+                ),
                 BNGalleryKnob(label: "Long title", control: .toggle(
                     initial: BNButtonDemoView.Defaults.usesLongTitle,
                     onChange: { demo.setLongTitle($0) },
@@ -172,6 +176,29 @@
                     initial: BNButtonDemoView.Defaults.statusIndex,
                     onChange: { demo.setStatus(index: $0) },
                 )),
+                BNGalleryKnob(
+                    label: "Badge",
+                    control: .segmented(
+                        options: ["None", "3", "120", "New", "Dot"],
+                        initial: BNButtonDemoView.Defaults.badgeIndex,
+                        onChange: { demo.setBadge(index: $0) },
+                    ),
+                    note: "Hangs on the outline and moves with the press; try it on a lone icon and with Rounded.",
+                ),
+                BNGalleryKnob(label: "Badge corner", control: .segmented(
+                    options: ["Top", "Bottom"],
+                    initial: 0,
+                    onChange: { demo.setBadgePosition(index: $0) },
+                )),
+                BNGalleryKnob(
+                    label: "Menu",
+                    control: .segmented(
+                        options: ["None", "Tap", "Long press"],
+                        initial: BNButtonDemoView.Defaults.menuIndex,
+                        onChange: { demo.setMenu(index: $0) },
+                    ),
+                    note: "Tap: the menu opens as the finger lands, and the button fires nothing. Long press: a tap still fires.",
+                ),
                 BNGalleryKnob(
                     label: "Cooldown",
                     control: .slider(

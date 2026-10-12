@@ -1,4 +1,5 @@
 #if canImport(UIKit)
+    import BNUICore
     import UIKit
 
     /// One section of the bar.
@@ -12,18 +13,10 @@
             case symbol(String)
             /// A bundled asset or a photo, fitted into `size` with its proportions kept, or, without
             /// one, into a square as large as a round symbol at the theme's point size — an 80 pt
-            /// asset does not grow the bar. The action button draws the image its own way, as a
-            /// button draws an icon.
-            case image(UIImage, size: CGSize? = nil, rendering: ImageRendering = .template)
-        }
-
-        /// How an image takes the section's state.
-        public enum ImageRendering: Equatable, Sendable {
-            /// A glyph: its shape in the colour of the state, as a symbol is drawn.
-            case template
-            /// A picture in its own colours — a person's photo. The state does not touch
-            /// it; the lens under it is what says the section is chosen.
-            case original
+            /// asset does not grow the bar. A picture in its own colours (`.original`) is not
+            /// touched by the state: the lens under it is what says the section is chosen. The
+            /// action button leaves `size` aside and draws the image as a button draws an icon.
+            case image(UIImage, size: CGSize? = nil, rendering: BNImageRendering = .template)
         }
 
         public let id: String
@@ -32,7 +25,7 @@
         /// A count, a short text or a dot. Changing only the badges of a bar's sections redraws the
         /// badges alone, and a finger on the bar keeps its gesture — one in place reads
         /// `bar.items[1].badge = .count(3)`.
-        public var badge: BNTabBarBadge?
+        public var badge: BNBadge?
         /// The SF Symbol accent played when this section becomes selected. Defaults to a bounce;
         /// set per item — a running-timer section can breathe while the rest bounce, or go silent.
         public let selectionAnimation: BNTabBarSymbolAnimation
@@ -44,7 +37,7 @@
             id: String,
             icon: Icon,
             title: String,
-            badge: BNTabBarBadge? = nil,
+            badge: BNBadge? = nil,
             selectionAnimation: BNTabBarSymbolAnimation = .bounce,
             accessibilityLabel: String? = nil,
         ) {
