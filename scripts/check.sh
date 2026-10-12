@@ -9,7 +9,8 @@
 #   ios       the package built for the iOS simulator SDK — scripts/typecheck-ios.sh
 #   dead code Periphery over the index the iOS build left behind
 #   api       public types carry the BN prefix; the public API is written to api/BNUI.api
-#   docs      DocC over the same declarations: a broken link or an undocumented parameter fails
+#   docs      DocC over the same declarations, the kit's and the gallery's: a broken link or an
+#             undocumented parameter fails
 #
 #   scripts/check.sh               run everything
 #   scripts/check.sh --if-changed  skip when the tree is exactly as it was at the last green run
@@ -141,21 +142,28 @@ if [[ -n "$(git status --porcelain -- api/BNUI.api)" ]]; then
 fi
 
 step "docs"
-# DocC reads the symbol graphs the iOS build wrote — only the kit's, not the gallery's.
-DOCC_GRAPHS=.build/ios/docc-graphs
-rm -rf "$DOCC_GRAPHS" && mkdir -p "$DOCC_GRAPHS"
-cp "$SYMBOL_GRAPHS"/BNUI.symbols.json "$SYMBOL_GRAPHS"/BNUI@*.symbols.json "$DOCC_GRAPHS"/
-if xcrun docc convert Sources/BNUI/BNUI.docc \
-    --additional-symbol-graph-dir "$DOCC_GRAPHS" \
-    --fallback-display-name BNUI \
-    --fallback-bundle-identifier bnui.BNUI \
-    --output-path .build/ios/BNUI.doccarchive \
-    --warnings-as-errors >"$LOG" 2>&1; then
-    echo "documentation builds clean"
-else
-    grep -E 'error|warning|-->' "$LOG" | sed -E 's|\.\./|Sources/BNUI/|' | cut -c1-300
-    exit 1
-fi
+# DocC reads the symbol graphs the iOS build wrote. Two catalogues, the two documentation targets
+# of .spi.yml: the kit's over the BNUI module, which re-exports every control, and the gallery's.
+docs_build() {
+    local module=$1
+    local graphs=.build/ios/docc-graphs/$module
+    rm -rf "$graphs" && mkdir -p "$graphs"
+    find "$SYMBOL_GRAPHS" -maxdepth 1 \( -name "$module.symbols.json" -o -name "$module@*.symbols.json" \) \
+        -exec cp {} "$graphs"/ \;
+    if xcrun docc convert "Sources/$module/$module.docc" \
+        --additional-symbol-graph-dir "$graphs" \
+        --fallback-display-name "$module" \
+        --fallback-bundle-identifier "bnui.$module" \
+        --output-path ".build/ios/$module.doccarchive" \
+        --warnings-as-errors >"$LOG" 2>&1; then
+        echo "$module: documentation builds clean"
+    else
+        grep -E 'error|warning|-->' "$LOG" | sed -E "s|\.\./|Sources/$module/|" | cut -c1-300
+        exit 1
+    fi
+}
+docs_build BNUI
+docs_build BNUIGallery
 
 fingerprint >"$STAMP"
 printf '\n✓ all checks passed\n'

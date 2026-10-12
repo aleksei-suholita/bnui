@@ -4,22 +4,49 @@ Controls that feel a step beyond what UIKit ships: a button and a glass-backed t
 
 ## Overview
 
-`BNUI` is a package of interactive components that know nothing about any one app's domain.
-A control takes abstract data and reports events; the host owns meaning and navigation.
-Every type carries the `BN` prefix, because the kit outlives the app it was first written for.
+BNUI gives a UIKit or SwiftUI app two controls:
 
-The boundary is enforced by the module graph rather than by discipline: an app's design layer
-depends on `BNUI`, never the other way round, so an app component cannot leak into the
-library. Anything that needs a word from a product's vocabulary — "activity", "alarm",
-"session" — lives on the other side of that line, in the app that owns the word.
+- ``BNButton`` — one press, one result. The press answers the speed of the finger, a disabled
+  button refuses a tap visibly instead of ignoring it, haptics follow a contract of their own,
+  and the loading mode does not move the button. See <doc:BuildingAButton>.
+- ``BNTabBarContainerViewController`` — a replacement for `UITabBarController` with a floating
+  bar: a selection lens that follows the finger, a More menu when the sections outgrow the
+  width, an action button and an accessory above the bar. ``BNTabBarView`` is the bar alone.
+  See <doc:BuildingATabBar>.
 
-``BNButton`` is a binary action over a swappable material: one press, one result, a haptic
-contract of its own and a loading mode that does not move the button. See
-<doc:BuildingAButton>.
+Both follow Dynamic Type, VoiceOver, right-to-left, Reduce Motion and Reduce Transparency, and
+both have a SwiftUI face — the same UIKit control underneath, not a second implementation. See
+<doc:UsingTheKitFromSwiftUI>.
 
-``BNTabBarView`` is a bottom navigation bar built on Liquid Glass, with a lens that
-follows the finger, a swappable material, and optional action and accessory slots. See
-<doc:BuildingATabBar>.
+### Quick start
+
+```swift
+import BNUI
+
+let tabs = BNTabBarContainerViewController(tabs: [
+    .init(item: BNTabBarItem(id: "home", icon: .symbol("house.fill"), title: "Home"),
+          viewController: HomeViewController()),
+    .init(item: BNTabBarItem(id: "settings", icon: .symbol("gearshape.fill"), title: "Settings"),
+          viewController: SettingsViewController()),
+])
+window.rootViewController = tabs
+
+let save = BNButton(content: .title("Save"), style: .primary)
+save.onTap = { model.save() }
+```
+
+The controls report and the host acts: a button never performs its action itself, and the
+container switches tabs but leaves every other flow to the host.
+
+### Looks come from outside
+
+Everything a control draws comes from a theme, a style or an initializer parameter, never from
+a literal inside the control, so an app adopts the kit by passing its own values rather than
+editing the controls. A button takes its colours and material from a ``BNButtonStyle`` and the
+rest from a ``BNButtonTheme``; the bar takes all of it from a ``BNTabBarTheme`` and a
+``BNTabBarMaterial``.
+
+### iOS versions
 
 The kit runs on iOS 16 and later. Glass exists from iOS 26, and so do the glass materials.
 Every control also has a blur material — a system `UIBlurEffect` material, from
@@ -27,12 +54,6 @@ Every control also has a blur material — a system `UIBlurEffect` material, fro
 exists on every version: the kit's defaults wear glass on iOS 26 and the blur plate below
 it. The few other effects that need a newer system step back: symbol animations, announcement
 priority, opening a menu without a touch.
-
-Everything a control draws comes from a theme, never a literal, so a second app adopts the
-kit by swapping the theme rather than editing the controls.
-
-Every control also has a SwiftUI face — the same UIKit control underneath, not a
-second implementation. See <doc:UsingTheKitFromSwiftUI>.
 
 ### Choosing what to import
 
@@ -45,6 +66,7 @@ control is enough.
 | `BNUICore` | Motion, haptics, shapes, the blur plate and the ``BN`` namespace | — |
 | `BNUIButton` | ``BNButton`` and ``BN/Button`` | `BNUICore` |
 | `BNUITabBar` | ``BNTabBarView``, ``BNTabBarContainerViewController`` and their SwiftUI faces | `BNUIButton` |
+| `BNUIGallery` | A bench with a page per control, open to an app's own pages; documented on its own | `BNUI` |
 
 ## Topics
 
@@ -53,6 +75,7 @@ control is enough.
 - <doc:BuildingAButton>
 - ``BNButton``
 - <doc:BuildingATabBar>
+- ``BNTabBarContainerViewController``
 - ``BNTabBarView``
 
 ### SwiftUI
@@ -67,9 +90,8 @@ control is enough.
 
 ### Foundation
 
-The layer under every control: one haptic engine with the merge rule, the blur plate the
-translucent materials draw, the outline a theme gives a control, and the springs and curves each
-control's motion vocabulary is built from.
+The layer under every control: the outline a theme gives a control, and the springs and curves
+each control's motion vocabulary is built from.
 
 - ``BNShape``
 - ``BNSpring``
@@ -105,6 +127,7 @@ is written down.
 
 - ``BNButtonStatus``
 - ``BNButtonInteraction``
+- ``BNButtonPressRecognizer``
 - ``BNButtonRejection``
 - ``BNButtonHapticEvent``
 - ``BNButtonHapticEmphasis``
@@ -150,6 +173,7 @@ is written down.
 ### Sections and Slots
 
 - ``BNTabBarItem``
+- ``BNTabBarSymbolAnimation``
 - ``BNTabBarAction``
 - ``BNTabBarAccessory``
 - ``BNTabBarConfiguration``

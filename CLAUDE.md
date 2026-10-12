@@ -29,8 +29,9 @@ the package is `README.md`; this file is for working on it.
 
 ## Where the truth lives
 
-- **The API is the code.** `///` comments and DocC (`Sources/BNUI/BNUI.docc`, built over the whole
-  kit from the `BNUI` module's symbol graph). No document listing the methods.
+- **The API is the code.** `///` comments and DocC: `Sources/BNUI/BNUI.docc`, built over the whole
+  kit from the `BNUI` module's symbol graph, and `Sources/BNUIGallery/BNUIGallery.docc` for the
+  gallery. Both are hosted by the Swift Package Index (`.spi.yml`). No document listing the methods.
 - **The public surface is `api/BNUI.api`**: every public declaration with the product it belongs
   to, written by `check.sh`. Its diff is how a breaking change is seen.
 

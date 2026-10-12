@@ -13,7 +13,7 @@ iOS controls built on UIKit, with a SwiftUI face for each. Alpha.
 Add the package with Swift Package Manager:
 
 ```swift
-.package(url: "https://github.com/aleksei-suholita/bnui.git", exact: "0.4.0")
+.package(url: "https://github.com/aleksei-suholita/bnui.git", exact: "0.4.1")
 ```
 
 Then depend on the whole kit or only on the controls you use:
@@ -51,19 +51,32 @@ navigates.
 
 ### Tab bar
 
+`BNTabBarContainerViewController` replaces `UITabBarController`: it holds a controller per tab,
+floats the bar over the content and switches tabs itself.
+
 ```swift
 import BNUITabBar
 
-let bar = BNTabBarView(items: [
-    BNTabBarItem(id: "home", icon: .symbol("house.fill"), title: "Home"),
-    BNTabBarItem(id: "reports", icon: .symbol("chart.bar.fill"), title: "Reports"),
-])
-bar.onSelect = { id in coordinator.show(id) }
+let tabs = BNTabBarContainerViewController(
+    tabs: [
+        .init(item: BNTabBarItem(id: "home", icon: .symbol("house.fill"), title: "Home"),
+              viewController: UINavigationController(rootViewController: HomeViewController())),
+        .init(item: BNTabBarItem(id: "reports", icon: .symbol("chart.bar.fill"), title: "Reports"),
+              viewController: UINavigationController(rootViewController: ReportsViewController())),
+    ],
+    action: BNTabBarAction(icon: .symbol("plus"), accessibilityLabel: "New", style: .prominent)
+)
+tabs.onAction = { coordinator.create() }
+tabs.items[0].badge = .count(3)
+window.rootViewController = tabs
 ```
 
-`BNTabBarContainerViewController` replaces `UITabBarController`: it hosts the content under the
-floating bar and owns the selected section. On iPhone Duo, built against the iOS 27.1 SDK, it
-stands the bar in the strip beside the content where the system moves its own bars.
+Every tab's safe area grows by the bar's height, so scroll views keep clear of it on their own.
+On iPhone Duo, built against the iOS 27.1 SDK, the container stands the bar in the strip beside
+the content where the system moves its own bars.
+
+`BNTabBarView` is the bar alone, for a host that switches its content itself: it draws
+`selectedID` and reports `onSelect`.
 
 ### SwiftUI
 
@@ -81,7 +94,8 @@ control beneath them — set a theme once at the root.
 ### Gallery
 
 `BNUIGallery` is a bench for controls — the kit's and an app's own — with knobs, backdrops, light
-and dark, text sizes and right-to-left. A page is a demo and knobs bound to its properties:
+and dark, text sizes and right-to-left. A page is a demo and knobs bound to its properties; the
+kit's own pages come with it:
 
 ```swift
 #if DEBUG
@@ -99,29 +113,46 @@ BNGallery.present([pill] + BNUIGalleryPages.all(), from: self)
 #endif
 ```
 
-A knob reads where the demo starts and Reset puts it back. `-OpenGallery <Title>` at launch is
-`BNGallery.launchPageTitle`. A page can also present an alert or a sheet (`presenting:`), draw a
-SwiftUI view from props (`props:`) and show every state of a control at once (`.states(_:)`).
-Knobs come for numbers, switches, choices, text, colours, steps, dates and views of the page's own;
-`.action` puts a page's commands in a ⋯ menu. A page that needs more conforms to `BNGalleryPage`
-and builds its demo, knobs and commands in code. `BNGalleryConfiguration` names the catalogue,
-orders its sections and adds the app's own backdrops — a screenshot, a mock screen.
-
-The gallery is compiled in every configuration, TestFlight's Release included, with nothing to
-set. The app decides where the way in is: behind `#if DEBUG` for Debug only, or, for TestFlight,
-closed at run time — TestFlight and the App Store get the same binary. An app that links
-`BNUIGallery` carries its code into the App Store build either way.
+The gallery is compiled in every configuration, so the app decides where the way in is — behind
+`#if DEBUG`, or closed at run time for TestFlight. An app that links `BNUIGallery` carries its
+code into the App Store build either way. Pages for alerts and sheets, SwiftUI views, every state
+at once, and the app's own backdrops are in the gallery's documentation.
 
 ## Theming
 
 Everything a control draws comes from a theme, a style or an initializer parameter — never from a
-literal inside the control. An app adopts the kit by passing its own theme, not by editing the
-controls.
+literal inside the control. An app adopts the kit by writing its values once and passing them in,
+not by editing the controls:
+
+```swift
+extension BNButtonStyle {
+    static let brand = BNButtonStyle(
+        id: "brand",
+        fill: BNButtonColorSet(.systemIndigo),
+        title: BNButtonColorSet(.white)
+    )
+}
+
+extension BNTabBarTheme {
+    static let app = BNTabBarTheme(palette: .init(selected: .systemIndigo))
+}
+
+let save = BNButton(content: .title("Save"), style: .brand)
+let tabs = BNTabBarContainerViewController(tabs: tabList, theme: .app)
+```
+
+A button takes its colours and material from its style and type, geometry and motion from a
+`BNButtonTheme`; the bar takes all of it from a `BNTabBarTheme`. UIKit has no environment to carry
+a theme, so a UIKit screen passes it to each control. In SwiftUI a modifier at the root reaches
+every control beneath it: `.bnTabBarTheme(.app)`.
 
 ## Documentation
 
-The API is documented in DocC. In Xcode, choose Product › Build Documentation; the articles
-*Building a Button*, *Building a Tab Bar* and *Using the Kit from SwiftUI* walk through each control.
+The API reference and the articles — *Building a Button*, *Building a Tab Bar*, *Using the Kit
+from SwiftUI* — are on the
+[Swift Package Index](https://swiftpackageindex.com/aleksei-suholita/bnui/documentation/bnui),
+with the gallery's documentation beside them. In Xcode, Product › Build Documentation builds the
+same pages.
 
 ## Versioning
 

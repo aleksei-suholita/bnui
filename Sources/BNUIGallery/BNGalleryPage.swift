@@ -3,7 +3,6 @@
     import UIKit
 
     /// A gallery page: the control's demo view plus knobs for its properties.
-    /// Kit rule: a control is not done until it has a page of its own.
     ///
     /// Everything past `title`, `makeDemoView()` and `makeKnobs(for:)` has a default, so a page
     /// written for an older engine keeps compiling and simply looks plainer in the catalogue.

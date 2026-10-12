@@ -140,8 +140,8 @@ touch takes the movement over on whatever frame it finds it.
 All of it comes from ``BNButtonMotion``, and Reduce Motion resolves it to a version with no
 overshoot and no shove. The button still works; only the movement goes.
 
-The numbers in the theme are placeholders until someone has sat with the gallery page and a
-system button side by side on a device. That page has a slider for each of them.
+The gallery's *Button* page has a slider for each of these numbers, to tune a theme of your own
+against the system button on a device.
 
 ## Materials
 

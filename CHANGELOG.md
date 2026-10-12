@@ -4,6 +4,26 @@ Every release of BNUI. The kit follows semantic versioning; while it is at 0.x, 
 may break the API and a patch release does not. Each entry lists what is breaking, what is added
 and what is fixed, by product.
 
+## 0.4.1 — 2026-10-12
+
+No change to the API.
+
+### Added
+
+- The documentation is hosted on the
+  [Swift Package Index](https://swiftpackageindex.com/aleksei-suholita/bnui/documentation/bnui):
+  the kit's reference and articles, and the gallery's beside them.
+- `BNUIGallery`: documentation of its own — pages, knobs, layouts, the catalogue and the way in.
+- `BNUITabBar`: *Building a Tab Bar* opens with `BNTabBarContainerViewController` — its tabs, the
+  safe area it gives each of them, selection from the outside, badges — and the container has a
+  page of its own in the reference.
+
+### Fixed
+
+- `BNUITabBar`: *Building a Tab Bar* said the lens never grows under the finger. Over glass that
+  answers a touch it swells, as `BNTabBarMetrics.liftedScale` says; over blur or paint, and under
+  Reduce Motion, it keeps its size.
+
 ## 0.4.0 — 2026-10-12
 
 ### Breaking

@@ -4,6 +4,48 @@ Compose a bottom navigation bar from sections, an optional action, and an option
 
 ## Overview
 
+The kit gives the bar two ways in. ``BNTabBarContainerViewController`` replaces
+`UITabBarController`: it holds a controller per tab and switches between them itself — what most
+apps want. ``BNTabBarView`` is the bar alone, for a host that switches its content by itself.
+
+## The container
+
+Each tab is a bar item and the controller shown while it is selected:
+
+```swift
+let tabs = BNTabBarContainerViewController(
+    tabs: [
+        .init(item: BNTabBarItem(id: "home", icon: .symbol("house.fill"), title: "Home"),
+              viewController: UINavigationController(rootViewController: HomeViewController())),
+        .init(item: BNTabBarItem(id: "reports", icon: .symbol("chart.bar.fill"), title: "Reports"),
+              viewController: UINavigationController(rootViewController: ReportsViewController())),
+    ],
+    action: BNTabBarAction(icon: .symbol("plus"), accessibilityLabel: "New", style: .prominent)
+)
+tabs.onAction = { coordinator.create() }
+window.rootViewController = tabs
+```
+
+The first tab is on screen at start. The bar floats over the content, and every tab's safe area
+grows by the bar's height, so a scroll view keeps its last row clear of the bar without being
+told. The controllers live as long as the container: a tab left and come back to keeps its
+scroll position and its navigation stack.
+
+The container owns which tab is on screen. ``BNTabBarContainerViewController/onSelect`` reports
+a switch the user made, after it is done; ``BNTabBarContainerViewController/select(tabID:animated:)``
+makes one from the outside — after a modal flow saves, say — and is not reported back. A badge or
+a title changes through ``BNTabBarContainerViewController/items``:
+
+```swift
+tabs.items[1].badge = .count(3)
+```
+
+The tabs themselves are fixed when the container is made; a different set of tabs is a different
+container. The action can change with the app's state through
+``BNTabBarContainerViewController/action``.
+
+## The bar on its own
+
 ``BNTabBarView`` is a bar you drive and observe — it never navigates. You give it the
 sections to show and which one is selected; it tells you when the selection changes. The
 selection lives with the host, so the control stays a pure view: `selectedID` is what to
@@ -18,16 +60,19 @@ bar.onSelect = { id in coordinator.show(id) }
 bar.onEffectiveHeightChange = { height in scrollView.contentInset.bottom = height }
 ```
 
+The bar is sized by its content and detached from the screen edges; the host gives it the
+width, and the sections' capsule aligns itself within that width with
+``BNTabBarConfiguration/Alignment``.
+
+## Sections and More
+
 Sections stand in the capsule as long as the width gives each of them
 ``BNTabBarMetrics/minimumItemWidth``, and never more than six. Past that, the last slot is
 ``BNTabBarConfiguration/moreItem``, which opens the rest in a system menu; a section chosen
 there is reported like any other, and the lens marks More while it is active. An action
 takes its width before the sections do, so it brings More sooner. How many slots stand is
 decided by the width alone, not by the labels, so a change of text size never moves a
-section into the menu. The bar is
-sized by its content and detached from the screen edges; the host gives it the width, and
-the sections' capsule aligns itself within that width with
-``BNTabBarConfiguration/Alignment``.
+section into the menu.
 
 A bar short of room gives way in a fixed order: sections narrow below
 ``BNTabBarMetrics/preferredItemWidth``, then every label shrinks by one factor down to
@@ -44,8 +89,10 @@ under the finger; dragging along the bar carries it with the finger, and releasi
 commits the nearest section. There is no cancel-by-leaving: a gesture always resolves into a
 choice.
 
-The marker is a flat tinted capsule that only ever travels: it does not turn to glass and
-does not grow under the finger. The lens is still a replaceable seam — ``BNMaskedLensRenderer``
+The marker is a flat tinted capsule and never turns to glass itself. Over glass that answers a
+touch it swells a little while a finger is on the bar, the way the system's glass lens does
+(``BNTabBarMetrics/liftedScale``); over blur or paint, and under Reduce Motion, it keeps its size
+and only travels. The lens is still a replaceable seam — ``BNMaskedLensRenderer``
 is the default, and a renderer that reveals a second content layer colours the section
 exactly along the marker's edge, so the change flows through an icon during a drag.
 
@@ -141,6 +188,7 @@ as "Tab N of M" with its selected state, and a long press is published as a cust
 
 ### Set up the bar
 
+- ``BNTabBarContainerViewController``
 - ``BNTabBarView``
 - ``BNTabBarItem``
 - ``BNTabBarBadge``
