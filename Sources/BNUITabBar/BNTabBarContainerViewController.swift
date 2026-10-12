@@ -5,6 +5,12 @@
     /// ``BNTabBarView`` capsule over them. The bar only draws and reports — this container owns the
     /// truth (which tab is visible) and swaps the child in response, the way `UITabBarController`
     /// does it itself.
+    ///
+    /// Where the system moves its own bars into a strip beside the content — iPhone Duo, with the
+    /// app built against the iOS 27.1 SDK — the bar stands in that strip as a column of icons, at
+    /// its bottom, where the system keeps its own tab bar. A tab's controller opts out the way it
+    /// does under `UITabBarController`: its `preferredVerticalBarBehavior` is `.disabled`, and the
+    /// bar goes back to the bottom with the system's.
     public final class BNTabBarContainerViewController: UIViewController {
         /// One tab: the bar item to draw and the controller shown when it is selected.
         public struct Tab {
@@ -35,18 +41,29 @@
         /// nowhere else to say so, and rebuilding the container would throw the tabs away with it.
         public var action: BNTabBarAction? {
             get { tabBar.action }
-            set { tabBar.action = newValue }
+            set {
+                tabBar.action = newValue
+                // The action is part of the column's length: whether the bar fits the strip may
+                // have changed with it.
+                viewIfLoaded?.setNeedsLayout()
+            }
         }
 
         /// The section currently on screen.
         public private(set) var selectedTabID: String?
 
         private var tabs: [Tab]
-        private let tabBar: BNTabBarView
+        /// The bar; the vertical bar's placement measures the room it needs.
+        let tabBar: BNTabBarView
         private let barMargin: CGFloat
         private let barContentGap: CGFloat
-        private var currentChild: UIViewController?
+        /// The tab on screen; read by the vertical bar's configuration, which defers to it.
+        private(set) var currentChild: UIViewController?
         private var latestBarHeight: CGFloat = 0
+        /// The bar as a row: along the bottom of the safe area, inset from its sides.
+        private var rowConstraints: [NSLayoutConstraint] = []
+        /// The bar as a column: left, top, width and height, set to the rectangle the strip gives.
+        private var columnConstraints: [NSLayoutConstraint] = []
 
         /// - Parameters:
         ///   - tabs: the tabs in bar order, each a bar item and the controller shown when it is
@@ -108,16 +125,55 @@
             wireBar()
             tabBar.translatesAutoresizingMaskIntoConstraints = false
             view.addSubview(tabBar)
-            NSLayoutConstraint.activate([
+            rowConstraints = [
                 tabBar.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: barMargin),
                 tabBar.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -barMargin),
                 tabBar.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
-            ])
+            ]
+            columnConstraints = [
+                tabBar.leftAnchor.constraint(equalTo: view.leftAnchor),
+                tabBar.topAnchor.constraint(equalTo: view.topAnchor),
+                tabBar.widthAnchor.constraint(equalToConstant: 0),
+                tabBar.heightAnchor.constraint(equalToConstant: 0),
+            ]
+            NSLayoutConstraint.activate(rowConstraints)
+            observeVerticalBar()
 
             if let first = tabs.first {
                 selectedTabID = first.item.id
                 show(first.viewController)
             }
+        }
+
+        override public func viewWillLayoutSubviews() {
+            super.viewWillLayoutSubviews()
+            placeBar()
+        }
+
+        /// Places the bar again once the tab on screen is laid out. Where the system's buttons stand
+        /// in the vertical strip is known only after the tab's navigation has laid them out, which
+        /// happens below this view — later in the same pass. Read before it, a first showing found
+        /// no buttons and a turn found them where they stood before it.
+        override public func viewDidLayoutSubviews() {
+            super.viewDidLayoutSubviews()
+            currentChild?.view.layoutIfNeeded()
+            placeBar()
+        }
+
+        /// The system settles its bars once a turn, an opening or a closing is over; the bar is
+        /// placed again then, against where they ended up.
+        override public func viewWillTransition(to size: CGSize, with coordinator: any UIViewControllerTransitionCoordinator) {
+            super.viewWillTransition(to: size, with: coordinator)
+            coordinator.animate(alongsideTransition: nil) { [weak self] _ in
+                self?.view.setNeedsLayout()
+            }
+        }
+
+        /// And once the container is on screen: a presentation lays it out before the system has
+        /// put its bars where they stay.
+        override public func viewDidAppear(_ animated: Bool) {
+            super.viewDidAppear(animated)
+            view.setNeedsLayout()
         }
 
         /// Moves to a section from the outside — after saving in a modal flow, say. Unknown ids are
@@ -127,6 +183,13 @@
             tabBar.setSelectedID(tabID, animated: animated)
             selectedTabID = tabID
             show(tab.viewController)
+        }
+
+        /// The sections as the bar draws them, in bar order. Set it to redraw them, as
+        /// ``updateItems(_:)`` does — one badge at a time reads `container.items[1].badge = .count(3)`.
+        public var items: [BNTabBarItem] {
+            get { tabs.map(\.item) }
+            set { updateItems(newValue) }
         }
 
         /// Redraws the sections — a badge that counts something, a title that follows the locale —
@@ -188,15 +251,47 @@
 
             currentChild = viewController
             applyContentInsets()
+            // The tab on screen speaks for the vertical bar, and it has just changed.
+            verticalBarChildDidChange()
         }
 
         /// Every child keeps its content clear of the floating bar. The inset tracks the bar's
-        /// measured height, so it grows with Dynamic Type instead of guessing a fixed number.
+        /// measured height, so it grows with Dynamic Type instead of guessing a fixed number. A
+        /// column takes nothing from the bottom: it stands in a strip the content already keeps
+        /// clear of.
         private func applyContentInsets() {
-            let bottom = latestBarHeight + barContentGap
+            let bottom = tabBar.axis == .vertical ? 0 : latestBarHeight + barContentGap
             for tab in tabs {
                 tab.viewController.additionalSafeAreaInsets.bottom = bottom
             }
+        }
+
+        // MARK: - Row or column
+
+        /// A column in the strip the system keeps for bars beside the content, where there is one
+        /// and the bar fits in it; a row along the bottom otherwise — the camera halfway down the
+        /// strip of a closed iPhone Duo in landscape leaves too little below it.
+        private func placeBar() {
+            let column = verticalBarStrip()?.column(
+                in: view.bounds,
+                top: view.safeAreaInsets.top,
+                bottom: view.safeAreaInsets.bottom,
+                thickness: tabBar.columnThickness,
+                minimumLength: tabBar.minimumColumnLength,
+                gap: tabBar.columnGap,
+            )
+            if let column {
+                let values = [column.minX, column.minY, column.width, column.height]
+                for (constraint, value) in zip(columnConstraints, values) where abs(constraint.constant - value) > 0.5 {
+                    constraint.constant = value
+                }
+            }
+            let axis: NSLayoutConstraint.Axis = column == nil ? .horizontal : .vertical
+            guard axis != tabBar.axis else { return }
+            NSLayoutConstraint.deactivate(axis == .vertical ? rowConstraints : columnConstraints)
+            NSLayoutConstraint.activate(axis == .vertical ? columnConstraints : rowConstraints)
+            tabBar.axis = axis
+            applyContentInsets()
         }
     }
 #endif

@@ -55,6 +55,10 @@
             argument = "-OpenGallery Button"
             isEnabled = "NO">
          </CommandLineArgument>
+         <CommandLineArgument
+            argument = "-OpenGallery &quot;TabBar container&quot;"
+            isEnabled = "NO">
+         </CommandLineArgument>
       </CommandLineArguments>
    </LaunchAction>
    <ProfileAction

@@ -1,4 +1,4 @@
-#if (DEBUG || GalleryInRelease) && canImport(UIKit)
+#if canImport(UIKit)
     import UIKit
 
     /// A page that is a demo and knobs bound to its properties — no type of its own, no cast, no
@@ -61,6 +61,7 @@
         private let stage: Stage
         private let makeKnobList: (Subject) -> [Knob]
         private var stateList: [State] = []
+        private var actionList: [Action] = []
 
         /// How the page puts what the knobs drive on the stage.
         enum Stage {
@@ -213,6 +214,32 @@
             return page
         }
 
+        /// A command of the page's own in the ⋯ menu of its navigation bar — a replay, a sample
+        /// error: `.action("Replay", image: "play") { $0.replay() }`. On a page of states it acts
+        /// on every demo.
+        ///
+        /// - Parameters:
+        ///   - title: The command's name in the menu.
+        ///   - image: An SF Symbol beside the name.
+        ///   - perform: What it does to the demo — or to the props, on a page drawn from props.
+        public func action(_ title: String, image: String? = nil, perform: @escaping (Subject) -> Void) -> Self {
+            var page = self
+            page.actionList.append(Action(title: title, image: image, perform: perform))
+            return page
+        }
+
+        /// The page's commands, each acting on every demo the page made.
+        public func makeActions(for demoView: UIView) -> [UIMenuElement] {
+            let subjects = Self.subjects(of: demoView)
+            return actionList.map { action in
+                UIAction(title: action.title, image: action.image.flatMap { UIImage(systemName: $0) }) { _ in
+                    for subject in subjects {
+                        action.perform(subject)
+                    }
+                }
+            }
+        }
+
         /// The demo, for a page whose demo is one view.
         public func makeDemoView() -> UIView {
             makeSubject() as? UIView ?? UIView()
@@ -270,6 +297,13 @@
         /// bound to a key path can read where the demo starts.
         struct Knob {
             let make: (Subject) -> BNGalleryKnob
+        }
+
+        /// A command of the page's own, as `action(_:image:perform:)` keeps it.
+        struct Action {
+            let title: String
+            let image: String?
+            let perform: (Subject) -> Void
         }
 
         /// One state of the demo on a page that shows them all at once.

@@ -99,7 +99,7 @@ public nonisolated enum BNShape: Equatable, Sendable {
                 return tracker
             }()
             tracker.maximumRadius = maximumRadius
-            view.layer.cornerRadius = BNShape.capsule.cornerRadius(forHeight: view.bounds.height, maximumRadius: maximumRadius)
+            view.layer.cornerRadius = BNShape.capsule.cornerRadius(forHeight: view.bounds.bnShorterSide, maximumRadius: maximumRadius)
         }
 
         static func detach(from view: UIView) {
@@ -127,7 +127,15 @@ public nonisolated enum BNShape: Equatable, Sendable {
 
         override func layoutSubviews() {
             super.layoutSubviews()
-            target?.layer.cornerRadius = BNShape.capsule.cornerRadius(forHeight: bounds.height, maximumRadius: maximumRadius)
+            target?.layer.cornerRadius = BNShape.capsule.cornerRadius(forHeight: bounds.bnShorterSide, maximumRadius: maximumRadius)
+        }
+    }
+
+    private extension CGRect {
+        /// What a capsule rounds by, as `UICornerConfiguration.capsule()` does on iOS 26: the
+        /// shorter side, so a capsule standing upright rounds by its width.
+        var bnShorterSide: CGFloat {
+            min(width, height)
         }
     }
 #endif

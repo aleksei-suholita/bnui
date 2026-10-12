@@ -18,17 +18,42 @@
             let longPress = UILongPressGestureRecognizer(target: self, action: #selector(handleLongPress))
             // Past this much movement it is a drag, not a press — the gesture hands over rather
             // than firing a menu under a travelling finger.
-            longPress.allowableMovement = 10
+            longPress.allowableMovement = Self.dragThreshold
             longPress.delegate = self
             content.addGestureRecognizer(longPress)
         }
 
         @objc private func handleLongPress(_ gesture: UILongPressGestureRecognizer) {
             guard gesture.state == .began, let onLongPress, let lens, !presentation.isHidden else { return }
-            let index = nearestIndex(toX: gesture.location(in: lens).x)
+            let index = nearestIndex(to: gesture.location(in: lens))
             guard visibleItems.indices.contains(index), baseItemViews.indices.contains(index) else { return }
             onLongPress(visibleItems[index].id, baseItemViews[index])
         }
+
+        /// A long press is unreachable by touch for a VoiceOver user, so it is also published as
+        /// a custom action. Added only when the host actually handles one.
+        func refreshLongPressActions() {
+            // Sections standing in the capsule only: More has no long press of its own, and the
+            // sections behind it live in a system menu.
+            for (index, view) in baseItemViews.enumerated() where visibleItems.indices.contains(index) {
+                guard onLongPress != nil else {
+                    view.accessibilityCustomActions = nil
+                    continue
+                }
+                let id = visibleItems[index].id
+                view.accessibilityCustomActions = [
+                    UIAccessibilityCustomAction(name: "Options") { [weak self, weak view] _ in
+                        guard let self, let view else { return false }
+                        onLongPress?(id, view)
+                        return true
+                    },
+                ]
+            }
+        }
+
+        /// How far along the bar a touch travels before it is a drag rather than a tap or a press:
+        /// from here on the lens follows the finger, and a long press no longer fires.
+        static let dragThreshold: CGFloat = 10
 
         /// Counts consecutive taps on one section. The run breaks on a different section or on a
         /// pause longer than the window.
@@ -57,9 +82,9 @@
             }
             // Which section is meant is decided by the finger's absolute position, while where the
             // lens sits is decided by how far the finger travelled since it was pulled under the
-            // touch. Both are asked in the lens' coordinate space, where the items live.
-            let locationX = gesture.location(in: lens).x
-            let index = nearestIndex(toX: locationX)
+            // touch. Both are asked in the lens' coordinate space, where the items live, and along
+            // the bar — across a row, down a column.
+            let index = nearestIndex(to: gesture.location(in: lens))
 
             switch gesture.state {
             case .began:
@@ -69,21 +94,13 @@
                 }
                 beginDrag(hovering: index)
             case .changed:
-                // A drag dropped mid-gesture stays dropped.
-                guard let hovered = drag?.hoveredIndex else { return }
-                if index != hovered {
-                    drag?.hoveredIndex = index
-                    haptics.crossedBoundary()
-                }
-                // Follows for the whole gesture, outside the capsule included; magnetising to a
-                // section happens on release only.
-                updateDrag(translationX: gesture.translation(in: lens).x, hovering: index)
+                continueDrag(hovering: index, translation: axis.position(of: gesture.translation(in: lens)))
             case .ended:
                 guard isDragging else { return }
                 drag = nil
                 // The finger's speed at the moment it left: the lens keeps that momentum into
                 // its settle instead of stopping dead and restarting from rest.
-                commitSelection(to: index, velocity: gesture.velocity(in: lens).x)
+                commitSelection(to: index, velocity: axis.position(of: gesture.velocity(in: lens)))
             case .cancelled, .failed:
                 // System-level interruption, not a user decision: keep the previous choice.
                 // Settles on the un-lift spring like a release, so the return reads as the same
@@ -92,6 +109,27 @@
             default:
                 break
             }
+        }
+
+        /// The finger moved: past the drag threshold the lens follows it, and crossing into
+        /// another section plays the boundary tick.
+        private func continueDrag(hovering index: Int, translation: CGFloat) {
+            // A drag dropped mid-gesture stays dropped.
+            guard let hovered = drag?.hoveredIndex else { return }
+            // A touch shifts by a point or so as it lands — a finger settling, a mouse in the
+            // simulator. Taken for a drag, that would stop the lens on its way to the section and
+            // drop it there at once; so it is a tap until the finger has really travelled.
+            if drag?.isFollowing == false {
+                guard abs(translation) >= Self.dragThreshold else { return }
+                drag?.isFollowing = true
+            }
+            if index != hovered {
+                drag?.hoveredIndex = index
+                haptics.crossedBoundary()
+            }
+            // Follows for the whole gesture, outside the capsule included; magnetising to a
+            // section happens on release only.
+            updateDrag(translation: translation, hovering: index)
         }
 
         /// Lets go of the drag without choosing anything: the lens goes back to the section that
@@ -105,7 +143,7 @@
         /// Releasing anywhere commits the nearest section — there is no cancel-by-leaving
         /// (decision 2026-07-23).
         ///
-        /// `velocity` is the finger's horizontal speed at release, in the lens' points per second;
+        /// `velocity` is the finger's speed along the bar at release, in the lens' points per second;
         /// it is carried into the settle so a flick lands like a throw.
         func commitSelection(to index: Int, velocity: CGFloat = 0) {
             if index == moreSlotIndex {
@@ -151,6 +189,17 @@
                 haptics.selectionChanged()
                 onSelect?(id)
             }
+        }
+    }
+
+    extension BNTabBarView: UIGestureRecognizerDelegate {
+        /// Coexist with everything else that wants the touch — the system glass response and any
+        /// long-press or context gesture the host adds. Claiming exclusivity would silence them.
+        public func gestureRecognizer(
+            _: UIGestureRecognizer,
+            shouldRecognizeSimultaneouslyWith _: UIGestureRecognizer,
+        ) -> Bool {
+            true
         }
     }
 #endif

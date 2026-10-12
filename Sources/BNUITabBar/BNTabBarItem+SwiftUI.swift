@@ -64,10 +64,19 @@
         /// - Parameters:
         ///   - title: what the section says.
         ///   - image: the section's icon.
+        ///   - size: the box the image is fitted into; `nil` for the square of a round symbol.
+        ///   - rendering: a glyph tinted by the state, or a picture in its own colours.
         ///   - value: what the selection holds while this tab is on screen.
         ///   - content: the screen shown when the tab is selected.
-        init(_ title: String, image: UIImage, value: Value, @ViewBuilder content: () -> Content) {
-            self.init(title: title, icon: .image(image), value: value, content: content())
+        init(
+            _ title: String,
+            image: UIImage,
+            size: CGSize? = nil,
+            rendering: BNTabBarItem.ImageRendering = .template,
+            value: Value,
+            @ViewBuilder content: () -> Content,
+        ) {
+            self.init(title: title, icon: .image(image, size: size, rendering: rendering), value: value, content: content())
         }
     }
 
@@ -122,9 +131,17 @@
         /// - Parameters:
         ///   - title: what the section says.
         ///   - image: the section's icon.
+        ///   - size: the box the image is fitted into; `nil` for the square of a round symbol.
+        ///   - rendering: a glyph tinted by the state, or a picture in its own colours.
         ///   - value: what the selection holds while this section is chosen.
-        init(_ title: String, image: UIImage, value: Value) {
-            self.init(title: title, icon: .image(image), value: value, content: nil)
+        init(
+            _ title: String,
+            image: UIImage,
+            size: CGSize? = nil,
+            rendering: BNTabBarItem.ImageRendering = .template,
+            value: Value,
+        ) {
+            self.init(title: title, icon: .image(image, size: size, rendering: rendering), value: value, content: nil)
         }
     }
 

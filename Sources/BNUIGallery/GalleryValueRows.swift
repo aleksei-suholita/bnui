@@ -1,4 +1,4 @@
-#if (DEBUG || GalleryInRelease) && canImport(UIKit)
+#if canImport(UIKit)
     import BNUI
     import UIKit
 

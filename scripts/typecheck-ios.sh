@@ -52,20 +52,16 @@ ios_build --target BNUIGallery --enable-index-store \
     -Xswiftc -symbol-graph-skip-synthesized-members
 echo "$SHAPE" >"$SYMBOL_GRAPHS/.shape"
 
-echo "› BNUI + BNUIGallery (release, without DEBUG — the gallery by its trait)"
-# Release is how a TestFlight build is made; an app gets the gallery there by enabling the trait.
-ios_build --target BNUIGallery -c release --traits GalleryInRelease
+echo "› BNUI + BNUIGallery (release)"
+# Release is how a TestFlight build is made, and the gallery is compiled there too.
+ios_build --target BNUIGallery -c release
 
 # The standalone app that hosts the gallery is an Xcode project, not a package target, so it is
-# type-checked directly against the modules built above. Debug is the only configuration with
-# content; the Release branch is a placeholder, checked against the same modules.
+# type-checked directly against the modules built above.
 echo "› BNUIGalleryApp"
-for CONDITION in "-DDEBUG" ""; do
-    swiftc -typecheck -sdk "$SDK" -target "$TRIPLE" -swift-version 6 -default-isolation MainActor \
-        -warnings-as-errors -parse-as-library -I "$PRODUCTS" \
-        -module-name BNUIGalleryApp \
-        ${CONDITION} \
-        $(find GalleryApp -name "*.swift")
-done
+swiftc -typecheck -sdk "$SDK" -target "$TRIPLE" -swift-version 6 -default-isolation MainActor \
+    -warnings-as-errors -parse-as-library -I "$PRODUCTS" \
+    -module-name BNUIGalleryApp \
+    $(find GalleryApp -name "*.swift")
 
 echo "✓ iOS build passed"

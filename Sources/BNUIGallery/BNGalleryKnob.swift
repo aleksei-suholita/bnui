@@ -1,4 +1,4 @@
-#if (DEBUG || GalleryInRelease) && canImport(UIKit)
+#if canImport(UIKit)
     import BNUI
     import UIKit
 
@@ -24,6 +24,15 @@
             case header
             /// An action rather than a value: something a host would do, such as select from code.
             case button(onTap: () -> Void)
+            /// A colour, in a swatch that opens the system colour picker.
+            case color(initial: UIColor, onChange: (UIColor) -> Void)
+            /// A whole number moved one step at a time — a count small enough to step through.
+            case stepper(min: Int, max: Int, initial: Int, onChange: (Int) -> Void)
+            /// A date, a time or both, in the system's compact picker.
+            case date(initial: Date, mode: UIDatePicker.Mode, onChange: (Date) -> Void)
+            /// A view of the page's own under the title, for a value no other control fits — an
+            /// emoji picker, a palette. It keeps its own state; Reset calls `onReset`, if given.
+            case custom(view: UIView, onReset: (() -> Void)? = nil)
         }
 
         /// A section heading above a group of knobs.

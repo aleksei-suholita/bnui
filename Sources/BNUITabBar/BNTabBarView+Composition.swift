@@ -44,7 +44,8 @@
         func buildAccessory() {
             barRowTopConstraint?.isActive = false
 
-            guard let accessory else {
+            // A column stands in a strip with no room across for an accessory; it shows none.
+            guard let accessory, axis == .horizontal else {
                 let top = barRowGuide.topAnchor.constraint(equalTo: topAnchor)
                 top.isActive = true
                 barRowTopConstraint = top
@@ -111,6 +112,7 @@
         }
 
         func alignmentConstraints(for capsule: UIView) -> [NSLayoutConstraint] {
+            guard axis == .horizontal else { return columnConstraints(for: capsule) }
             // Anchored to the row guide, not the view: an accessory changes where the row sits
             // without changing how the row is composed. Leading/trailing use the guide too — it
             // spans the full width — so RTL mirrors both schemes for free.
@@ -145,6 +147,27 @@
                 constraints.append(capsule.trailingAnchor.constraint(equalTo: barRowGuide.trailingAnchor))
             }
             return constraints
+        }
+
+        /// A column stands at the bottom of its strip, where the system keeps its own tab bar:
+        /// centred across the strip, the action under the sections — the row's order, turned. The
+        /// host's alignment is a row's; a column has one place.
+        private func columnConstraints(for capsule: UIView) -> [NSLayoutConstraint] {
+            let constraints = [
+                capsule.centerXAnchor.constraint(equalTo: barRowGuide.centerXAnchor),
+                capsule.topAnchor.constraint(greaterThanOrEqualTo: barRowGuide.topAnchor),
+            ]
+            guard let actionView else {
+                return constraints + [capsule.bottomAnchor.constraint(equalTo: barRowGuide.bottomAnchor)]
+            }
+            return constraints + [
+                actionView.centerXAnchor.constraint(equalTo: barRowGuide.centerXAnchor),
+                actionView.bottomAnchor.constraint(equalTo: barRowGuide.bottomAnchor),
+                actionView.topAnchor.constraint(
+                    equalTo: capsule.bottomAnchor,
+                    constant: activeTheme.geometry.actionSpacing,
+                ),
+            ]
         }
 
         /// Re-lays the slots alone, when the width moved a section into More or out of it. The
@@ -193,7 +216,7 @@
         func buildItems(in lens: any BNTabBarLens) {
             let renderer = itemRenderer
                 ?? BNStandardTabBarItemRenderer(theme: activeTheme, labelMode: configuration.labelMode)
-            itemWidthConstraints.removeAll()
+            itemLengthConstraints.removeAll()
 
             configure(stack: baseStack, in: lens.contentView)
             configure(stack: selectedStack, in: lens.selectedContentView)
@@ -205,15 +228,19 @@
                 let base = renderer.makeItemView(for: item, layer: .base)
                 baseItemViews.append(base)
                 baseStack.addArrangedSubview(base)
-                let width = base.widthAnchor.constraint(equalToConstant: activeTheme.geometry.preferredItemWidth)
-                width.isActive = true
-                itemWidthConstraints.append(width)
+                let length = lengthAnchor(of: base).constraint(equalToConstant: initialItemLength)
+                length.isActive = true
+                itemLengthConstraints.append(length)
+                if axis == .vertical {
+                    // Icons in a column, so a section is a square as wide as the row is high.
+                    base.widthAnchor.constraint(equalToConstant: initialItemLength).isActive = true
+                }
 
                 // The second copy is laid out identically; the lens decides where it shows.
                 let selected = renderer.makeItemView(for: item, layer: .selected)
                 selectedItemViews.append(selected)
                 selectedStack.addArrangedSubview(selected)
-                selected.widthAnchor.constraint(equalTo: base.widthAnchor).isActive = true
+                lengthAnchor(of: selected).constraint(equalTo: lengthAnchor(of: base)).isActive = true
             }
 
             // The container carries the tab-bar trait and is not an element itself — the only
@@ -225,8 +252,9 @@
             selectedStack.accessibilityElementsHidden = true
         }
 
-        /// An invisible button over the More slot, reaching to the capsule's trailing edge so a
-        /// touch in the padding beside it opens the menu too. The slot's look stays with the lens.
+        /// An invisible button over the More slot, reaching to the capsule's end — its trailing
+        /// edge, a column's bottom — so a touch in the padding beside it opens the menu too. The
+        /// slot's look stays with the lens.
         ///
         /// A button because a system menu has no public way to open on its own: it opens from a
         /// control's touch-down, or from `performPrimaryAction()` when a drag lets go on More.
@@ -260,10 +288,11 @@
 
             // The lens spans the capsule exactly, so it stands in for the capsule's edges.
             let slot = baseItemViews[moreSlotIndex]
+            let vertical = axis == .vertical
             NSLayoutConstraint.activate([
-                button.topAnchor.constraint(equalTo: lens.topAnchor),
+                button.topAnchor.constraint(equalTo: vertical ? slot.topAnchor : lens.topAnchor),
                 button.bottomAnchor.constraint(equalTo: lens.bottomAnchor),
-                button.leadingAnchor.constraint(equalTo: slot.leadingAnchor),
+                button.leadingAnchor.constraint(equalTo: vertical ? lens.leadingAnchor : slot.leadingAnchor),
                 button.trailingAnchor.constraint(equalTo: lens.trailingAnchor),
             ])
             moreButton = button
@@ -278,7 +307,7 @@
                 UIAction(
                     title: item.title,
                     subtitle: item.badge?.menuText(countLimit: limit),
-                    image: item.icon.templateImage,
+                    image: item.icon.menuImage(pointSize: activeTheme.icon.pointSize),
                     state: item.id == selectedID ? .on : .off,
                 ) { [weak self] _ in
                     self?.commitOverflowSelection(item.id)
@@ -286,8 +315,19 @@
             }
         }
 
+        /// A section's extent along the bar.
+        private func lengthAnchor(of view: UIView) -> NSLayoutDimension {
+            axis == .vertical ? view.heightAnchor : view.widthAnchor
+        }
+
+        /// What a section is laid out at before anything is solved: a row's preferred width, which
+        /// the solver then fits to the room; a column's square, which stays.
+        private var initialItemLength: CGFloat {
+            axis == .vertical ? activeTheme.geometry.effectiveItemHeight : activeTheme.geometry.preferredItemWidth
+        }
+
         func configure(stack: UIStackView, in container: UIView) {
-            stack.axis = .horizontal
+            stack.axis = axis
             stack.alignment = .fill
             // Widths come from BNTabBarLayoutSolver, not from the stack: fillEqually clips a long
             // label instead of letting it take room from its neighbours.

@@ -60,7 +60,7 @@ Before handing work over the agent runs one command, and red means not done:
 | `swiftformat --lint` | format |
 | `swiftlint lint --strict` | correctness rules, the kit's boundaries (`custom_rules`), public API without a doc comment (the backlog of 2026-09-28 is in `.swiftlint.baseline`) |
 | `swift test` | tests of the solvers and the shader; a warning is an error; coverage at least `COVERAGE_FLOOR` (90%) |
-| `typecheck-ios.sh` | the package for the iOS simulator (debug, and release with the gallery's trait `GalleryInRelease`) and the gallery app; a warning is an error |
+| `typecheck-ios.sh` | the package for the iOS simulator (debug and release) and the gallery app; a warning is an error |
 | Periphery | unused code; a false positive gets `// periphery:ignore - <why>` above the declaration |
 | api | a public type without the `BN` prefix, a declaration no product claims; rewrites `api/BNUI.api` |
 | DocC | a broken ``` ``Symbol`` ``` link, an undocumented parameter |
@@ -89,6 +89,11 @@ arm64-apple-ios16.0-simulator`, not `xcodebuild`.
   app's tokens.
 - Haptics go through one engine (`BNHaptics`); continuous gestures play with `merging: false`.
   A tick goes where the finger cannot predict the result.
+- API newer than the selected Xcode's SDK compiles under `#if canImport(UIKit, _version: …)` —
+  UIKit's module version, `9127.1` for iOS 27.1 — and runs behind `#available`. The gate is green
+  under both SDKs (`DEVELOPER_DIR=<the newer Xcode> ./scripts/check.sh` too), and `api/BNUI.api`
+  does not change with the SDK: a UIKit override only the newer one has is
+  `@_documentation(visibility: internal)`.
 
 ## File map
 
@@ -100,19 +105,21 @@ arm64-apple-ios16.0-simulator`, not `xcodebuild`.
 - `Sources/BNUIButton/` — `BNButton`: theme, roles, materials, motion
 - `Sources/BNUITabBar/` — `BNTabBarView` (lens, materials, section renderers) and
   `BNTabBarContainerViewController`, a replacement for `UITabBarController` that hosts the content
-  and owns the selected section; "+" lives in the bar as an action, not as a tab
+  and owns the selected section; "+" lives in the bar as an action, not as a tab. On iPhone Duo
+  the container stands the bar as a column in the system's strip beside the content
+  (`BNTabBarStrip` decides where, `+VerticalBar` reads the iOS 27.1 API)
 - `Sources/BNUI/` — `Exports.swift` (the whole kit behind one import) and `BNUI.docc`
 - `Sources/BNUIGallery/` — the showcase, open to an app's own pages. Public, `BNGallery*`: the
   entry `BNGallery` (present, `-OpenGallery`, `post` to the feed), a page `BNGalleryPage` or the
   closure-built `BNGalleryDemoPage` with key-path knobs, `BNGalleryKnob`, `BNGalleryLayout`,
-  `BNGalleryBackdrop`, the catalog `BNGalleryViewController`, a page
-  `BNGalleryPageViewController`. Internal, `Gallery*`: the stage `GalleryStageView` (backdrop
+  `BNGalleryBackdrop`, `BNGalleryConfiguration` (title, sections, an app's backdrops), the
+  catalog `BNGalleryViewController`, a page `BNGalleryPageViewController`. Internal, `Gallery*`: the stage `GalleryStageView` (backdrop
   view, feed `GalleryEventFeedView`) + the panel `GalleryInspectorView`, whose heights
   `GalleryDrawer` drives; knob rows `GalleryKnobRow`, the stage's environment
   `GalleryEnvironment`. And the pages of the kit's controls
 - `GalleryApp/BNUIGalleryApp.xcodeproj` — the showcase as an app of its own: its root is
-  `BNUIGalleryPages.all()`, the package is linked by the path `..`. Debug only; `-OpenGallery
-  <Title>` opens a page straight away. The folder `GalleryApp/BNUIGalleryApp` is synchronized —
+  `BNUIGalleryPages.all()`, the package is linked by the path `..`. `-OpenGallery <Title>` opens a
+  page straight away. The folder `GalleryApp/BNUIGalleryApp` is synchronized —
   files are not registered in the pbxproj
 - SwiftUI faces — the `BN` namespace (`BNUICore/BN.swift`): `BNButton` is UIKit, `BN.Button` is
   SwiftUI; after the dot comes the name of the SwiftUI counterpart where there is one

@@ -17,6 +17,8 @@
         private let badgeLabel = BNBadgeLabel()
         private let badgeDot = UIView()
         private let imageView = UIImageView()
+        /// An image's box, held so a theme of another point size resizes it; empty for a symbol.
+        private var imageBoxConstraints: [NSLayoutConstraint] = []
         private var isSelected = false
         /// The badge on show — the item's at first, then whatever the bar updated it to in place.
         private var badge: BNTabBarBadge?
@@ -62,6 +64,7 @@
                 // shares one type size instead of each shrinking by its own length.
                 titleLabel.font = state.titleScale < 1 ? font.withSize(font.pointSize * state.titleScale) : font
                 titleLabel.isHidden = shouldHideLabel(state: state)
+                fitImageBox()
             }
             // `run` applies the changes directly when the transition is immediate. The selected
             // trait is not set here: under a revealing lens the base copy is always drawn
@@ -70,7 +73,8 @@
         }
 
         func playSelectionAnimation() {
-            guard !UIAccessibility.isReduceMotionEnabled else { return }
+            // Symbol effects move a symbol's layers; an image has none.
+            guard case .symbol = item.icon, !UIAccessibility.isReduceMotionEnabled else { return }
             // Symbol effects arrive with iOS 17. Below it the icon still changes weight and colour;
             // it just does not animate.
             guard #available(iOS 17.0, *) else { return }
@@ -93,20 +97,6 @@
             }
         }
 
-        @available(iOS 18.0, *)
-        private func playIOS18Effect() {
-            switch item.selectionAnimation {
-            case .wiggle:
-                imageView.addSymbolEffect(.wiggle, options: .nonRepeating)
-            case .rotate:
-                imageView.addSymbolEffect(.rotate, options: .nonRepeating)
-            case .breathe:
-                imageView.addSymbolEffect(.breathe, options: .nonRepeating)
-            case .none, .bounce, .pulse:
-                break
-            }
-        }
-
         func updateBadge(_ badge: BNTabBarBadge?, transition: BNTransition) -> Bool {
             showBadge(badge, transition: transition)
             return true
@@ -123,7 +113,7 @@
                 ]).width)
             return BNTabBarLayoutSolver.ItemMeasure(
                 labelWidth: labelWidth,
-                iconWidth: theme.icon.pointSize,
+                iconWidth: item.icon.imageBox(pointSize: theme.icon.pointSize)?.width ?? theme.icon.pointSize,
                 inset: theme.geometry.itemSpacing,
             )
         }
@@ -131,9 +121,17 @@
         // MARK: - Build
 
         private func build() {
-            imageView.image = item.icon.templateImage
+            imageView.image = item.icon.drawnImage
             imageView.contentMode = .scaleAspectFit
             imageView.translatesAutoresizingMaskIntoConstraints = false
+            if item.icon.imageBox(pointSize: theme.icon.pointSize) != nil {
+                imageBoxConstraints = [
+                    imageView.widthAnchor.constraint(equalToConstant: 0),
+                    imageView.heightAnchor.constraint(equalToConstant: 0),
+                ]
+                NSLayoutConstraint.activate(imageBoxConstraints)
+                fitImageBox()
+            }
 
             titleLabel.text = item.title
             titleLabel.font = theme.typography.title
@@ -322,6 +320,29 @@
             isAccessibilityElement = true
             accessibilityTraits = .button
             accessibilityLabel = item.accessibilityLabel
+        }
+    }
+
+    private extension BNTabBarItemView {
+        @available(iOS 18.0, *)
+        func playIOS18Effect() {
+            switch item.selectionAnimation {
+            case .wiggle:
+                imageView.addSymbolEffect(.wiggle, options: .nonRepeating)
+            case .rotate:
+                imageView.addSymbolEffect(.rotate, options: .nonRepeating)
+            case .breathe:
+                imageView.addSymbolEffect(.breathe, options: .nonRepeating)
+            case .none, .bounce, .pulse:
+                break
+            }
+        }
+
+        /// An image sits in its box, not at its own size: the box is what the bar is measured by.
+        func fitImageBox() {
+            guard imageBoxConstraints.count == 2, let box = item.icon.imageBox(pointSize: theme.icon.pointSize) else { return }
+            imageBoxConstraints[0].constant = box.width
+            imageBoxConstraints[1].constant = box.height
         }
     }
 #endif

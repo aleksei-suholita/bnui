@@ -107,6 +107,17 @@
 
         public private(set) var presentation: BNTabBarPresentation = .expanded
 
+        /// A row along the bottom of the screen, or a column in the strip the system keeps for bars
+        /// beside the content — where its own bars go on iPhone Duo. `BNTabBarContainerViewController`
+        /// turns the bar into a column there by itself. In a column the sections are icons, the
+        /// action stands under them, and an accessory is not shown: the strip has no room for one.
+        package var axis: NSLayoutConstraint.Axis = .horizontal {
+            didSet {
+                guard axis != oldValue else { return }
+                rebuild()
+            }
+        }
+
         /// The keyboard hides the bar independently of whatever the host asked for, so the two
         /// reasons are tracked separately and combined rather than overwriting each other.
         var isHiddenByKeyboard = false
@@ -116,10 +127,12 @@
         }
 
         /// Measured, not assumed: at accessibility text sizes the bar grows with the label, and
-        /// the host's insets have to grow with it.
+        /// the host's insets have to grow with it. A bar standing in a column beside the content
+        /// takes nothing from the bottom edge: zero.
         public var effectiveHeight: CGFloat {
-            // Gone means gone: the host must drop its inset, not merely shrink it.
-            guard !isEffectivelyHidden else { return 0 }
+            // Gone means gone: the host must drop its inset, not merely shrink it. A column stands
+            // in a strip the content already keeps clear of.
+            guard !isEffectivelyHidden, axis == .horizontal else { return 0 }
             // Prefer the laid-out height: measuring with systemLayoutSizeFitting on every
             // layout pass would cost an extra solve per frame.
             let measured = bounds.height > 0
@@ -193,7 +206,8 @@
         var baseItemViews: [any BNTabBarItemRendering] = []
         var selectedItemViews: [any BNTabBarItemRendering] = []
         var reportedHeight: CGFloat?
-        var itemWidthConstraints: [NSLayoutConstraint] = []
+        /// Each section's extent along the bar: its width in a row, its height in a column.
+        var itemLengthConstraints: [NSLayoutConstraint] = []
         /// How the last solve fits the labels. Items read it on their next state refresh.
         var solvedLabels: BNTabBarLayoutSolver.Labels = .natural
         var actionView: BNButton?
@@ -210,11 +224,13 @@
         /// The finger driving the lens. One value for the whole gesture, so its pieces cannot
         /// outlive each other: everything goes when it ends.
         struct Drag {
-            /// Where the lens started when the finger landed. The lens moves by the finger's delta
-            /// from here, so it never teleports under the touch.
-            var startX: CGFloat
+            /// Where the lens started along the bar when the finger landed. The lens moves by the
+            /// finger's delta from here, so it never teleports under the touch.
+            var start: CGFloat
             /// The section under the finger; a change plays the boundary tick.
             var hoveredIndex: Int
+            /// The finger has travelled past `dragThreshold`, and the lens follows it from now on.
+            var isFollowing = false
         }
 
         var drag: Drag?
@@ -265,7 +281,9 @@
         var moreSlotItem: BNTabBarItem {
             let limit = activeTheme.geometry.badgeCountLimit
             let hasBadge = overflowItems.contains { $0.badge?.appearance(countLimit: limit) != nil }
-            return configuration.moreItem.withBadge(hasBadge ? .dot(accessibilityLabel: "") : nil)
+            var item = configuration.moreItem
+            item.badge = hasBadge ? .dot(accessibilityLabel: "") : nil
+            return item
         }
 
         /// The slot the lens marks. A section chosen from the menu is marked on More itself —
@@ -307,27 +325,6 @@
                 applySelection(transition: .immediate)
             }
             reportHeightIfNeeded()
-        }
-
-        /// A long press is unreachable by touch for a VoiceOver user, so it is also published as
-        /// a custom action. Added only when the host actually handles one.
-        func refreshLongPressActions() {
-            // Sections standing in the capsule only: More has no long press of its own, and the
-            // sections behind it live in a system menu.
-            for (index, view) in baseItemViews.enumerated() where visibleItems.indices.contains(index) {
-                guard onLongPress != nil else {
-                    view.accessibilityCustomActions = nil
-                    continue
-                }
-                let id = visibleItems[index].id
-                view.accessibilityCustomActions = [
-                    UIAccessibilityCustomAction(name: "Options") { [weak self, weak view] _ in
-                        guard let self, let view else { return false }
-                        onLongPress?(id, view)
-                        return true
-                    },
-                ]
-            }
         }
 
         func rebuild() {
@@ -382,17 +379,6 @@
             applySelection(transition: .immediate)
             refreshLongPressActions()
             setNeedsLayout()
-        }
-    }
-
-    extension BNTabBarView: UIGestureRecognizerDelegate {
-        /// Coexist with everything else that wants the touch — the system glass response and any
-        /// long-press or context gesture the host adds. Claiming exclusivity would silence them.
-        public func gestureRecognizer(
-            _: UIGestureRecognizer,
-            shouldRecognizeSimultaneouslyWith _: UIGestureRecognizer,
-        ) -> Bool {
-            true
         }
     }
 #endif

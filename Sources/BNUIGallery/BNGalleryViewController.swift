@@ -1,4 +1,4 @@
-#if (DEBUG || GalleryInRelease) && canImport(UIKit)
+#if canImport(UIKit)
     import BNUI
     import UIKit
 
@@ -16,13 +16,16 @@
         }
 
         private let pages: [any BNGalleryPage]
+        private let configuration: BNGalleryConfiguration
         private let collectionView: UICollectionView
         private let searchController = UISearchController(searchResultsController: nil)
         private var dataSource: UICollectionViewDiffableDataSource<String, Int>?
         private var query = ""
 
-        public init(pages: [any BNGalleryPage]) {
+        /// A catalogue of `pages`, in their order, looking as `configuration` says.
+        public init(pages: [any BNGalleryPage], configuration: BNGalleryConfiguration = BNGalleryConfiguration()) {
             self.pages = pages
+            self.configuration = configuration
             var list = UICollectionLayoutListConfiguration(appearance: .insetGrouped)
             list.headerMode = .supplementary
             collectionView = UICollectionView(
@@ -30,7 +33,7 @@
                 collectionViewLayout: UICollectionViewCompositionalLayout.list(using: list),
             )
             super.init(nibName: nil, bundle: nil)
-            title = "Design Gallery"
+            title = configuration.title
             navigationItem.largeTitleDisplayMode = .always
         }
 
@@ -70,7 +73,7 @@
 
         public func openPage(titled title: String) {
             guard let page = pages.first(where: { $0.title == title }) else { return }
-            navigationController?.pushViewController(BNGalleryPageViewController(page: page), animated: false)
+            navigationController?.pushViewController(BNGalleryPageViewController(page: page, configuration: configuration), animated: false)
         }
 
         // MARK: - Data
@@ -99,6 +102,8 @@
                 else { return }
                 var content = header.defaultContentConfiguration()
                 content.text = sections[indexPath.section]
+                let symbol = self?.configuration.sections.first { $0.name == sections[indexPath.section] }?.symbol
+                content.image = symbol.flatMap { UIImage(systemName: $0) }
                 header.contentConfiguration = content
             }
             let dataSource = UICollectionViewDiffableDataSource<String, Int>(collectionView: collectionView) { view, indexPath, index in
@@ -112,9 +117,10 @@
 
         private func applySnapshot(animated: Bool) {
             let found = pages.indices.filter { matches(pages[$0]) }
-            // Sections in the order of their first page, so the order pages are handed in still
-            // decides the layout.
-            var sections: [String] = []
+            // The configured sections first, in their order; the rest in the order of their first
+            // page, so the order pages are handed in still decides the layout.
+            let named = Set(found.map { pages[$0].section })
+            var sections = configuration.sections.map(\.name).filter { named.contains($0) }
             for index in found where !sections.contains(pages[index].section) {
                 sections.append(pages[index].section)
             }
@@ -141,7 +147,10 @@
 
         public func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
             guard let index = dataSource?.itemIdentifier(for: indexPath) else { return }
-            navigationController?.pushViewController(BNGalleryPageViewController(page: pages[index]), animated: true)
+            navigationController?.pushViewController(
+                BNGalleryPageViewController(page: pages[index], configuration: configuration),
+                animated: true,
+            )
         }
 
         public func updateSearchResults(for searchController: UISearchController) {

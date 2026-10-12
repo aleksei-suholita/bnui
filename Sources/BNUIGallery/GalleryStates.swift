@@ -1,4 +1,4 @@
-#if (DEBUG || GalleryInRelease) && canImport(UIKit)
+#if canImport(UIKit)
     import BNUI
     import UIKit
 
@@ -83,23 +83,11 @@
             caption.adjustsFontForContentSizeCategory = true
             caption.textColor = BNGalleryColor.secondaryLabel
 
-            let holder = UIView()
-            demo.translatesAutoresizingMaskIntoConstraints = false
-            holder.addSubview(demo)
-            NSLayoutConstraint.activate([
-                demo.topAnchor.constraint(equalTo: holder.topAnchor),
-                demo.bottomAnchor.constraint(equalTo: holder.bottomAnchor),
-            ])
-            NSLayoutConstraint.activate(acrossWidth ? [
-                demo.leadingAnchor.constraint(equalTo: holder.leadingAnchor),
-                demo.trailingAnchor.constraint(equalTo: holder.trailingAnchor),
-            ] : [
-                demo.centerXAnchor.constraint(equalTo: holder.centerXAnchor),
-                demo.leadingAnchor.constraint(greaterThanOrEqualTo: holder.leadingAnchor),
-                demo.trailingAnchor.constraint(lessThanOrEqualTo: holder.trailingAnchor),
-            ])
-
-            let row = UIStackView(arrangedSubviews: [caption, holder])
+            // A page across the width spans every state, the way a field spans a form; otherwise
+            // each state's demo decides by itself, so a button that hugs and one that fills sit
+            // side by side as they would on a screen.
+            let held = acrossWidth ? demo : GalleryWidthFitView(demo: demo)
+            let row = UIStackView(arrangedSubviews: [caption, held])
             row.axis = .vertical
             row.spacing = BNGallerySpacing.xs
             return row
@@ -156,8 +144,15 @@
                 .segmented(options: options, initial: initial, onChange: Self.spread(initial, controls.compactMap(\.choice)))
             case let .textField(initial, _):
                 .textField(initial: initial, onChange: Self.spread(initial, controls.compactMap(\.text)))
-            case .header:
-                .header
+            case let .color(initial, _):
+                .color(initial: initial, onChange: Self.spread(initial, controls.compactMap(\.colorPart)))
+            case let .stepper(min, max, initial, _):
+                .stepper(min: min, max: max, initial: initial, onChange: Self.spread(initial, controls.compactMap(\.stepperPart)))
+            case let .date(initial, mode, _):
+                .date(initial: initial, mode: mode, onChange: Self.spread(initial, controls.compactMap(\.datePart)))
+            case .header, .custom:
+                // A heading has nothing to pass on; a view of the page's own drives the first demo.
+                self
             case .button:
                 .button(onTap: {
                     for tap in controls.compactMap(\.tap) {
@@ -206,6 +201,30 @@
 
         private var text: (start: String, change: (String) -> Void)? {
             if case let .textField(start, change) = self {
+                (start, change)
+            } else {
+                nil
+            }
+        }
+
+        private var colorPart: (start: UIColor, change: (UIColor) -> Void)? {
+            if case let .color(start, change) = self {
+                (start, change)
+            } else {
+                nil
+            }
+        }
+
+        private var stepperPart: (start: Int, change: (Int) -> Void)? {
+            if case let .stepper(_, _, start, change) = self {
+                (start, change)
+            } else {
+                nil
+            }
+        }
+
+        private var datePart: (start: Date, change: (Date) -> Void)? {
+            if case let .date(start, _, change) = self {
                 (start, change)
             } else {
                 nil

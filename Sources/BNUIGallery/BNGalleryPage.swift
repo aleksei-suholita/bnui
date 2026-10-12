@@ -1,4 +1,4 @@
-#if (DEBUG || GalleryInRelease) && canImport(UIKit)
+#if canImport(UIKit)
     import BNUI
     import UIKit
 
@@ -48,6 +48,11 @@
         /// drives.
         func makeKnobs(for demoView: UIView) -> [BNGalleryKnob]
 
+        /// Commands of the page's own — a replay, a sample error, anything that is an action rather
+        /// than a value — in a ⋯ menu in the page's navigation bar, which shows only when there are
+        /// some. Menus and toggles nest as in any `UIMenu`.
+        func makeActions(for demoView: UIView) -> [UIMenuElement]
+
         /// Called by the inspector's Reset before every knob is put back to its initial value.
         ///
         /// Knobs restore what they own; this is for the state no knob owns — a log, messages still
@@ -89,6 +94,11 @@
         /// Along the top of the stage.
         var eventFeedEdge: BNGalleryEventFeedEdge {
             .top
+        }
+
+        /// No commands of its own: no ⋯ menu.
+        func makeActions(for _: UIView) -> [UIMenuElement] {
+            []
         }
 
         /// Nothing to reset beyond the knobs.

@@ -1,4 +1,4 @@
-#if (DEBUG || GalleryInRelease) && canImport(UIKit)
+#if canImport(UIKit)
     import BNUI
     import UIKit
 
@@ -14,15 +14,23 @@
         private let stage: GalleryStageView
         private let inspector: GalleryInspectorView
         private let stageItem = UIBarButtonItem()
+        /// The ⋯ menu of the page's own commands; none when the page has none.
+        private var actionsItem: UIBarButtonItem?
         private var drawer: GalleryDrawer?
         private var backdrop: BNGalleryBackdrop
+        /// What the stage menu offers: the gallery's backdrops, then the app's.
+        private let backdrops: [BNGalleryBackdrop]
         private var compactConstraints: [NSLayoutConstraint] = []
         private var regularConstraints: [NSLayoutConstraint] = []
         /// What each pop gesture was set to before this page took it away. Empty while off screen.
         private var popGesturesWereEnabled: [(gesture: UIGestureRecognizer, wasEnabled: Bool)] = []
 
-        public init(page: any BNGalleryPage) {
+        /// A page, with the app's own backdrops from `configuration` in its stage menu.
+        public init(page: any BNGalleryPage, configuration: BNGalleryConfiguration = BNGalleryConfiguration()) {
             self.page = page
+            // The page's own opening backdrop is offered too, should the configuration not list it.
+            let offered = BNGalleryBackdrop.painted + configuration.backdrops
+            backdrops = offered.contains(page.backdrop) ? offered : offered + [page.backdrop]
             // Built here rather than in viewDidLoad so every piece can be a constant; the knobs
             // capture the demo, so it has to exist before them.
             let demoController = page.makeDemoViewController()
@@ -68,7 +76,15 @@
             inspector.onReset = { [weak self] in self?.resetAll() }
             buildConstraints(drawerHeight: drawer.height)
             stage.setBackdrop(backdrop)
-            navigationItem.rightBarButtonItem = stageItem
+            let actions = page.makeActions(for: demoView)
+            if !actions.isEmpty {
+                actionsItem = UIBarButtonItem(
+                    title: "Page Actions",
+                    image: UIImage(systemName: "ellipsis.circle"),
+                    menu: UIMenu(children: actions),
+                )
+            }
+            refreshBarItems()
             applyEnvironment(GalleryEnvironment.current)
             applySizeClass()
             observeDemoTyping()
@@ -136,61 +152,6 @@
             image: UIImage(systemName: "keyboard.chevron.compact.down"),
             primaryAction: UIAction { [weak self] _ in self?.view.endEditing(true) },
         )
-
-        /// Typing into the demo tucks the drawer away, so a field or a composer meets the keyboard
-        /// the way it would in an app, and puts a button in the bar to put the keyboard down — the
-        /// demo itself may have no way to end the typing. A field of the inspector is left alone:
-        /// for it the drawer rides up on the keyboard instead.
-        private func observeDemoTyping() {
-            let center = NotificationCenter.default
-            for name in [UITextField.textDidBeginEditingNotification, UITextView.textDidBeginEditingNotification] {
-                center.addObserver(self, selector: #selector(demoTypingBegan(_:)), name: name, object: nil)
-            }
-            for name in [UITextField.textDidEndEditingNotification, UITextView.textDidEndEditingNotification] {
-                center.addObserver(self, selector: #selector(demoTypingEnded(_:)), name: name, object: nil)
-            }
-        }
-
-        @objc private func demoTypingBegan(_ notification: Notification) {
-            guard isInDemo(notification) else { return }
-            demoFieldsEditing += 1
-            showDemoTyping(true)
-        }
-
-        /// Moving from one field of the demo to the next ends one and begins the other within the
-        /// same tap, so the drawer comes back only if nothing began by the time the tap is over.
-        @objc private func demoTypingEnded(_ notification: Notification) {
-            guard isInDemo(notification) else { return }
-            demoFieldsEditing = max(demoFieldsEditing - 1, 0)
-            Task { @MainActor [weak self] in
-                guard let self, demoFieldsEditing == 0 else { return }
-                showDemoTyping(false)
-            }
-        }
-
-        private func isInDemo(_ notification: Notification) -> Bool {
-            (notification.object as? UIView)?.isDescendant(of: demoView) == true
-        }
-
-        private func showDemoTyping(_ typing: Bool) {
-            isDemoTyping = typing
-            applyDemoEdge()
-            // A sidebar on a regular-width screen is beside the keyboard, not under it.
-            drawer?.isTucked = typing && isCompact
-            navigationItem.rightBarButtonItems = typing ? [stageItem, keyboardItem] : [stageItem]
-        }
-
-        /// The stage's bottom edge on a phone: the drawer's top, or the keyboard's while the demo
-        /// is typed into. On a regular-width screen the sidebar's constraints own it.
-        private func applyDemoEdge() {
-            let onKeyboard = isDemoTyping && isCompact
-            let wanted = onKeyboard ? demoOnKeyboard : isCompact ? demoAboveDrawer : nil
-            // Off before on: two bottom edges at once cannot both hold.
-            for edge in [demoAboveDrawer, demoOnKeyboard] where edge !== wanted {
-                edge.isActive = false
-            }
-            wanted?.isActive = true
-        }
 
         // MARK: - Events
 
@@ -319,9 +280,76 @@
             stageItem.accessibilityLabel = "Stage"
             stageItem.menu = environment.menu(
                 backdrop: page.layout == .background ? nil : backdrop,
+                among: backdrops,
                 onBackdrop: { [weak self] in self?.applyBackdrop($0) },
                 onChange: { [weak self] in self?.applyEnvironment($0) },
             )
+        }
+    }
+
+    // MARK: - Typing in the demo
+
+    extension BNGalleryPageViewController {
+        /// Typing into the demo tucks the drawer away, so a field or a composer meets the keyboard
+        /// the way it would in an app, and puts a button in the bar to put the keyboard down — the
+        /// demo itself may have no way to end the typing. A field of the inspector is left alone:
+        /// for it the drawer rides up on the keyboard instead.
+        private func observeDemoTyping() {
+            let center = NotificationCenter.default
+            for name in [UITextField.textDidBeginEditingNotification, UITextView.textDidBeginEditingNotification] {
+                center.addObserver(self, selector: #selector(demoTypingBegan(_:)), name: name, object: nil)
+            }
+            for name in [UITextField.textDidEndEditingNotification, UITextView.textDidEndEditingNotification] {
+                center.addObserver(self, selector: #selector(demoTypingEnded(_:)), name: name, object: nil)
+            }
+        }
+
+        @objc private func demoTypingBegan(_ notification: Notification) {
+            guard isInDemo(notification) else { return }
+            demoFieldsEditing += 1
+            showDemoTyping(true)
+        }
+
+        /// Moving from one field of the demo to the next ends one and begins the other within the
+        /// same tap, so the drawer comes back only if nothing began by the time the tap is over.
+        @objc private func demoTypingEnded(_ notification: Notification) {
+            guard isInDemo(notification) else { return }
+            demoFieldsEditing = max(demoFieldsEditing - 1, 0)
+            Task { @MainActor [weak self] in
+                guard let self, demoFieldsEditing == 0 else { return }
+                showDemoTyping(false)
+            }
+        }
+
+        private func isInDemo(_ notification: Notification) -> Bool {
+            (notification.object as? UIView)?.isDescendant(of: demoView) == true
+        }
+
+        private func showDemoTyping(_ typing: Bool) {
+            isDemoTyping = typing
+            applyDemoEdge()
+            // A sidebar on a regular-width screen is beside the keyboard, not under it.
+            drawer?.isTucked = typing && isCompact
+            refreshBarItems()
+        }
+
+        /// The stage menu outermost, then the page's own commands, then — while the demo is typed
+        /// into — the keyboard's button.
+        private func refreshBarItems() {
+            navigationItem.rightBarButtonItems = [stageItem] + [actionsItem].compactMap(\.self)
+                + (isDemoTyping ? [keyboardItem] : [])
+        }
+
+        /// The stage's bottom edge on a phone: the drawer's top, or the keyboard's while the demo
+        /// is typed into. On a regular-width screen the sidebar's constraints own it.
+        private func applyDemoEdge() {
+            let onKeyboard = isDemoTyping && isCompact
+            let wanted = onKeyboard ? demoOnKeyboard : isCompact ? demoAboveDrawer : nil
+            // Off before on: two bottom edges at once cannot both hold.
+            for edge in [demoAboveDrawer, demoOnKeyboard] where edge !== wanted {
+                edge.isActive = false
+            }
+            wanted?.isActive = true
         }
     }
 #endif

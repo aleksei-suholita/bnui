@@ -1,4 +1,4 @@
-#if (DEBUG || GalleryInRelease) && canImport(UIKit)
+#if canImport(UIKit)
     import BNUI
     import UIKit
 
@@ -26,7 +26,7 @@
 
         func makeKnobs(for demoView: UIView) -> [BNGalleryKnob] {
             guard let demo = demoView as? BNTabBarDemoView else { return [] }
-            return composition(demo) + appearance(demo) + fingerMotion(demo) + hostMotion(demo) + state(demo)
+            return composition(demo) + placement(demo) + appearance(demo) + fingerMotion(demo) + hostMotion(demo) + state(demo)
         }
 
         private func composition(_ demo: BNTabBarDemoView) -> [BNGalleryKnob] {
@@ -67,6 +67,23 @@
                     initial: BNTabBarDemoView.Defaults.accessory,
                     onChange: { demo.setAccessory($0) },
                 )),
+            ]
+        }
+
+        private func placement(_ demo: BNTabBarDemoView) -> [BNGalleryKnob] {
+            [
+                .header("Placement"),
+                BNGalleryKnob(
+                    label: "Axis",
+                    control: .segmented(
+                        options: ["Row", "Column"],
+                        initial: BNTabBarDemoView.Defaults.axis,
+                        onChange: { demo.setAxis(index: $0) },
+                    ),
+                    note: "A column is the bar in the strip iPhone Duo keeps for bars beside the content: "
+                        + "icons, the action under them, no accessory. The container puts it there by itself — "
+                        + "see TabBar container.",
+                ),
                 BNGalleryKnob(
                     label: "Alignment",
                     control: .segmented(
@@ -74,7 +91,8 @@
                         initial: BNTabBarDemoView.Defaults.alignment,
                         onChange: { demo.setAlignment(index: $0) },
                     ),
-                    note: "Ignored while the action button is on: sections go leading, the action trailing.",
+                    note: "A row's. Ignored while the action button is on — sections go leading, the action trailing — "
+                        + "and in a column, which stands at the bottom of its strip.",
                 ),
             ]
         }
@@ -101,6 +119,16 @@
                     initial: false,
                     onChange: { demo.setTickingBadge($0) },
                 )),
+                BNGalleryKnob(
+                    label: "Last icon",
+                    control: .segmented(
+                        options: ["Symbol", "80 pt glyph", "Photo"],
+                        initial: BNTabBarDemoView.Defaults.lastIcon,
+                        onChange: { demo.lastIcon = $0 },
+                    ),
+                    note: "An image fits a box the size of a round symbol, so a large asset does not grow the bar. "
+                        + "A photo keeps its colours; only the lens says it is chosen.",
+                ),
                 BNGalleryKnob(label: "Symbol effect", control: .segmented(
                     options: ["Bounce", "Pulse", "Wiggle", "Rotate", "Breathe", "Off"],
                     initial: BNTabBarDemoView.Defaults.selectionAnimation,
@@ -137,7 +165,8 @@
                     label: "Lift scale",
                     control: .slider(min: 1, max: 1.3, initial: BNTabBarDemoView.Defaults.liftScale, onChange: { demo.setLiftScale($0) }),
                     unit: "×",
-                    note: "No growth over glass flat, blur or solid, or under Reduce Motion.",
+                    note: "No growth over glass flat, blur or solid, or under Reduce Motion. "
+                        + "In a column it grows along the column only.",
                 ),
             ]
         }

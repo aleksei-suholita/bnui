@@ -13,19 +13,31 @@
         public var selection: CGRect
         /// A finger is on the bar. The marker grows while it is.
         public var isLifted: Bool
-        /// Horizontal speed the marker should start with, in points per second of the lens' space.
+        /// Speed along the bar the marker should start with, in points per second of the lens'
+        /// space — across a row, down a column.
         ///
         /// Non-zero only when a finger just let go: its momentum carries into the spring that
         /// takes over, so a release feels like a throw rather than a stop and a restart. Handed
         /// over as an absolute speed because only the lens knows how far the marker still has
         /// to travel, which is the unit its spring actually wants.
         public var velocity: CGFloat
+        /// Which way the bar runs: a row along the bottom, or a column in the strip iPhone Duo
+        /// keeps for bars beside the content. The marker travels along it, and in a column swells
+        /// along it only — across, the strip is too narrow to grow into.
+        public var axis: NSLayoutConstraint.Axis
 
-        public init(size: CGSize, selection: CGRect, isLifted: Bool = false, velocity: CGFloat = 0) {
+        public init(
+            size: CGSize,
+            selection: CGRect,
+            isLifted: Bool = false,
+            velocity: CGFloat = 0,
+            axis: NSLayoutConstraint.Axis = .horizontal,
+        ) {
             self.size = size
             self.selection = selection
             self.isLifted = isLifted
             self.velocity = velocity
+            self.axis = axis
         }
     }
 

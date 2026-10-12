@@ -4,6 +4,70 @@ Every release of BNUI. The kit follows semantic versioning; while it is at 0.x, 
 may break the API and a patch release does not. Each entry lists what is breaking, what is added
 and what is fixed, by product.
 
+## 0.4.0 — 2026-10-12
+
+### Breaking
+
+- `BNUIGallery`: `BNGalleryBackdrop` is a struct rather than an enum, so an app can add its own:
+  `.plain`, `.interface`, `.photos`, `.bright` and `.night` read as before, but it is no longer
+  `CaseIterable` or `Sendable`, and a `switch` over it no longer compiles.
+- `BNUIGallery`: `BNGalleryKnob.Control` has four more cases; a `switch` over it needs them.
+- `BNUIGallery`: the `GalleryInRelease` trait is gone, and the gallery is compiled in every
+  configuration — a TestFlight build has it with no setting and on any `swift-tools-version`. An
+  app keeps the way in behind a condition of its own; one that links `BNUIGallery` carries its code
+  into the App Store build too. A manifest that names the trait drops it.
+- `BNUIGallery`: `BNGalleryLayout.width(at:)` is `width(at:margin:)`; a pattern that matches it
+  names the margin.
+- `BNUITabBar`: `BNTabBarItem.Icon.image` carries a size and a rendering —
+  `.image(_:size:rendering:)`. `.image(picture)` reads as before; a pattern that matches it binds
+  three values.
+
+### Added
+
+- `BNUIGallery`: knobs for a colour (`UIColor`, `UIColor?` or SwiftUI `Color`), a stepper, a date
+  and a view of the page's own — `.color`, `.stepper`, `.date`, `.custom` on a demo page, and
+  `.color`, `.stepper`, `.date`, `.custom` cases of `BNGalleryKnob.Control`.
+- `BNUIGallery`: commands of a page's own in a ⋯ menu of its navigation bar —
+  `.action(_:image:perform:)` on a demo page, `makeActions(for:)` on `BNGalleryPage`.
+- `BNUIGallery`: `BNGalleryConfiguration` — the catalogue's title, the order and icons of its
+  sections, and an app's own backdrops (`BNGalleryBackdrop.image(_:title:purpose:)`,
+  `.view(title:purpose:make:)`). `BNGallery.present`, `BNGalleryViewController` and
+  `BNGalleryPageViewController` take it.
+- `BNUITabBar`: the vertical bar of iPhone Duo. Built against the iOS 27.1 SDK,
+  `BNTabBarContainerViewController` stands the bar in the strip beside the content where the
+  system moves its own bars — a column of icons at the strip's bottom, the action under it — when
+  every section fits there, and keeps it a row otherwise. It defers `preferredVerticalBarBehavior`
+  to the tab on screen, as `UITabBarController` does, so a tab opts out with `.disabled`. Built
+  with an older SDK, nothing changes. `BNTabBarLensState.axis` tells a lens which way the bar
+  runs; the kit's lens swells along a column only.
+- `BNUIGallery`: `then:` on a demo page's `.toggle`, `.slider`, `.text` and `.choice` — run after
+  the property is written, Reset included, for a second property the value implies.
+- `BNUIGallery`: `.width(at:margin:)` insets a demo from the sides — and at an edge from that
+  edge — so a bar floats as a tab bar does in its container.
+- `BNUITabBar`: an image section fits a box — its own `size`, or the square of a round symbol at
+  the theme's point size — so an 80 pt asset no longer grows the bar; the More menu draws it at
+  that size too. `rendering: .original` keeps a photo's colours, and only the lens says the
+  section is chosen. `BN.Tab(_:image:size:rendering:value:)` takes both.
+- `BNUITabBar`: `BNTabBarItem.badge` is a `var`, and `BNTabBarContainerViewController.items` can
+  be set: `bar.items[1].badge = .count(3)` redraws that badge alone, in place.
+- `BNUIGallery`: a *TabBar container* page — the container full screen, with navigation buttons
+  in every tab — and an *Axis* knob on the *TabBar* page that shows the bar as a column anywhere.
+
+### Fixed
+
+- `BNUIButton`: a style of `BNButtonHapticEmphasis.silent` no longer ticks on touch-down — it
+  mutes the press as well as the confirmation, as its documentation says. The refusal stays the
+  theme's to silence (`BNButtonRejection.isHapticEnabled`).
+- `BNUIGallery`: a demo that sizes itself is centred at its own width and one with no width of
+  its own spans the stage, decided per demo and again whenever the demo changes its mind. On a
+  page of states a button that hugs is no longer stretched, and on a `.centred` page a button
+  that fills no longer collapses.
+- `BNUITabBar`: a tap no longer drops the lens on the section at once. A touch shifts by a point
+  as it lands, which the bar took for a drag; the lens now follows the finger from 10 pt of
+  travel along the bar, the distance at which a long press already gives way to a drag.
+- `BNUICore`: a capsule standing taller than wide rounds by its width, as
+  `UICornerConfiguration.capsule()` does: the blur plate on every iOS, any capsule below iOS 26.
+
 ## 0.3.0 — 2026-10-09
 
 ### Breaking

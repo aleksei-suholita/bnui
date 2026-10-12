@@ -103,12 +103,16 @@
             shape.backgroundColor = theme.palette.lensTint
 
             // The marker sits a little inside its section. While a finger is on the bar it grows
-            // around that same centre, the same factor on both axes, and shrinks back on release.
-            // Inset and scale are both symmetric, so neither ever moves the centre.
+            // around that same centre and shrinks back on release: in a row by the same factor on
+            // both axes, out past the capsule's height the way the system lens does; in a column
+            // along it only, since across it the capsule is narrow and the marker would bulge out
+            // of its sides. Inset and scale are both symmetric, so neither ever moves the centre.
             let inset = theme.geometry.lensInset
             let rest = state.selection.insetBy(dx: inset, dy: inset)
             let scale = state.isLifted ? theme.geometry.liftedScale : 1
-            let size = CGSize(width: rest.width * scale, height: rest.height * scale)
+            let size = state.axis == .vertical
+                ? CGSize(width: rest.width, height: rest.height * scale)
+                : CGSize(width: rest.width * scale, height: rest.height * scale)
             let target = CGRect(
                 x: rest.midX - size.width / 2,
                 y: rest.midY - size.height / 2,
@@ -139,8 +143,11 @@
                 positionAnimation?.interrupt()
                 // Stopping leaves the marker where it is on screen, so the distance still to go
                 // is measured from there — an interrupted spring is exactly the case where "where
-                // it was told to go last time" and "where it is" differ.
-                let travel = targetCenter.x - shape.center.x
+                // it was told to go last time" and "where it is" differ. Measured along the way the
+                // marker travels: across a row, down a column.
+                let dx = targetCenter.x - shape.center.x
+                let dy = targetCenter.y - shape.center.y
+                let travel = abs(dy) > abs(dx) ? dy : dx
                 // UIKit wants momentum as a fraction of the remaining travel per second, which is
                 // why the finger's speed arrives in points and is divided here, not at the source.
                 let momentum = abs(travel) > 0.5
@@ -162,7 +169,11 @@
         // MARK: - Masks
 
         private func setMasks(to lensFrame: CGRect) {
-            let capsule = UIBezierPath(roundedRect: lensFrame, cornerRadius: lensFrame.height / 2)
+            // Half the shorter side: a row's marker is wider than high, a column's may be higher.
+            let capsule = UIBezierPath(
+                roundedRect: lensFrame,
+                cornerRadius: min(lensFrame.width, lensFrame.height) / 2,
+            )
             // Everything except the capsule: outer rect plus the capsule, wound with evenOdd.
             let inverted = UIBezierPath(rect: bounds)
             inverted.append(capsule)

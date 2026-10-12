@@ -1,4 +1,4 @@
-#if (DEBUG || GalleryInRelease) && canImport(UIKit)
+#if canImport(UIKit)
     import BNUI
     import UIKit
 
@@ -8,52 +8,77 @@
     /// subtitle in the stage menu. One setting for every page rather than a knob per demo: the
     /// questions are the same for every control, and a backdrop that is part of the stage fills
     /// the screen instead of a card in its middle.
-    public enum BNGalleryBackdrop: CaseIterable, Sendable {
+    ///
+    /// Five come with the gallery, drawn rather than loaded. An app adds its own — a screenshot of
+    /// its feed, a mock of its chat — with ``image(_:title:purpose:)`` or
+    /// ``view(title:purpose:make:)`` in ``BNGalleryConfiguration/backdrops``.
+    public struct BNGalleryBackdrop: Equatable {
+        /// What draws a backdrop.
+        enum Source {
+            case painted(GalleryPaintedBackdrop)
+            case image(UIImage)
+            case view(() -> UIView)
+        }
+
+        /// The name in the stage menu. Two backdrops of one name are one backdrop.
+        public let title: String
+        /// The question the backdrop answers, under its name in the stage menu.
+        public let purpose: String?
+        let source: Source
+
         /// The system background, light or dark with the stage.
-        case plain
+        public static let plain = Self(title: "Plain", purpose: "An ordinary screen", source: .painted(.plain))
         /// An app's content — a featured card and grouped lists — light or dark with the stage.
-        case interface
+        public static let interface = Self(title: "Interface", purpose: "A list under the control", source: .painted(.interface))
         /// A photo library: busy colour and hard edges, fixed in both appearances.
-        case photos
+        public static let photos = Self(title: "Photos", purpose: "Busy, colourful media", source: .painted(.photos))
         /// Pale, airy imagery with a white hotspot — where light glass loses light text.
-        case bright
+        public static let bright = Self(title: "Bright", purpose: "Light imagery, the legibility trap", source: .painted(.bright))
         /// Deep blue night with soft glows and stars.
-        case night
+        public static let night = Self(title: "Night", purpose: "Dark media", source: .painted(.night))
 
-        var title: String {
-            switch self {
-            case .plain: "Plain"
-            case .interface: "Interface"
-            case .photos: "Photos"
-            case .bright: "Bright"
-            case .night: "Night"
-            }
+        /// The gallery's own, in the order the stage menu lists them.
+        static let painted: [Self] = [.plain, .interface, .photos, .bright, .night]
+
+        /// An image of the app's own over the whole stage, filling it — a screenshot of the screen
+        /// the control lives on.
+        public static func image(_ image: UIImage, title: String, purpose: String? = nil) -> Self {
+            Self(title: title, purpose: purpose, source: .image(image))
         }
 
-        /// The question the backdrop answers.
-        var purpose: String {
-            switch self {
-            case .plain: "An ordinary screen"
-            case .interface: "A list under the control"
-            case .photos: "Busy, colourful media"
-            case .bright: "Light imagery, the legibility trap"
-            case .night: "Dark media"
-            }
+        /// A view of the app's own over the whole stage, made afresh each time it is picked — a
+        /// screen's mock, alive.
+        public static func view(title: String, purpose: String? = nil, make: @escaping () -> UIView) -> Self {
+            Self(title: title, purpose: purpose, source: .view(make))
         }
+
+        /// One backdrop if they have one name.
+        public static func == (lhs: Self, rhs: Self) -> Bool {
+            lhs.title == rhs.title
+        }
+    }
+
+    /// The backdrops the gallery draws itself.
+    enum GalleryPaintedBackdrop {
+        case plain, interface, photos, bright, night
     }
 
     /// Draws the chosen backdrop edge to edge.
     ///
-    /// Drawn, not built from views or assets: one pass when the backdrop, the size or the
-    /// appearance changes, and nothing at all while the inspector is dragged — the stage's size
-    /// does not change then.
+    /// The gallery's own are drawn, not built from views or assets: one pass when the backdrop,
+    /// the size or the appearance changes, and nothing at all while the inspector is dragged — the
+    /// stage's size does not change then. An app's image or view is laid over the plain one.
     final class GalleryBackdropView: UIView {
         var backdrop: BNGalleryBackdrop = .plain {
             didSet {
                 guard backdrop != oldValue else { return }
+                showAppContent()
                 setNeedsDisplay()
             }
         }
+
+        /// An app's image or view, when the backdrop is one of the app's.
+        private var appContent: UIView?
 
         override init(frame: CGRect) {
             super.init(frame: frame)
@@ -83,7 +108,12 @@
 
         override func draw(_: CGRect) {
             guard let context = UIGraphicsGetCurrentContext() else { return }
-            switch backdrop {
+            guard case let .painted(painted) = backdrop.source else {
+                UIColor.systemBackground.setFill()
+                context.fill(bounds)
+                return
+            }
+            switch painted {
             case .plain:
                 UIColor.systemBackground.setFill()
                 context.fill(bounds)
@@ -96,6 +126,32 @@
             case .night:
                 GalleryImageryPainter.drawNight(in: bounds, context: context)
             }
+        }
+
+        private func showAppContent() {
+            appContent?.removeFromSuperview()
+            appContent = nil
+            let content: UIView
+            switch backdrop.source {
+            case .painted:
+                return
+            case let .image(image):
+                let imageView = UIImageView(image: image)
+                imageView.contentMode = .scaleAspectFill
+                imageView.clipsToBounds = true
+                content = imageView
+            case let .view(make):
+                content = make()
+            }
+            content.translatesAutoresizingMaskIntoConstraints = false
+            addSubview(content)
+            NSLayoutConstraint.activate([
+                content.topAnchor.constraint(equalTo: topAnchor),
+                content.bottomAnchor.constraint(equalTo: bottomAnchor),
+                content.leadingAnchor.constraint(equalTo: leadingAnchor),
+                content.trailingAnchor.constraint(equalTo: trailingAnchor),
+            ])
+            appContent = content
         }
     }
 

@@ -1,4 +1,4 @@
-#if (DEBUG || GalleryInRelease) && canImport(UIKit)
+#if canImport(UIKit)
     /// The kit's own pages, in the order they are shown.
     ///
     /// A host app appends its pages to these: the kit ships the showcase for its controls, and an
@@ -8,6 +8,7 @@
         public static func all() -> [any BNGalleryPage] {
             [
                 BNTabBarGalleryPage(),
+                BNTabBarContainerGalleryPage.make(),
                 BNButtonGalleryPage(),
             ]
         }

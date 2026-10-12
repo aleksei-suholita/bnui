@@ -1,4 +1,4 @@
-#if (DEBUG || GalleryInRelease) && canImport(UIKit)
+#if canImport(UIKit)
     import BNUI
     import UIKit
 
@@ -27,7 +27,9 @@
             configuration.buttonSize = .large
             button.configuration = configuration
             button.addAction(UIAction { [weak self] _ in self?.presentDemo() }, for: .primaryActionTriggered)
-            carrier.embed(button)
+            // The carrier is laid across the stage, having no width of its own; the button keeps
+            // its own in the middle of it.
+            carrier.embed(GalleryWidthFitView(demo: button))
             carrier.onReset = { [weak self] in self?.dismissDemo() }
         }
 

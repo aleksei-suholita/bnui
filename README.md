@@ -13,7 +13,7 @@ iOS controls built on UIKit, with a SwiftUI face for each. Alpha.
 Add the package with Swift Package Manager:
 
 ```swift
-.package(url: "https://github.com/aleksei-suholita/bnui.git", exact: "0.3.0")
+.package(url: "https://github.com/aleksei-suholita/bnui.git", exact: "0.4.0")
 ```
 
 Then depend on the whole kit or only on the controls you use:
@@ -24,7 +24,7 @@ Then depend on the whole kit or only on the controls you use:
 | `BNUIButton` | `BNButton` and its SwiftUI face `BN.Button` | `BNUICore` |
 | `BNUITabBar` | `BNTabBarView`, `BNTabBarContainerViewController` and their SwiftUI faces | `BNUIButton` |
 | `BNUICore` | motion, haptics, shapes and materials every control is made of | — |
-| `BNUIGallery` | a bench with a page per control, open to an app's own pages; Debug, or Release with a trait | `BNUI` |
+| `BNUIGallery` | a bench with a page per control, open to an app's own pages; compiled in every configuration | `BNUI` |
 
 ```swift
 .target(
@@ -62,7 +62,8 @@ bar.onSelect = { id in coordinator.show(id) }
 ```
 
 `BNTabBarContainerViewController` replaces `UITabBarController`: it hosts the content under the
-floating bar and owns the selected section.
+floating bar and owns the selected section. On iPhone Duo, built against the iOS 27.1 SDK, it
+stands the bar in the strip beside the content where the system moves its own bars.
 
 ### SwiftUI
 
@@ -101,12 +102,15 @@ BNGallery.present([pill] + BNUIGalleryPages.all(), from: self)
 A knob reads where the demo starts and Reset puts it back. `-OpenGallery <Title>` at launch is
 `BNGallery.launchPageTitle`. A page can also present an alert or a sheet (`presenting:`), draw a
 SwiftUI view from props (`props:`) and show every state of a control at once (`.states(_:)`).
+Knobs come for numbers, switches, choices, text, colours, steps, dates and views of the page's own;
+`.action` puts a page's commands in a ⋯ menu. A page that needs more conforms to `BNGalleryPage`
+and builds its demo, knobs and commands in code. `BNGalleryConfiguration` names the catalogue,
+orders its sections and adds the app's own backdrops — a screenshot, a mock screen.
 
-The gallery is compiled in Debug. To have it in TestFlight, which is a Release build, enable the
-`GalleryInRelease` trait — `traits: ["GalleryInRelease"]` on the package's line in `Package.swift`,
-or in the package dependency's settings in Xcode 26.4 and later. TestFlight and the App Store get
-the same binary, so with the trait on the gallery ships to the App Store too: keep the way in
-closed at run time.
+The gallery is compiled in every configuration, TestFlight's Release included, with nothing to
+set. The app decides where the way in is: behind `#if DEBUG` for Debug only, or, for TestFlight,
+closed at run time — TestFlight and the App Store get the same binary. An app that links
+`BNUIGallery` carries its code into the App Store build either way.
 
 ## Theming
 

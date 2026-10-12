@@ -109,6 +109,20 @@ VoiceOver reads a badge in the host's words, or as shown when there are none; a 
 brings its own. A section behind More shows its badge as the menu item's subtitle, and More
 wears a dot while any of them has one, naming them in its spoken value.
 
+## The vertical bar on iPhone Duo
+
+iPhone Duo moves an app's bars into a strip beside the content — the status bar, the navigation
+bar's buttons, the tab bar — when the app is built against the iOS 27.1 SDK.
+``BNTabBarContainerViewController`` follows it: where the system keeps that strip, the bar stands
+in it as a column at its bottom, where the system puts its own tab bar. A column shows icons
+only, puts the action under the sections and keeps clear of what the system reserves in the
+strip, such as the camera. The bar turns into a column only when every section fits there;
+otherwise it stays a row along the bottom, as it does on every other iPhone.
+
+A tab opts out as it does under `UITabBarController`: its controller's
+`preferredVerticalBarBehavior` is `.disabled`, and the bar goes back to the bottom with the
+system's bars. A ``BNTabBarView`` you place yourself stays a row.
+
 ## Theming and motion
 
 Every value the bar draws comes from ``BNTabBarTheme`` — geometry, palette, typography, icon

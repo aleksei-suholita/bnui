@@ -1,4 +1,4 @@
-#if (DEBUG || GalleryInRelease) && canImport(UIKit)
+#if canImport(UIKit)
     import UIKit
 
     /// The gallery from a host app's side: opening it, and writing to the page on screen.
@@ -37,16 +37,18 @@
         /// - Parameters:
         ///   - pages: The pages, in the order the catalogue lists them.
         ///   - presenter: The view controller to present from.
+        ///   - configuration: The catalogue's title and sections, and the app's own backdrops.
         ///   - title: A page to open straight away — usually ``launchPageTitle``. A title no page
         ///     has opens the catalogue.
         ///   - animated: Whether the presentation animates.
         public static func present(
             _ pages: [any BNGalleryPage],
             from presenter: UIViewController,
+            configuration: BNGalleryConfiguration = BNGalleryConfiguration(),
             openingPageTitled title: String? = nil,
             animated: Bool = true,
         ) {
-            let catalogue = BNGalleryViewController(pages: pages)
+            let catalogue = BNGalleryViewController(pages: pages, configuration: configuration)
             let navigation = UINavigationController(rootViewController: catalogue)
             // The catalogue asks for a large title; the bar has to allow one.
             navigation.navigationBar.prefersLargeTitles = true

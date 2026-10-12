@@ -1,4 +1,4 @@
-#if (DEBUG || GalleryInRelease) && canImport(UIKit)
+#if canImport(UIKit)
     import BNUI
     import UIKit
 
@@ -7,9 +7,11 @@
     ///
     /// Staged the way an app shows it: the bar floats at the bottom of the stage, 16 pt from its
     /// edges, over whatever the stage's backdrop is — a list, photos, a bright or a dark image.
-    /// That is where the glass and the label contrast get judged.
+    /// That is where the glass and the label contrast get judged. As a column it stands in a strip
+    /// along the stage's trailing edge, as wide as the one iPhone Duo keeps for bars.
     final class BNTabBarDemoView: UIView, BNGalleryEventReporting {
         enum Defaults {
+            static let axis = 0
             static let labels = 0
             static let alignment = 1
             /// The bar's own default: glass on iOS 26, `.systemMaterial` below it.
@@ -26,6 +28,7 @@
             static let badge = 0
             static let badgeCount = 12
             static let selectionAnimation = 0
+            static let lastIcon = 0
         }
 
         private struct Section {
@@ -62,6 +65,12 @@
         var onGalleryEvent: ((String) -> Void)?
 
         private var tabBar: BNTabBarView?
+        /// The bar along the bottom of the stage, and the bar in a strip down its trailing edge.
+        private var rowConstraints: [NSLayoutConstraint] = []
+        private var columnConstraints: [NSLayoutConstraint] = []
+        /// The strip iPhone Duo keeps for bars, as measured on its simulator; the container takes
+        /// the real one from the safe area.
+        private static let stripWidth: CGFloat = 84
 
         private var sectionCount = Defaults.sections
         private var badgeKind = Defaults.badge
@@ -70,6 +79,10 @@
         /// changing — it must not lose the gesture.
         private var badgeTicker: Task<Void, Never>?
         private var selectionAnimation: BNTabBarSymbolAnimation = .bounce
+        /// What the last section wears: its symbol, an oversized glyph, or a photo.
+        var lastIcon = Defaults.lastIcon {
+            didSet { tabBar?.items = makeItems() }
+        }
 
         override init(frame: CGRect) {
             super.init(frame: frame)
@@ -230,6 +243,7 @@
             badgeCount = Defaults.badgeCount
             setTickingBadge(false)
             selectionAnimation = .bounce
+            lastIcon = Defaults.lastIcon
             tabBar.items = makeItems()
             tabBar.action = nil
             tabBar.accessory = nil
@@ -247,13 +261,21 @@
             addSubview(bar)
             tabBar = bar
 
-            NSLayoutConstraint.activate([
+            rowConstraints = [
                 // Full width, not hugging: the host gives the control the whole width, the sections
                 // capsule aligns itself within it, and a match-bar accessory spans the lot.
                 bar.leadingAnchor.constraint(equalTo: leadingAnchor, constant: BNGallerySpacing.m),
                 bar.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -BNGallerySpacing.m),
                 bar.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -BNGallerySpacing.m),
-            ])
+            ]
+            // The whole strip, as the container gives it: the column hangs from its bottom.
+            columnConstraints = [
+                bar.trailingAnchor.constraint(equalTo: trailingAnchor),
+                bar.widthAnchor.constraint(equalToConstant: Self.stripWidth),
+                bar.topAnchor.constraint(equalTo: topAnchor, constant: BNGallerySpacing.m),
+                bar.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -BNGallerySpacing.m),
+            ]
+            NSLayoutConstraint.activate(rowConstraints)
             applyDefaults()
         }
 
@@ -276,6 +298,7 @@
         }
 
         private func applyDefaults() {
+            setAxis(index: Defaults.axis)
             setLabelMode(index: Defaults.labels)
             setAlignment(index: Defaults.alignment)
             setMaterial(index: Defaults.material)
@@ -295,7 +318,7 @@
             Self.catalogue.prefix(sectionCount).enumerated().map { index, entry in
                 BNTabBarItem(
                     id: entry.title.lowercased(),
-                    icon: .symbol(entry.symbol),
+                    icon: index == sectionCount - 1 ? Self.lastIcon(lastIcon, symbol: entry.symbol) : .symbol(entry.symbol),
                     title: entry.title,
                     // The last one is the first behind More: its badge goes to the menu, and a dot
                     // to More.
@@ -327,6 +350,20 @@
                 label.trailingAnchor.constraint(equalTo: pill.trailingAnchor, constant: -BNGallerySpacing.l),
             ])
             return pill
+        }
+    }
+
+    // MARK: - Axis
+
+    extension BNTabBarDemoView {
+        /// A row along the bottom of the stage, or a column in a strip down its trailing edge.
+        func setAxis(index: Int) {
+            let axes: [NSLayoutConstraint.Axis] = [.horizontal, .vertical]
+            guard axes.indices.contains(index), let tabBar, tabBar.axis != axes[index] else { return }
+            let column = axes[index] == .vertical
+            NSLayoutConstraint.deactivate(column ? rowConstraints : columnConstraints)
+            NSLayoutConstraint.activate(column ? columnConstraints : rowConstraints)
+            tabBar.axis = axes[index]
         }
     }
 #endif

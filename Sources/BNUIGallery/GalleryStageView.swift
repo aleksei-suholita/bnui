@@ -1,4 +1,4 @@
-#if (DEBUG || GalleryInRelease) && canImport(UIKit)
+#if canImport(UIKit)
     import BNUI
     import UIKit
 
@@ -57,9 +57,9 @@
             ])
             demoView.translatesAutoresizingMaskIntoConstraints = false
             switch layout {
-            case .centred: placeFitting(acrossWidth: false)
-            case .width(at: .center): placeFitting(acrossWidth: true)
-            case let .width(at: position): placeAtEdge(position)
+            case .centred: placeFitting(inset: nil)
+            case let .width(at: .center, margin): placeFitting(inset: margin ?? BNGallerySpacing.m)
+            case let .width(at: position, margin): placeAtEdge(position, margin: margin ?? 0)
             case .fill: placeFilling()
             case .background: placeAsBackground()
             }
@@ -163,29 +163,31 @@
             switch layout {
             case .centred:
                 return demoView.systemLayoutSizeFitting(UIView.layoutFittingCompressedSize).height + margins
-            case let .width(at: position):
+            case let .width(at: position, margin):
                 // Measured at the width it will be given: a field's or a bar's height can depend on it.
-                let width = demoBounds.layoutFrame.width - (position == .center ? margins : 0)
+                let inset = margin ?? (position == .center ? BNGallerySpacing.m : 0)
+                let width = demoBounds.layoutFrame.width - 2 * inset
                 let size = demoView.systemLayoutSizeFitting(
                     CGSize(width: max(width, 0), height: UIView.layoutFittingCompressedSize.height),
                     withHorizontalFittingPriority: .required,
                     verticalFittingPriority: .fittingSizeLevel,
                 )
-                return size.height + margins
+                return size.height + margins + (position == .center ? 0 : margin ?? 0)
             case .fill, .background:
                 return nil
             }
         }
 
-        /// A bar at an edge of the demo area, edge to edge, the way it sits on a screen.
-        private func placeAtEdge(_ position: BNGalleryLayout.Position) {
+        /// A bar at an edge of the demo area, the way it sits on a screen: edge to edge, or inset
+        /// by `margin` from the sides and that edge.
+        private func placeAtEdge(_ position: BNGalleryLayout.Position, margin: CGFloat) {
             addSubview(demoView)
             NSLayoutConstraint.activate([
-                demoView.leadingAnchor.constraint(equalTo: demoBounds.leadingAnchor),
-                demoView.trailingAnchor.constraint(equalTo: demoBounds.trailingAnchor),
+                demoView.leadingAnchor.constraint(equalTo: demoBounds.leadingAnchor, constant: margin),
+                demoView.trailingAnchor.constraint(equalTo: demoBounds.trailingAnchor, constant: -margin),
                 position == .bottom
-                    ? demoView.bottomAnchor.constraint(equalTo: demoBounds.bottomAnchor)
-                    : demoView.topAnchor.constraint(equalTo: demoBounds.topAnchor),
+                    ? demoView.bottomAnchor.constraint(equalTo: demoBounds.bottomAnchor, constant: -margin)
+                    : demoView.topAnchor.constraint(equalTo: demoBounds.topAnchor, constant: margin),
             ])
         }
 
@@ -231,11 +233,12 @@
             ])
         }
 
-        /// A control that sizes itself is centred; one across the width keeps the screen's margins
-        /// instead of its own width. When the stage gets shorter than the control — the drawer
-        /// pulled up — it scrolls instead of being clipped, and only then: a scroll view that is
-        /// always live would claim the vertical half of every drag made on the demo.
-        private func placeFitting(acrossWidth: Bool) {
+        /// A control across the width keeps `inset` from the sides instead of its own width; without
+        /// one, the control decides by itself (``GalleryWidthFitView``). When the stage gets shorter
+        /// than the control — the drawer pulled up — it scrolls instead of being clipped, and only
+        /// then: a scroll view that is always live would claim the vertical half of every drag
+        /// made on the demo.
+        private func placeFitting(inset: CGFloat?) {
             let scroll = GalleryFitScrollView()
             scroll.translatesAutoresizingMaskIntoConstraints = false
             scroll.delaysContentTouches = false
@@ -247,7 +250,9 @@
             let content = UIView()
             content.translatesAutoresizingMaskIntoConstraints = false
             scroll.addSubview(content)
-            content.addSubview(demoView)
+            let fitted = inset == nil ? GalleryWidthFitView(demo: demoView) : demoView
+            fitted.translatesAutoresizingMaskIntoConstraints = false
+            content.addSubview(fitted)
 
             // Exactly the visible height unless the demo needs more.
             let fitsFrame = content.heightAnchor.constraint(equalTo: scroll.frameLayoutGuide.heightAnchor)
@@ -264,17 +269,64 @@
                 content.widthAnchor.constraint(equalTo: scroll.frameLayoutGuide.widthAnchor),
                 content.heightAnchor.constraint(greaterThanOrEqualTo: scroll.frameLayoutGuide.heightAnchor),
                 fitsFrame,
-                demoView.centerXAnchor.constraint(equalTo: content.centerXAnchor),
-                demoView.centerYAnchor.constraint(equalTo: content.centerYAnchor),
-                demoView.topAnchor.constraint(greaterThanOrEqualTo: content.topAnchor, constant: BNGallerySpacing.m),
-                demoView.bottomAnchor.constraint(lessThanOrEqualTo: content.bottomAnchor, constant: -BNGallerySpacing.m),
+                fitted.centerYAnchor.constraint(equalTo: content.centerYAnchor),
+                fitted.topAnchor.constraint(greaterThanOrEqualTo: content.topAnchor, constant: BNGallerySpacing.m),
+                fitted.bottomAnchor.constraint(lessThanOrEqualTo: content.bottomAnchor, constant: -BNGallerySpacing.m),
+                fitted.leadingAnchor.constraint(equalTo: content.leadingAnchor, constant: inset ?? BNGallerySpacing.m),
+                fitted.trailingAnchor.constraint(equalTo: content.trailingAnchor, constant: -(inset ?? BNGallerySpacing.m)),
             ])
-            if acrossWidth {
-                NSLayoutConstraint.activate([
-                    demoView.leadingAnchor.constraint(equalTo: content.leadingAnchor, constant: BNGallerySpacing.m),
-                    demoView.trailingAnchor.constraint(equalTo: content.trailingAnchor, constant: -BNGallerySpacing.m),
-                ])
-            }
+        }
+    }
+
+    /// Holds a demo across its width or centred at its own, as the demo says: one with a width of
+    /// its own — a button that hugs its title — is centred at it; one without — a button that
+    /// fills — spans. Asked again on every layout pass, so a demo that switches between the two
+    /// is laid out again.
+    final class GalleryWidthFitView: UIView {
+        private let demo: UIView
+        private var across: [NSLayoutConstraint] = []
+        private var centred: [NSLayoutConstraint] = []
+        private var spans: Bool?
+
+        init(demo: UIView) {
+            self.demo = demo
+            super.init(frame: .zero)
+            demo.translatesAutoresizingMaskIntoConstraints = false
+            addSubview(demo)
+            NSLayoutConstraint.activate([
+                demo.topAnchor.constraint(equalTo: topAnchor),
+                demo.bottomAnchor.constraint(equalTo: bottomAnchor),
+            ])
+            across = [
+                demo.leadingAnchor.constraint(equalTo: leadingAnchor),
+                demo.trailingAnchor.constraint(equalTo: trailingAnchor),
+            ]
+            centred = [
+                demo.centerXAnchor.constraint(equalTo: centerXAnchor),
+                demo.leadingAnchor.constraint(greaterThanOrEqualTo: leadingAnchor),
+                demo.trailingAnchor.constraint(lessThanOrEqualTo: trailingAnchor),
+            ]
+            fit()
+        }
+
+        // periphery:ignore - UIKit requires the initializer; `unavailable` keeps anyone from calling it
+        @available(*, unavailable)
+        required init?(coder _: NSCoder) {
+            fatalError("init(coder:) is not supported")
+        }
+
+        override func layoutSubviews() {
+            // Before the pass, so a demo that changed its mind is placed by the new rule in it.
+            fit()
+            super.layoutSubviews()
+        }
+
+        private func fit() {
+            let spans = demo.intrinsicContentSize.width == UIView.noIntrinsicMetric
+            guard spans != self.spans else { return }
+            self.spans = spans
+            NSLayoutConstraint.deactivate(spans ? centred : across)
+            NSLayoutConstraint.activate(spans ? across : centred)
         }
     }
 

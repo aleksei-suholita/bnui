@@ -79,7 +79,7 @@
         var buttonIcon: BNButtonIcon {
             switch icon {
             case let .symbol(name): .symbol(name)
-            case let .image(image): .image(image)
+            case let .image(image, _, _): .image(image)
             }
         }
     }

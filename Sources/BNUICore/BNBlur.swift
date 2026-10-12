@@ -90,7 +90,9 @@
 
         override package func layoutSubviews() {
             super.layoutSubviews()
-            let radius = shape.cornerRadius(forHeight: bounds.height, maximumRadius: maximumRadius)
+            // By the shorter side, as `UICornerConfiguration.capsule()` rounds: a capsule standing
+            // upright — a tab bar turned into a column — rounds by its width.
+            let radius = shape.cornerRadius(forHeight: min(bounds.width, bounds.height), maximumRadius: maximumRadius)
             effectView.layer.cornerRadius = radius
             // A shadow without a path is worked out from the rendered pixels on every frame.
             layer.shadowPath = UIBezierPath(roundedRect: bounds, cornerRadius: radius).cgPath

@@ -13,6 +13,7 @@
     /// | released outside (cancel) | silence |
     /// | tap on a disabled button | a refusal — see ``BNButtonRejection`` |
     /// | tap swallowed by the cooldown | silence |
+    /// | a style of ``BNButtonHapticEmphasis/silent`` | no press tick, no confirmation |
     ///
     /// One tap, one tick. A tap short enough that the press and the confirmation land within
     /// ``BNButtonMotion/hapticMergeWindow`` of each other is a single event to the finger; playing

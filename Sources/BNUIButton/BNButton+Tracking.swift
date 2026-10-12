@@ -241,7 +241,7 @@
                 return
             }
 
-            switch outcome.haptic {
+            switch activeStyle.hapticEmphasis.heard(outcome.haptic) {
             case .press: haptics.pressed()
             case .trigger: haptics.triggered(emphasis: activeStyle.hapticEmphasis)
             case .rejected, .silent: break

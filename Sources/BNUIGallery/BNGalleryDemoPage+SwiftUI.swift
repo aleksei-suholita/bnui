@@ -1,4 +1,4 @@
-#if (DEBUG || GalleryInRelease) && canImport(UIKit)
+#if canImport(UIKit)
     import SwiftUI
     import UIKit
 
@@ -94,6 +94,26 @@
                 },
                 knobs: knobs,
             )
+        }
+    }
+
+    public extension BNGalleryDemoPage.Knob {
+        /// A colour well bound to a SwiftUI `Color` property of the props.
+        static func color(
+            _ label: String,
+            _ property: ReferenceWritableKeyPath<Subject, Color>,
+            note: String? = nil,
+        ) -> Self {
+            Self { subject in
+                BNGalleryKnob(
+                    label: label,
+                    control: .color(
+                        initial: UIColor(subject[keyPath: property]),
+                        onChange: { subject[keyPath: property] = Color(uiColor: $0) },
+                    ),
+                    note: note,
+                )
+            }
         }
     }
 

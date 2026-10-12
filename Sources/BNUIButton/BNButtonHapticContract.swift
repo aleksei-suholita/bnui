@@ -17,11 +17,23 @@ public nonisolated enum BNButtonHapticEvent: Equatable, Sendable {
     case silent
 }
 
-/// How loud the confirmation is. Styles pick this; the control only relays it.
+/// How loud the button's own ticks are. Styles pick this; the control only relays it.
 public nonisolated enum BNButtonHapticEmphasis: Equatable, Sendable {
     case standard
     /// Destructive actions, which have to feel different from an ordinary confirmation.
     case pronounced
-    /// A style that wants no haptics at all, regardless of the host's global switch.
+    /// A style that wants no ticks of its own, whatever the host's switch says: neither the press
+    /// nor the confirmation. A refusal is the theme's to silence
+    /// (``BNButtonRejection/isHapticEnabled``), as for any style.
     case silent
+}
+
+nonisolated extension BNButtonHapticEmphasis {
+    /// The event as a style of this emphasis lets the finger feel it.
+    func heard(_ event: BNButtonHapticEvent) -> BNButtonHapticEvent {
+        switch (self, event) {
+        case (.silent, .press), (.silent, .trigger): .silent
+        default: event
+        }
+    }
 }

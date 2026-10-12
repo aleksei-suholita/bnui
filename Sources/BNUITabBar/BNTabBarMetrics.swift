@@ -20,9 +20,10 @@ public nonisolated struct BNTabBarMetrics: Equatable, Sendable {
     public var capsulePadding: CGFloat
     /// How much the lens is inset from the item it covers, measured at rest.
     public var lensInset: CGFloat
-    /// Uniform factor the marker grows by while a finger is on the bar — the same on both axes,
-    /// around its own centre, the way the system's glass lens swells when pressed. 1 means no
-    /// growth; Reduce Motion and a material that does not respond to touch resolve it to 1.
+    /// Factor the marker grows by while a finger is on the bar, around its own centre, the way the
+    /// system's glass lens swells when pressed — the same on both axes in a row, along the bar
+    /// only in a column. 1 means no growth; Reduce Motion and a material that does not respond to
+    /// touch resolve it to 1.
     public var liftedScale: CGFloat
     /// Keeps the bar a capsule on wide screens instead of stretching edge to edge.
     public var maxBarWidth: CGFloat

@@ -17,10 +17,14 @@
         }
 
         /// Thin wrapper over the pure rule — the decision itself lives in `BNTabBarGeometry`,
-        /// where it is covered by tests.
-        func nearestIndex(toX positionX: CGFloat) -> Int {
-            let centers = baseItemViews.map { frameInLens(of: $0).midX }
-            return BNTabBarGeometry.nearestIndex(toX: positionX, in: centers) ?? 0
+        /// where it is covered by tests. The rule is one-dimensional, so a column hands it
+        /// positions along its own axis.
+        func nearestIndex(to point: CGPoint) -> Int {
+            let centers = baseItemViews.map { view in
+                let frame = frameInLens(of: view)
+                return axis.position(of: CGPoint(x: frame.midX, y: frame.midY))
+            }
+            return BNTabBarGeometry.nearestIndex(toX: axis.position(of: point), in: centers) ?? 0
         }
 
         // MARK: - Selection
@@ -31,11 +35,16 @@
         /// reason to move the lens; the lens folds it into its spring.
         func applySelection(transition: BNTransition, velocity: CGFloat = 0) {
             guard baseItemViews.indices.contains(selectedIndex), let lens else { return }
+            // The sections sit two stacks deep and are laid out after this view, so their frames
+            // are read once their own layout has run. A row waits a pass for its solved widths and
+            // gets that for free; a column has nothing to solve, and on its first pass read them
+            // where the stack had not yet moved them — the lens six points off its section.
+            lens.layoutIfNeeded()
             let itemFrame = frameInLens(of: baseItemViews[selectedIndex])
             // Nothing is laid out yet (a rebuild, or the host has not sized the bar). Placing the
             // lens on a zero-width frame is exactly the sliver seen on any change — wait for a real
             // frame instead of drawing a one-point marker.
-            guard itemFrame.width > 1, lens.bounds.height > 1 else {
+            guard axis.length(of: itemFrame) > 1, axis.thickness(of: lens.bounds) > 1 else {
                 setNeedsLayout()
                 return
             }
@@ -68,16 +77,14 @@
             baseItemViews[moreSlotIndex].accessibilityValue = value.isEmpty ? nil : value
         }
 
-        /// The marker wraps its section with the capsule's own padding and spans the full bar
-        /// height — it is a lens over the whole surface, not a pill sitting inside one item.
+        /// The marker wraps its section with the capsule's own padding and spans the bar across —
+        /// it is a lens over the whole surface, not a pill sitting inside one item.
         func selectionRect(for itemFrame: CGRect) -> CGRect {
             let padding = activeTheme.geometry.capsulePadding
-            let height = lens?.bounds.height ?? itemFrame.height
-            return CGRect(
-                x: itemFrame.minX - padding,
-                y: 0,
-                width: itemFrame.width + 2 * padding,
-                height: height,
+            return axis.rect(
+                start: axis.start(of: itemFrame) - padding,
+                length: axis.length(of: itemFrame) + 2 * padding,
+                thickness: axis.thickness(of: lens?.bounds ?? itemFrame),
             )
         }
 
@@ -127,9 +134,10 @@
             BNTabBarItemState(
                 isSelected: selected,
                 selectionProgress: selectionProgress(for: index, lensFrame: lensFrame, selected: selected),
-                // Labels go either because the host asked for an icon-only bar or because the
-                // solver ran out of room for them — at any text size, accessibility ones included.
-                isCompact: configuration.labelMode == .never || solvedLabels == .hidden,
+                // Labels go because the host asked for an icon-only bar, because the solver ran out
+                // of room for them — at any text size, accessibility ones included — or because the
+                // bar is a column, whose sections are icons.
+                isCompact: configuration.labelMode == .never || solvedLabels == .hidden || axis == .vertical,
                 titleScale: solvedLabels.titleScale,
                 isPressed: isDragging,
                 theme: activeTheme,
@@ -147,8 +155,8 @@
                 return selected ? 1 : 0
             }
             let item = frameInLens(of: baseItemViews[index])
-            guard item.width > 0 else { return 0 }
-            return min(max(item.intersection(lensFrame).width / item.width, 0), 1)
+            guard axis.length(of: item) > 0 else { return 0 }
+            return min(max(axis.length(of: item.intersection(lensFrame)) / axis.length(of: item), 0), 1)
         }
 
         // MARK: - Drag
@@ -166,7 +174,7 @@
         func beginDrag(hovering index: Int) {
             guard baseItemViews.indices.contains(index) else { return }
             let target = selectionRect(for: frameInLens(of: baseItemViews[index]))
-            drag = Drag(startX: target.minX, hoveredIndex: index)
+            drag = Drag(start: axis.start(of: target), hoveredIndex: index)
             updateLens(selection: target, lifted: true, transition: .spring(activeTheme.motion.lift))
         }
 
@@ -175,16 +183,21 @@
         ///
         /// No animation here on purpose: the finger *is* the animation, and its velocity carries
         /// into the spring that takes over on release.
-        func updateDrag(translationX: CGFloat, hovering index: Int) {
+        func updateDrag(translation: CGFloat, hovering index: Int) {
             guard let drag, let lens, baseItemViews.indices.contains(index) else { return }
-            // Width tracks the section under the finger; position tracks the delta.
+            // Length tracks the section under the finger; position tracks the delta. The clamp is
+            // one-dimensional, so a column hands it lengths along its own axis.
             let hovered = selectionRect(for: frameInLens(of: baseItemViews[index]))
-            let originX = BNTabBarGeometry.clampedLensOriginX(
-                drag.startX + translationX,
-                lensWidth: hovered.width,
-                barWidth: lens.bounds.width,
+            let origin = BNTabBarGeometry.clampedLensOriginX(
+                drag.start + translation,
+                lensWidth: axis.length(of: hovered),
+                barWidth: axis.length(of: lens.bounds),
             )
-            let selection = CGRect(x: originX, y: 0, width: hovered.width, height: hovered.height)
+            let selection = axis.rect(
+                start: origin,
+                length: axis.length(of: hovered),
+                thickness: axis.thickness(of: hovered),
+            )
             updateLens(selection: selection, lifted: true, transition: .immediate)
             // Fed every frame so `selectionProgress` tracks the lens instead of jumping with it.
             refreshItemStates(transition: .immediate, lensFrame: selection)
@@ -198,6 +211,7 @@
                     selection: selection,
                     isLifted: lifted,
                     velocity: velocity,
+                    axis: axis,
                 ),
                 theme: activeTheme,
                 transition: transition,

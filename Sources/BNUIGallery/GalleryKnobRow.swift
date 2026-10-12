@@ -1,4 +1,4 @@
-#if (DEBUG || GalleryInRelease) && canImport(UIKit)
+#if canImport(UIKit)
     import BNUI
     import UIKit
 
@@ -149,6 +149,14 @@
                 GalleryTextRow(knob: knob, initial: initial, onChange: onChange)
             case let .button(onTap):
                 GalleryActionRow(knob: knob, onTap: onTap)
+            case let .color(initial, onChange):
+                GalleryColorRow(knob: knob, initial: initial, onChange: onChange)
+            case let .stepper(min, max, initial, onChange):
+                GalleryStepperRow(knob: knob, range: Swift.min(min, max) ... Swift.max(min, max), initial: initial, onChange: onChange)
+            case let .date(initial, mode, onChange):
+                GalleryDateRow(knob: knob, initial: initial, mode: mode, onChange: onChange)
+            case let .custom(view, onReset):
+                GalleryCustomRow(knob: knob, view: view, onReset: onReset)
             case .header:
                 nil
             }

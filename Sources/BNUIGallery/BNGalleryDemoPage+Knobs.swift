@@ -1,4 +1,4 @@
-#if (DEBUG || GalleryInRelease) && canImport(UIKit)
+#if canImport(UIKit)
     import UIKit
 
     public extension BNGalleryDemoPage.Knob {
@@ -19,15 +19,23 @@
         }
 
         /// A switch bound to a `Bool` property of the demo.
+        ///
+        /// `then` runs after every write, Reset's included — for what the value brings along, such
+        /// as a second property it implies: `.toggle("Compact", \.isCompact) { $0.width = $1 ? .hug : .fill }`.
+        /// The sliders, the text fields and the choices take one too.
         static func toggle(
             _ label: String,
             _ property: ReferenceWritableKeyPath<Subject, Bool>,
             note: String? = nil,
+            then: ((Subject, Bool) -> Void)? = nil,
         ) -> Self {
             Self { demo in
                 BNGalleryKnob(
                     label: label,
-                    control: .toggle(initial: demo[keyPath: property], onChange: { demo[keyPath: property] = $0 }),
+                    control: .toggle(initial: demo[keyPath: property], onChange: { value in
+                        demo[keyPath: property] = value
+                        then?(demo, value)
+                    }),
                     note: note,
                 )
             }
@@ -40,6 +48,7 @@
             in range: ClosedRange<Double>,
             unit: String? = nil,
             note: String? = nil,
+            then: ((Subject, Double) -> Void)? = nil,
         ) -> Self {
             Self { demo in
                 BNGalleryKnob(
@@ -48,7 +57,10 @@
                         min: range.lowerBound,
                         max: range.upperBound,
                         initial: demo[keyPath: property],
-                        onChange: { demo[keyPath: property] = $0 },
+                        onChange: { value in
+                            demo[keyPath: property] = value
+                            then?(demo, value)
+                        },
                     ),
                     unit: unit,
                     note: note,
@@ -63,6 +75,7 @@
             in range: ClosedRange<CGFloat>,
             unit: String? = nil,
             note: String? = nil,
+            then: ((Subject, CGFloat) -> Void)? = nil,
         ) -> Self {
             Self { demo in
                 BNGalleryKnob(
@@ -71,7 +84,10 @@
                         min: Double(range.lowerBound),
                         max: Double(range.upperBound),
                         initial: Double(demo[keyPath: property]),
-                        onChange: { demo[keyPath: property] = CGFloat($0) },
+                        onChange: { value in
+                            demo[keyPath: property] = CGFloat(value)
+                            then?(demo, CGFloat(value))
+                        },
                     ),
                     unit: unit,
                     note: note,
@@ -86,6 +102,7 @@
             in range: ClosedRange<Int>,
             unit: String? = nil,
             note: String? = nil,
+            then: ((Subject, Int) -> Void)? = nil,
         ) -> Self {
             Self { demo in
                 var knob = BNGalleryKnob(
@@ -94,7 +111,10 @@
                         min: Double(range.lowerBound),
                         max: Double(range.upperBound),
                         initial: Double(demo[keyPath: property]),
-                        onChange: { demo[keyPath: property] = Int($0.rounded()) },
+                        onChange: { value in
+                            demo[keyPath: property] = Int(value.rounded())
+                            then?(demo, Int(value.rounded()))
+                        },
                     ),
                     unit: unit,
                     note: note,
@@ -109,11 +129,15 @@
             _ label: String,
             _ property: ReferenceWritableKeyPath<Subject, String>,
             note: String? = nil,
+            then: ((Subject, String) -> Void)? = nil,
         ) -> Self {
             Self { demo in
                 BNGalleryKnob(
                     label: label,
-                    control: .textField(initial: demo[keyPath: property], onChange: { demo[keyPath: property] = $0 }),
+                    control: .textField(initial: demo[keyPath: property], onChange: { value in
+                        demo[keyPath: property] = value
+                        then?(demo, value)
+                    }),
                     note: note,
                 )
             }
@@ -125,13 +149,18 @@
             _ label: String,
             _ property: ReferenceWritableKeyPath<Subject, String?>,
             note: String? = nil,
+            then: ((Subject, String?) -> Void)? = nil,
         ) -> Self {
             Self { demo in
                 BNGalleryKnob(
                     label: label,
                     control: .textField(
                         initial: demo[keyPath: property] ?? "",
-                        onChange: { demo[keyPath: property] = $0.isEmpty ? nil : $0 },
+                        onChange: { text in
+                            let value = text.isEmpty ? nil : text
+                            demo[keyPath: property] = value
+                            then?(demo, value)
+                        },
                     ),
                     note: note,
                 )
@@ -144,8 +173,9 @@
             _ label: String,
             _ property: ReferenceWritableKeyPath<Subject, Value>,
             note: String? = nil,
+            then: ((Subject, Value) -> Void)? = nil,
         ) -> Self {
-            choosing(label, property, among: Value.allCases.map { (title(of: $0), $0) }, note: note)
+            choosing(label, property, among: Value.allCases.map { (title(of: $0), $0) }, note: note, then: then)
         }
 
         /// One of the given values under the given titles — for a property whose values are not a
@@ -155,8 +185,92 @@
             _ property: ReferenceWritableKeyPath<Subject, Value>,
             options: KeyValuePairs<String, Value>,
             note: String? = nil,
+            then: ((Subject, Value) -> Void)? = nil,
         ) -> Self {
-            choosing(label, property, among: options.map { ($0.key, $0.value) }, note: note)
+            choosing(label, property, among: options.map { ($0.key, $0.value) }, note: note, then: then)
+        }
+
+        /// A colour well bound to a `UIColor` property of the demo.
+        static func color(
+            _ label: String,
+            _ property: ReferenceWritableKeyPath<Subject, UIColor>,
+            note: String? = nil,
+        ) -> Self {
+            Self { subject in
+                BNGalleryKnob(
+                    label: label,
+                    control: .color(initial: subject[keyPath: property], onChange: { subject[keyPath: property] = $0 }),
+                    note: note,
+                )
+            }
+        }
+
+        /// A colour well bound to an optional `UIColor` property of the demo, such as a view's
+        /// `tintColor` or `backgroundColor`. No colour starts the well clear.
+        static func color(
+            _ label: String,
+            _ property: ReferenceWritableKeyPath<Subject, UIColor?>,
+            note: String? = nil,
+        ) -> Self {
+            Self { subject in
+                BNGalleryKnob(
+                    label: label,
+                    control: .color(initial: subject[keyPath: property] ?? .clear, onChange: { subject[keyPath: property] = $0 }),
+                    note: note,
+                )
+            }
+        }
+
+        /// A stepper bound to an `Int` property of the demo — a count small enough to step through.
+        static func stepper(
+            _ label: String,
+            _ property: ReferenceWritableKeyPath<Subject, Int>,
+            in range: ClosedRange<Int>,
+            note: String? = nil,
+        ) -> Self {
+            Self { subject in
+                BNGalleryKnob(
+                    label: label,
+                    control: .stepper(
+                        min: range.lowerBound,
+                        max: range.upperBound,
+                        initial: subject[keyPath: property],
+                        onChange: { subject[keyPath: property] = $0 },
+                    ),
+                    note: note,
+                )
+            }
+        }
+
+        /// A date picker bound to a `Date` property of the demo.
+        static func date(
+            _ label: String,
+            _ property: ReferenceWritableKeyPath<Subject, Date>,
+            mode: UIDatePicker.Mode = .dateAndTime,
+            note: String? = nil,
+        ) -> Self {
+            Self { subject in
+                BNGalleryKnob(
+                    label: label,
+                    control: .date(initial: subject[keyPath: property], mode: mode, onChange: { subject[keyPath: property] = $0 }),
+                    note: note,
+                )
+            }
+        }
+
+        /// A view of the page's own under the title, for a value no other knob fits:
+        /// `.custom("Emoji") { EmojiPicker { pill.emoji = $0 } }`. The view keeps its own state;
+        /// `onReset`, if given, is what Reset does to it. On a page of states it drives the
+        /// demo it was made for — the first.
+        static func custom(
+            _ label: String,
+            note: String? = nil,
+            onReset: (() -> Void)? = nil,
+            view: @escaping () -> UIView,
+        ) -> Self {
+            Self { _ in
+                BNGalleryKnob(label: label, control: .custom(view: view(), onReset: onReset), note: note)
+            }
         }
 
         /// A value the options do not list starts the row on the first option, and Reset then
@@ -166,6 +280,7 @@
             _ property: ReferenceWritableKeyPath<Subject, Value>,
             among options: [(title: String, value: Value)],
             note: String?,
+            then: ((Subject, Value) -> Void)?,
         ) -> Self {
             Self { demo in
                 let initial = options.firstIndex { $0.value == demo[keyPath: property] } ?? 0
@@ -174,7 +289,10 @@
                     control: .segmented(
                         options: options.map(\.title),
                         initial: initial,
-                        onChange: { demo[keyPath: property] = options[$0].value },
+                        onChange: { index in
+                            demo[keyPath: property] = options[index].value
+                            then?(demo, options[index].value)
+                        },
                     ),
                     note: note,
                 )

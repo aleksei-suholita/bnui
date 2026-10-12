@@ -1,4 +1,4 @@
-#if (DEBUG || GalleryInRelease) && canImport(UIKit)
+#if canImport(UIKit)
     import UIKit
 
     extension GalleryEnvironment {
@@ -7,6 +7,7 @@
         /// that is itself a background passes no backdrop and gets no backdrop section.
         func menu(
             backdrop: BNGalleryBackdrop?,
+            among backdrops: [BNGalleryBackdrop],
             onBackdrop: @escaping (BNGalleryBackdrop) -> Void,
             onChange: @escaping (GalleryEnvironment) -> Void,
         ) -> UIMenu {
@@ -17,7 +18,7 @@
                     subtitle: current.title,
                     image: UIImage(systemName: "photo.on.rectangle"),
                     options: .singleSelection,
-                    children: BNGalleryBackdrop.allCases.map { option in
+                    children: backdrops.map { option in
                         UIAction(title: option.title, subtitle: option.purpose, state: option == current ? .on : .off) { _ in
                             onBackdrop(option)
                         }

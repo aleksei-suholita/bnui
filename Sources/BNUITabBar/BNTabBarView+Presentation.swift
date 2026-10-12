@@ -5,25 +5,28 @@
     // MARK: - Width solving and presentation state
 
     extension BNTabBarView {
-        /// Width the sections' capsule may take. The action's slot is carved out first: the
-        /// sections only ever get what is left.
-        var sectionsAvailableWidth: CGFloat {
+        /// Length along the bar the sections' capsule may take — a row's width, a column's height.
+        /// The action's slot is carved out first: the sections only ever get what is left.
+        var sectionsAvailableLength: CGFloat {
             let geometry = activeTheme.geometry
             let reserved = action == nil ? 0 : geometry.actionSide + geometry.actionSpacing
-            return bounds.width - reserved
+            return axis.length(of: bounds) - reserved
         }
 
-        /// How many slots the current width holds, from the pure rule in `BNTabBarLayoutSolver`.
+        /// How many slots the current length holds, from the pure rule in `BNTabBarLayoutSolver`.
+        ///
+        /// A column's sections are squares as wide as the row is high and never narrow, so its
+        /// slots are counted at that side rather than at a row's minimum width.
         func resolveSlotCount() {
-            // Without a width there is nothing to decide from; a zero width would send every
+            // Without a length there is nothing to decide from; a zero length would send every
             // section but one behind More for the first frame.
-            guard bounds.width > 0 else { return }
+            guard axis.length(of: bounds) > 0 else { return }
             let geometry = activeTheme.geometry
             slotCount = BNTabBarLayoutSolver.slotCount(
-                availableWidth: sectionsAvailableWidth,
+                availableWidth: sectionsAvailableLength,
                 itemSpacing: geometry.itemSpacing,
                 capsulePadding: geometry.capsulePadding,
-                minimumItemWidth: geometry.effectiveMinimumItemWidth,
+                minimumItemWidth: axis == .vertical ? geometry.effectiveItemHeight : geometry.effectiveMinimumItemWidth,
                 maxBarWidth: geometry.maxBarWidth,
             )
         }
@@ -47,13 +50,17 @@
         /// returns. Returns whether anything changed — the caller waits a pass before placing the
         /// lens when it did, so the lens lands on resolved frames rather than stale ones, and the
         /// items pick up the new label fit with it.
+        ///
+        /// A column has nothing to solve: its sections are squares from the start, and it shows no
+        /// labels.
         @discardableResult
         func applySolvedWidths() -> Bool {
-            guard !baseItemViews.isEmpty, itemWidthConstraints.count == baseItemViews.count else { return false }
+            guard axis == .horizontal, !baseItemViews.isEmpty, itemLengthConstraints.count == baseItemViews.count
+            else { return false }
             let geometry = activeTheme.geometry
             let fills = action != nil && baseItemViews.count >= geometry.fillWidthFromSectionCount
             let solution = BNTabBarLayoutSolver.solve(BNTabBarLayoutSolver.Input(
-                availableWidth: sectionsAvailableWidth,
+                availableWidth: sectionsAvailableLength,
                 items: baseItemViews.map { $0.measure() },
                 itemSpacing: geometry.itemSpacing,
                 capsulePadding: geometry.capsulePadding,
@@ -66,7 +73,7 @@
 
             var changed = solution.labels != solvedLabels
             solvedLabels = solution.labels
-            for (constraint, width) in zip(itemWidthConstraints, solution.itemWidths) {
+            for (constraint, width) in zip(itemLengthConstraints, solution.itemWidths) {
                 guard abs(constraint.constant - width) > 0.5 else { continue }
                 constraint.constant = width
                 changed = true
@@ -88,15 +95,21 @@
 
             transition.run { [weak self] in
                 guard let self else { return }
-                // Slid past the bottom edge rather than faded in place: a bar that dissolves where
-                // it stands still occupies the eye.
-                transform = isHidden
-                    ? CGAffineTransform(translationX: 0, y: effectiveBarHeight)
-                    : .identity
+                // Slid past the edge rather than faded in place: a bar that dissolves where it
+                // stands still occupies the eye.
+                transform = isHidden ? hiddenTransform : .identity
                 alpha = isHidden ? 0 : 1
             }
 
             reportHeightIfNeeded()
+        }
+
+        /// Past the edge the bar stands by: a row down past the bottom, a column sideways past the
+        /// side of the screen its strip is on.
+        private var hiddenTransform: CGAffineTransform {
+            guard axis == .vertical else { return CGAffineTransform(translationX: 0, y: effectiveBarHeight) }
+            let towardRight = superview.map { center.x >= $0.bounds.midX } ?? true
+            return CGAffineTransform(translationX: towardRight ? bounds.width : -bounds.width, y: 0)
         }
 
         /// Height used to push the bar off screen — the laid-out one, falling back to the theme

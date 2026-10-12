@@ -1,4 +1,4 @@
-#if (DEBUG || GalleryInRelease) && canImport(UIKit)
+#if canImport(UIKit)
     import UIKit
 
     /// A view the gallery builds around a demo, carrying what the page's knobs drive — the props of
