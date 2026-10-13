@@ -4,6 +4,15 @@ Every release of BNUI. The kit follows semantic versioning; while it is at 0.x, 
 may break the API and a patch release does not. Each entry lists what is breaking, what is added
 and what is fixed, by product.
 
+## 0.7.1 — 2026-10-13
+
+### Fixed
+
+- `BNUICore`: a badge changed quickly no longer disappears. Going from a dot to a text and back,
+  the part leaving finished after the one that had come back and hid it; a number changed while the
+  badge was popping in stopped the pop and stayed half drawn. Each part of `BNBadgeView` now keeps
+  its own pop — on a tab bar's section and on a button alike.
+
 ## 0.7.0 — 2026-10-13
 
 ### Breaking

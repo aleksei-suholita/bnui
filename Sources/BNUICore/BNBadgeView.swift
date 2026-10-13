@@ -34,8 +34,10 @@
         private let crossFade: BNCurve
         private let label = BNBadgeLabel()
         private let dot = UIView()
-        /// The pop in or out, kept so the next change can take it over mid-flight.
-        private var animation: BNAnimation?
+        /// Each part's pop in or out, kept so the next change can take that part over mid-flight.
+        /// One per part: a dot giving way to a text runs two at once, and one left unkept would
+        /// finish later and hide the part that had come back.
+        private var animations: [UIView: BNAnimation] = [:]
 
         /// A badge view showing nothing yet.
         ///
@@ -92,7 +94,8 @@
             badge = newBadge
             guard old != new else { return }
 
-            animation?.interrupt()
+            // Nothing is stopped up front: a part that keeps its place keeps its pop, so a number
+            // changing while it pops in still arrives whole.
             switch new {
             case let .text(text)?:
                 if case .text? = old {
@@ -157,18 +160,24 @@
 
         // MARK: - Showing
 
-        /// A badge arriving pops in from the theme's appear scale.
+        /// A badge arriving pops in from the theme's appear scale. One still on its way out turns
+        /// back from where it is: its leaving is stopped there, so it neither jumps to the start
+        /// nor hides at the end.
         private func reveal(_ view: UIView, transition: BNTransition) {
+            animations[view]?.interrupt()
+            let wasHidden = view.isHidden
             view.isHidden = false
             guard transition != .immediate else {
                 view.alpha = 1
                 view.transform = .identity
                 return
             }
-            let scale = theme.appearScale
-            view.alpha = 0
-            view.transform = CGAffineTransform(scaleX: scale, y: scale)
-            animation = transition.run {
+            if wasHidden {
+                let scale = theme.appearScale
+                view.alpha = 0
+                view.transform = CGAffineTransform(scaleX: scale, y: scale)
+            }
+            animations[view] = transition.run {
                 view.alpha = 1
                 view.transform = .identity
             }
@@ -178,12 +187,13 @@
         /// its end: one taken over by a badge arriving again must not hide the new one.
         private func hide(_ view: UIView, transition: BNTransition) {
             guard !view.isHidden else { return }
+            animations[view]?.interrupt()
             guard transition != .immediate else {
                 view.isHidden = true
                 return
             }
             let scale = theme.appearScale
-            animation = transition.run {
+            animations[view] = transition.run {
                 view.alpha = 0
                 view.transform = CGAffineTransform(scaleX: scale, y: scale)
             } completion: { finished in
