@@ -1,7 +1,8 @@
 #if canImport(UIKit)
     import UIKit
 
-    /// A ``BNBadge`` drawn over a control — a tab bar's section, a button.
+    /// A ``BNBadge`` drawn over a control — a tab bar's section, a button — the way the kit's
+    /// controls draw theirs.
     ///
     /// The view has no size of its own: it is the point the badge hangs from, and the control
     /// pins its centre there — a trailing corner of a section's icon, the rim of a button, at the
@@ -13,9 +14,20 @@
     ///
     /// It takes no touches and says nothing to VoiceOver: the control it marks speaks for it, with
     /// ``spokenText`` in its value.
-    package final class BNBadgeView: UIView {
+    ///
+    /// A tab bar's own item renderer draws its sections' badges with it, and so can one of the
+    /// host's:
+    ///
+    /// ```swift
+    /// let badge = BNBadgeView(theme: theme.badge, crossFade: theme.motion.crossFade)
+    /// addSubview(badge)
+    /// badge.pin(toCornerOf: iconView)
+    /// badge.keepInside(self)
+    /// badge.show(item.badge, transition: .immediate)
+    /// ```
+    public final class BNBadgeView: UIView {
         /// The badge on show.
-        package private(set) var badge: BNBadge?
+        public private(set) var badge: BNBadge?
 
         private let theme: BNBadgeTheme
         /// How long a changed number cross-fades — the control's own cross-fade.
@@ -25,7 +37,14 @@
         /// The pop in or out, kept so the next change can take it over mid-flight.
         private var animation: BNAnimation?
 
-        package init(theme: BNBadgeTheme, crossFade: BNCurve) {
+        /// A badge view showing nothing yet.
+        ///
+        /// - Parameters:
+        ///   - theme: How the badge looks — the theme's own for the control it marks, such as
+        ///     `BNTabBarTheme.badge`.
+        ///   - crossFade: How long a changed number cross-fades: the control's own cross-fade,
+        ///     such as `BNTabBarTheme.motion.crossFade`.
+        public init(theme: BNBadgeTheme, crossFade: BNCurve) {
             self.theme = theme
             self.crossFade = crossFade
             super.init(frame: .zero)
@@ -37,23 +56,35 @@
             fatalError("init(coder:) is not supported")
         }
 
+        /// Hangs the badge from `view`'s trailing corner — the top or the bottom, as the theme's
+        /// ``BNBadgeTheme/position`` says — the way a tab bar's section hangs it from its icon.
+        /// Both views must already share a superview.
+        public func pin(toCornerOf view: UIView) {
+            let corner = theme.position == .bottomTrailing ? view.bottomAnchor : view.topAnchor
+            NSLayoutConstraint.activate([
+                centerXAnchor.constraint(equalTo: view.trailingAnchor),
+                centerYAnchor.constraint(equalTo: corner),
+            ])
+        }
+
         /// Keeps a text from reaching past `view`'s trailing edge — a section of a bar, beside which
         /// the next one starts. Where there is no room to grow away from the point, the text slides
         /// back over what it marks: covering a little of one's own icon reads better than lying on
         /// the neighbour's.
-        package func keepInside(_ view: UIView) {
+        public func keepInside(_ view: UIView) {
             label.trailingAnchor.constraint(lessThanOrEqualTo: view.trailingAnchor).isActive = true
         }
 
         /// What VoiceOver says for the badge on show: the host's label, or else what it shows.
-        /// `nil` when nothing is drawn.
-        package var spokenText: String? {
+        /// `nil` when nothing is drawn. The control the badge marks says it in its
+        /// `accessibilityValue`.
+        public var spokenText: String? {
             badge?.spokenText(countLimit: theme.countLimit)
         }
 
         /// Shows `newBadge`, or none: popping in or out, a changed number cross-fading. An
         /// immediate transition puts it on screen at once.
-        package func show(_ newBadge: BNBadge?, transition: BNTransition) {
+        public func show(_ newBadge: BNBadge?, transition: BNTransition) {
             let old = badge?.appearance(countLimit: theme.countLimit)
             let new = newBadge?.appearance(countLimit: theme.countLimit)
             badge = newBadge

@@ -82,6 +82,24 @@ never narrow past the 44 pt touch target, whatever the theme asks. VoiceOver nam
 section whatever is drawn.
 The rules live in ``BNTabBarLayoutSolver``, where they are tested without a simulator.
 
+## Selection effects
+
+A section's symbol plays an effect once when the section is chosen — not when it is chosen again.
+It is written the way the system's symbol effects are, with the options each effect has:
+
+```swift
+BNTabBarItem(id: "camera", icon: .image(cameraSymbol), title: "Camera",
+             selectionAnimation: .bounce.down.byLayer)
+BNTabBarItem(id: "timer", icon: .symbol("timer"), title: "Timer",
+             selectionAnimation: .breathe.pulse)
+```
+
+The default is a plain bounce; `.none` keeps the symbol still. An app's own symbol, passed as an
+image, plays like a system one; a picture does not. Symbol effects arrive with iOS 17, and an
+effect the system does not have yet — wiggle, rotate and breathe before iOS 18, drawing on before
+iOS 26 — plays as a plain bounce. Reduce Motion stills them all. A parameter of the app's own that
+passes an effect on is written `some BNTabBarSymbolEffect`.
+
 ## The selection lens
 
 Selection is drawn by a *lens* — a marker that follows the finger and reveals the active
@@ -156,7 +174,8 @@ One badge changes by its section's id — ``BNTabBarView/setBadge(_:for:)``, and
 container — and an id the bar does not have is passed over. Changing nothing but badges redraws
 the badges alone: they pop in and out and a number cross-fades, while a finger on the bar keeps
 its gesture. A custom renderer joins in through
-``BNTabBarItemRendering/updateBadge(_:transition:)``; one that does not is rebuilt as before.
+``BNTabBarItemRendering/updateBadge(_:transition:)``; one that does not is rebuilt as before. It
+draws the kit's badge with a ``BNBadgeView``, as the bar's own renderer does.
 
 VoiceOver reads a badge in the host's words, or as shown when there are none; a dot always
 brings its own. A section behind More shows its badge as the menu item's subtitle, and More
@@ -197,6 +216,7 @@ as "Tab N of M" with its selected state, and a long press is published as a cust
 - ``BNTabBarContainerViewController``
 - ``BNTabBarView``
 - ``BNTabBarItem``
+- ``BNTabBarSymbolEffect``
 - ``BNBadge``
 - ``BNTabBarConfiguration``
 

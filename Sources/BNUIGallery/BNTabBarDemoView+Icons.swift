@@ -3,12 +3,31 @@
     import UIKit
 
     extension BNTabBarDemoView {
+        /// The effects the knob offers, with the options each one has, by name.
+        static let selectionEffects: [(name: String, effect: any BNTabBarSymbolEffect)] = [
+            ("Bounce", .bounce),
+            ("Bounce down, by layer", .bounce.down.byLayer),
+            ("Pulse", .pulse),
+            ("Wiggle", .wiggle),
+            ("Wiggle forward", .wiggle.forward),
+            ("Rotate", .rotate),
+            ("Rotate counterclockwise", .rotate.counterClockwise),
+            ("Breathe", .breathe),
+            ("Breathe with a pulse", .breathe.pulse),
+            ("Draw on", .drawOn),
+            ("Draw on, path by path", .drawOn.individually),
+            ("Off", .none),
+        ]
+
         /// The last section's icon by the knob's index: its symbol, an 80 pt glyph that has to
-        /// fit the box instead of growing the bar, or a photo kept in its own colours.
+        /// fit the box instead of growing the bar, a photo kept in its own colours, or its symbol
+        /// passed as an image — the way an app's own symbol comes.
         static func lastIcon(_ index: Int, symbol: String) -> BNTabBarItem.Icon {
             switch index {
             case 1: .image(oversizedGlyph)
             case 2: .image(photo, rendering: .original)
+            // An app's own symbol arrives as an image from its catalogue; a system one stands in.
+            case 3: UIImage(systemName: symbol).map { .image($0) } ?? .symbol(symbol)
             default: .symbol(symbol)
             }
         }

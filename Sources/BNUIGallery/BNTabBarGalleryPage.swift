@@ -127,18 +127,23 @@
                 BNGalleryKnob(
                     label: "Last icon",
                     control: .segmented(
-                        options: ["Symbol", "80 pt glyph", "Photo"],
+                        options: ["Symbol", "80 pt glyph", "Photo", "Symbol image"],
                         initial: BNTabBarDemoView.Defaults.lastIcon,
                         onChange: { demo.lastIcon = $0 },
                     ),
                     note: "An image fits a box the size of a round symbol, so a large asset does not grow the bar. "
                         + "A photo keeps its colours; only the lens says it is chosen.",
                 ),
-                BNGalleryKnob(label: "Symbol effect", control: .segmented(
-                    options: ["Bounce", "Pulse", "Wiggle", "Rotate", "Breathe", "Off"],
-                    initial: BNTabBarDemoView.Defaults.selectionAnimation,
-                    onChange: { demo.setSelectionAnimation(index: $0) },
-                )),
+                BNGalleryKnob(
+                    label: "Symbol effect",
+                    control: .segmented(
+                        options: BNTabBarDemoView.selectionEffects.map(\.name),
+                        initial: BNTabBarDemoView.Defaults.selectionAnimation,
+                        onChange: { demo.setSelectionAnimation(index: $0) },
+                    ),
+                    note: "Plays on a symbol — the last icon as a symbol image stands for an app's own. "
+                        + "Wiggle, rotate and breathe bounce before iOS 18, drawing on before iOS 26.",
+                ),
             ]
         }
 

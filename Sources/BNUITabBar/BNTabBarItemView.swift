@@ -69,28 +69,15 @@
         }
 
         func playSelectionAnimation() {
-            // Symbol effects move a symbol's layers; an image has none.
-            guard case .symbol = item.icon, !UIAccessibility.isReduceMotionEnabled else { return }
+            // Symbol effects move a symbol's layers; a picture has none. The app's own symbols come
+            // as images, and move as the system's do.
+            guard imageView.image?.isSymbolImage == true, !UIAccessibility.isReduceMotionEnabled else { return }
             // Symbol effects arrive with iOS 17. Below it the icon still changes weight and colour;
             // it just does not animate.
             guard #available(iOS 17.0, *) else { return }
-            // `.nonRepeating` keeps every effect a one-shot accent: the indefinite ones (wiggle,
-            // rotate, breathe) play a single cycle instead of looping.
-            switch item.selectionAnimation {
-            case .none:
-                break
-            case .bounce:
-                imageView.addSymbolEffect(.bounce, options: .nonRepeating)
-            case .pulse:
-                imageView.addSymbolEffect(.pulse, options: .nonRepeating)
-            case .wiggle, .rotate, .breathe:
-                guard #available(iOS 18.0, *) else {
-                    // iOS 17 has none of the three; the default accent stands in for them.
-                    imageView.addSymbolEffect(.bounce, options: .nonRepeating)
-                    return
-                }
-                playIOS18Effect()
-            }
+            // Played once: the indefinite effects (wiggle, rotate, breathe) a single cycle instead
+            // of looping.
+            item.selectionAnimation.play(on: imageView)
         }
 
         func updateBadge(_ badge: BNBadge?, transition: BNTransition) -> Bool {
@@ -189,11 +176,7 @@
         /// the section, over the glyph when it must, rather than on the next section.
         private func buildBadge() {
             addSubview(badgeView)
-            let corner = theme.badge.position == .bottomTrailing ? imageView.bottomAnchor : imageView.topAnchor
-            NSLayoutConstraint.activate([
-                badgeView.centerXAnchor.constraint(equalTo: imageView.trailingAnchor),
-                badgeView.centerYAnchor.constraint(equalTo: corner),
-            ])
+            badgeView.pin(toCornerOf: imageView)
             badgeView.keepInside(self)
         }
 
@@ -221,20 +204,6 @@
     }
 
     private extension BNTabBarItemView {
-        @available(iOS 18.0, *)
-        func playIOS18Effect() {
-            switch item.selectionAnimation {
-            case .wiggle:
-                imageView.addSymbolEffect(.wiggle, options: .nonRepeating)
-            case .rotate:
-                imageView.addSymbolEffect(.rotate, options: .nonRepeating)
-            case .breathe:
-                imageView.addSymbolEffect(.breathe, options: .nonRepeating)
-            case .none, .bounce, .pulse:
-                break
-            }
-        }
-
         /// An image sits in its box, not at its own size: the box is what the bar is measured by.
         func fitImageBox() {
             guard imageBoxConstraints.count == 2, let box = item.icon.imageBox(pointSize: theme.icon.pointSize) else { return }

@@ -26,8 +26,10 @@
         /// badges alone, and a finger on the bar keeps its gesture — one in place reads
         /// `bar.items[1].badge = .count(3)`.
         public var badge: BNBadge?
-        /// The SF Symbol accent played when this section becomes selected. Defaults to a bounce;
-        /// set per item — a running-timer section can breathe while the rest bounce, or go silent.
+        /// The SF Symbol accent played when this section becomes selected — `.bounce.down.byLayer`,
+        /// `.wiggle.left`, `.none`. Defaults to a bounce; set per item — a running-timer section can
+        /// breathe while the rest bounce, or go silent. It plays on a symbol, the system's or the
+        /// app's own passed as an image.
         public let selectionAnimation: BNTabBarSymbolAnimation
         /// Spoken name. Defaults to `title`, but stays required in every label mode —
         /// a hidden label must not silence VoiceOver.
@@ -38,14 +40,14 @@
             icon: Icon,
             title: String,
             badge: BNBadge? = nil,
-            selectionAnimation: BNTabBarSymbolAnimation = .bounce,
+            selectionAnimation: some BNTabBarSymbolEffect = .bounce,
             accessibilityLabel: String? = nil,
         ) {
             self.id = id
             self.icon = icon
             self.title = title
             self.badge = badge
-            self.selectionAnimation = selectionAnimation
+            self.selectionAnimation = selectionAnimation.symbolAnimation
             self.accessibilityLabel = accessibilityLabel ?? title
         }
     }

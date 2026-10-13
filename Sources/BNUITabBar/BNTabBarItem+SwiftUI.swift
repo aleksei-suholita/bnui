@@ -30,7 +30,7 @@
             /// `nil` for a section of a bar alone, whose content is `Void`.
             let content: Content?
             var badge: BNBadge?
-            var selectionAnimation: BNTabBarSymbolAnimation = .bounce
+            var selectionAnimation = BNTabBarSymbolAnimation.standard
             var accessibilityLabel: String?
 
             /// The bar item under the given id: the bar knows its sections by id, the host by value.
@@ -100,10 +100,11 @@
             return copy
         }
 
-        /// How the symbol moves when the section is chosen. `.bounce` unless set.
-        func selectionAnimation(_ animation: BNTabBarSymbolAnimation) -> Self {
+        /// How the symbol moves when the section is chosen — `.bounce.down.byLayer`, `.none`.
+        /// `.bounce` unless set.
+        func selectionAnimation(_ animation: some BNTabBarSymbolEffect) -> Self {
             var copy = self
-            copy.selectionAnimation = animation
+            copy.selectionAnimation = animation.symbolAnimation
             return copy
         }
 

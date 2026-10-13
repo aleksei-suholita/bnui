@@ -4,6 +4,38 @@ Every release of BNUI. The kit follows semantic versioning; while it is at 0.x, 
 may break the API and a patch release does not. Each entry lists what is breaking, what is added
 and what is fixed, by product.
 
+## 0.6.0 — 2026-10-13
+
+### Breaking
+
+- `BNUITabBar`: `BNTabBarSymbolAnimation` is a struct, written through `BNTabBarSymbolEffect` the
+  way the system's symbol effects are. `.bounce`, `.pulse`, `.wiggle`, `.rotate`, `.breathe` and
+  `.none` read as before; a `switch` over them no longer compiles. `BNTabBarItem`'s initializer and
+  `BN.Tab.selectionAnimation(_:)` take `some BNTabBarSymbolEffect`, and so does a parameter of the
+  app's own that passes one on.
+
+### Added
+
+- `BNUICore`: `BNBadgeView` is public — the badge the kit's controls draw, for a custom tab bar
+  item renderer to draw the same one. `pin(toCornerOf:)` hangs it from a view's trailing corner
+  at the theme's position, `keepInside(_:)` keeps a long text inside the section, and
+  `spokenText` is what the section says for it.
+- `BNUITabBar`: a selection effect takes the options the system's has — `.bounce.down.byLayer`,
+  `.wiggle.forward`, `.wiggle.custom(angle:)`, `.rotate.counterClockwise`, `.breathe.pulse`,
+  `.pulse.wholeSymbol` — and `.drawOn`, with `.individually`, on iOS 26. Where the system has no
+  such effect yet, a plain bounce plays, as before.
+- `BNUITabBar`: an app's own symbol passed as an image — `.image(UIImage(named: "camera.symbol"))`
+  — plays the selection effect as a system symbol does. A picture still does not.
+
+### Fixed
+
+- `BNUITabBar`: when the bar's width moved a section into More or out of it, the lens could stay
+  on a slot whose width was not yet solved — narrow and off its section — until something else
+  laid the bar out.
+- `BNUITabBar`: a row takes a touch only where it draws — the capsule, the action with its touch
+  target's margin, the accessory — as a column already did. The empty rest of its view passes the
+  touch to the content under it. A column now counts the action's margin too.
+
 ## 0.5.0 — 2026-10-12
 
 ### Breaking

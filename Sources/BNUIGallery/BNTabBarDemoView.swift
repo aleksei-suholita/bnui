@@ -78,8 +78,9 @@
         /// Counts up once a second while on, so a drag can be tried against a badge that keeps
         /// changing — it must not lose the gesture.
         private var badgeTicker: Task<Void, Never>?
-        private var selectionAnimation: BNTabBarSymbolAnimation = .bounce
-        /// What the last section wears: its symbol, an oversized glyph, or a photo.
+        private var selectionAnimation = BNTabBarDemoView.selectionEffects[Defaults.selectionAnimation].effect.symbolAnimation
+        /// What the last section wears: its symbol, an oversized glyph, a photo, or its symbol as an
+        /// image.
         var lastIcon = Defaults.lastIcon {
             didSet { tabBar?.items = makeItems() }
         }
@@ -141,9 +142,8 @@
         }
 
         func setSelectionAnimation(index: Int) {
-            let effects: [BNTabBarSymbolAnimation] = [.bounce, .pulse, .wiggle, .rotate, .breathe, .none]
-            guard effects.indices.contains(index) else { return }
-            selectionAnimation = effects[index]
+            guard Self.selectionEffects.indices.contains(index) else { return }
+            selectionAnimation = Self.selectionEffects[index].effect.symbolAnimation
             tabBar?.items = makeItems()
         }
 
@@ -246,7 +246,7 @@
             badgeKind = Defaults.badge
             badgeCount = Defaults.badgeCount
             setTickingBadge(false)
-            selectionAnimation = .bounce
+            selectionAnimation = Self.selectionEffects[Defaults.selectionAnimation].effect.symbolAnimation
             lastIcon = Defaults.lastIcon
             tabBar.items = makeItems()
             tabBar.action = nil

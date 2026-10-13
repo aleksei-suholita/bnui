@@ -441,6 +441,13 @@ BNUICore | BNBadgeTheme.overlap | @MainActor var overlap: CGFloat
 BNUICore | BNBadgeTheme.position | @MainActor var position: BNBadgeTheme.Position
 BNUICore | BNBadgeTheme.standard | @MainActor static let standard: BNBadgeTheme
 BNUICore | BNBadgeTheme.text | @MainActor var text: UIColor
+BNUICore | BNBadgeView | @MainActor final class BNBadgeView
+BNUICore | BNBadgeView.badge | @MainActor var badge: BNBadge? { get }
+BNUICore | BNBadgeView.init(theme:crossFade:) | @MainActor init(theme: BNBadgeTheme, crossFade: BNCurve)
+BNUICore | BNBadgeView.keepInside(_:) | @MainActor func keepInside(_ view: UIView)
+BNUICore | BNBadgeView.pin(toCornerOf:) | @MainActor func pin(toCornerOf view: UIView)
+BNUICore | BNBadgeView.show(_:transition:) | @MainActor func show(_ newBadge: BNBadge?, transition: BNTransition)
+BNUICore | BNBadgeView.spokenText | @MainActor var spokenText: String? { get }
 BNUICore | BNCurve | nonisolated struct BNCurve
 BNUICore | BNCurve.Timing | enum Timing
 BNUICore | BNCurve.Timing.controlPoints(x1:y1:x2:y2:) | case controlPoints(x1: CGFloat, y1: CGFloat, x2: CGFloat, y2: CGFloat)
@@ -647,7 +654,7 @@ BNUITabBar | BN.Tab.init(_:image:size:rendering:value:) | @MainActor init(_ titl
 BNUITabBar | BN.Tab.init(_:image:size:rendering:value:content:) | @MainActor init(_ title: String, image: UIImage, size: CGSize? = nil, rendering: BNImageRendering = .template, value: Value, @ViewBuilder content: () -> Content)
 BNUITabBar | BN.Tab.init(_:systemImage:value:) | @MainActor init(_ title: String, systemImage: String, value: Value)
 BNUITabBar | BN.Tab.init(_:systemImage:value:content:) | @MainActor init(_ title: String, systemImage: String, value: Value, @ViewBuilder content: () -> Content)
-BNUITabBar | BN.Tab.selectionAnimation(_:) | @MainActor func selectionAnimation(_ animation: BNTabBarSymbolAnimation) -> BN.Tab<Value, Content>
+BNUITabBar | BN.Tab.selectionAnimation(_:) | @MainActor func selectionAnimation(_ animation: some BNTabBarSymbolEffect) -> BN.Tab<Value, Content>
 BNUITabBar | BN.TabBar | @MainActor struct TabBar<Value> where Value : Hashable
 BNUITabBar | BN.TabBar.Coordinator | @MainActor final class Coordinator
 BNUITabBar | BN.TabBar.accessory(width:spacing:content:) | @MainActor func accessory(width: BNTabBarAccessory.Width = .matchBar, spacing: CGFloat = 8, @ViewBuilder content: () -> some View) -> BN.TabBar<Value>
@@ -802,7 +809,7 @@ BNUITabBar | BNTabBarItem.accessibilityLabel | @MainActor let accessibilityLabel
 BNUITabBar | BNTabBarItem.badge | @MainActor var badge: BNBadge?
 BNUITabBar | BNTabBarItem.icon | @MainActor let icon: BNTabBarItem.Icon
 BNUITabBar | BNTabBarItem.id | @MainActor let id: String
-BNUITabBar | BNTabBarItem.init(id:icon:title:badge:selectionAnimation:accessibilityLabel:) | @MainActor init(id: String, icon: BNTabBarItem.Icon, title: String, badge: BNBadge? = nil, selectionAnimation: BNTabBarSymbolAnimation = .bounce, accessibilityLabel: String? = nil)
+BNUITabBar | BNTabBarItem.init(id:icon:title:badge:selectionAnimation:accessibilityLabel:) | @MainActor init(id: String, icon: BNTabBarItem.Icon, title: String, badge: BNBadge? = nil, selectionAnimation: some BNTabBarSymbolEffect = .bounce, accessibilityLabel: String? = nil)
 BNUITabBar | BNTabBarItem.selectionAnimation | @MainActor let selectionAnimation: BNTabBarSymbolAnimation
 BNUITabBar | BNTabBarItem.title | @MainActor let title: String
 BNUITabBar | BNTabBarItemLayer | @MainActor enum BNTabBarItemLayer
@@ -913,13 +920,57 @@ BNUITabBar | BNTabBarSurface | @MainActor struct BNTabBarSurface
 BNUITabBar | BNTabBarSurface.contentContainer | @MainActor let contentContainer: UIView
 BNUITabBar | BNTabBarSurface.init(view:contentContainer:) | @MainActor init(view: UIView, contentContainer: UIView)
 BNUITabBar | BNTabBarSurface.view | @MainActor let view: UIView
-BNUITabBar | BNTabBarSymbolAnimation | nonisolated enum BNTabBarSymbolAnimation
-BNUITabBar | BNTabBarSymbolAnimation.bounce | case bounce
-BNUITabBar | BNTabBarSymbolAnimation.breathe | case breathe
-BNUITabBar | BNTabBarSymbolAnimation.none | case none
-BNUITabBar | BNTabBarSymbolAnimation.pulse | case pulse
-BNUITabBar | BNTabBarSymbolAnimation.rotate | case rotate
-BNUITabBar | BNTabBarSymbolAnimation.wiggle | case wiggle
+BNUITabBar | BNTabBarSymbolAnimation | nonisolated struct BNTabBarSymbolAnimation
+BNUITabBar | BNTabBarSymbolAnimation.Bounce | nonisolated struct Bounce
+BNUITabBar | BNTabBarSymbolAnimation.Bounce.byLayer | var byLayer: BNTabBarSymbolAnimation.Bounce { get }
+BNUITabBar | BNTabBarSymbolAnimation.Bounce.down | var down: BNTabBarSymbolAnimation.Bounce { get }
+BNUITabBar | BNTabBarSymbolAnimation.Bounce.symbolAnimation | var symbolAnimation: BNTabBarSymbolAnimation { get }
+BNUITabBar | BNTabBarSymbolAnimation.Bounce.up | var up: BNTabBarSymbolAnimation.Bounce { get }
+BNUITabBar | BNTabBarSymbolAnimation.Bounce.wholeSymbol | var wholeSymbol: BNTabBarSymbolAnimation.Bounce { get }
+BNUITabBar | BNTabBarSymbolAnimation.Breathe | nonisolated struct Breathe
+BNUITabBar | BNTabBarSymbolAnimation.Breathe.byLayer | var byLayer: BNTabBarSymbolAnimation.Breathe { get }
+BNUITabBar | BNTabBarSymbolAnimation.Breathe.plain | var plain: BNTabBarSymbolAnimation.Breathe { get }
+BNUITabBar | BNTabBarSymbolAnimation.Breathe.pulse | var pulse: BNTabBarSymbolAnimation.Breathe { get }
+BNUITabBar | BNTabBarSymbolAnimation.Breathe.symbolAnimation | var symbolAnimation: BNTabBarSymbolAnimation { get }
+BNUITabBar | BNTabBarSymbolAnimation.Breathe.wholeSymbol | var wholeSymbol: BNTabBarSymbolAnimation.Breathe { get }
+BNUITabBar | BNTabBarSymbolAnimation.DrawOn | nonisolated struct DrawOn
+BNUITabBar | BNTabBarSymbolAnimation.DrawOn.byLayer | var byLayer: BNTabBarSymbolAnimation.DrawOn { get }
+BNUITabBar | BNTabBarSymbolAnimation.DrawOn.individually | var individually: BNTabBarSymbolAnimation.DrawOn { get }
+BNUITabBar | BNTabBarSymbolAnimation.DrawOn.symbolAnimation | var symbolAnimation: BNTabBarSymbolAnimation { get }
+BNUITabBar | BNTabBarSymbolAnimation.DrawOn.wholeSymbol | var wholeSymbol: BNTabBarSymbolAnimation.DrawOn { get }
+BNUITabBar | BNTabBarSymbolAnimation.Pulse | nonisolated struct Pulse
+BNUITabBar | BNTabBarSymbolAnimation.Pulse.byLayer | var byLayer: BNTabBarSymbolAnimation.Pulse { get }
+BNUITabBar | BNTabBarSymbolAnimation.Pulse.symbolAnimation | var symbolAnimation: BNTabBarSymbolAnimation { get }
+BNUITabBar | BNTabBarSymbolAnimation.Pulse.wholeSymbol | var wholeSymbol: BNTabBarSymbolAnimation.Pulse { get }
+BNUITabBar | BNTabBarSymbolAnimation.Rotate | nonisolated struct Rotate
+BNUITabBar | BNTabBarSymbolAnimation.Rotate.byLayer | var byLayer: BNTabBarSymbolAnimation.Rotate { get }
+BNUITabBar | BNTabBarSymbolAnimation.Rotate.clockwise | var clockwise: BNTabBarSymbolAnimation.Rotate { get }
+BNUITabBar | BNTabBarSymbolAnimation.Rotate.counterClockwise | var counterClockwise: BNTabBarSymbolAnimation.Rotate { get }
+BNUITabBar | BNTabBarSymbolAnimation.Rotate.symbolAnimation | var symbolAnimation: BNTabBarSymbolAnimation { get }
+BNUITabBar | BNTabBarSymbolAnimation.Rotate.wholeSymbol | var wholeSymbol: BNTabBarSymbolAnimation.Rotate { get }
+BNUITabBar | BNTabBarSymbolAnimation.Wiggle | nonisolated struct Wiggle
+BNUITabBar | BNTabBarSymbolAnimation.Wiggle.backward | var backward: BNTabBarSymbolAnimation.Wiggle { get }
+BNUITabBar | BNTabBarSymbolAnimation.Wiggle.byLayer | var byLayer: BNTabBarSymbolAnimation.Wiggle { get }
+BNUITabBar | BNTabBarSymbolAnimation.Wiggle.clockwise | var clockwise: BNTabBarSymbolAnimation.Wiggle { get }
+BNUITabBar | BNTabBarSymbolAnimation.Wiggle.counterClockwise | var counterClockwise: BNTabBarSymbolAnimation.Wiggle { get }
+BNUITabBar | BNTabBarSymbolAnimation.Wiggle.custom(angle:) | func custom(angle: Double) -> BNTabBarSymbolAnimation.Wiggle
+BNUITabBar | BNTabBarSymbolAnimation.Wiggle.down | var down: BNTabBarSymbolAnimation.Wiggle { get }
+BNUITabBar | BNTabBarSymbolAnimation.Wiggle.forward | var forward: BNTabBarSymbolAnimation.Wiggle { get }
+BNUITabBar | BNTabBarSymbolAnimation.Wiggle.left | var left: BNTabBarSymbolAnimation.Wiggle { get }
+BNUITabBar | BNTabBarSymbolAnimation.Wiggle.right | var right: BNTabBarSymbolAnimation.Wiggle { get }
+BNUITabBar | BNTabBarSymbolAnimation.Wiggle.symbolAnimation | var symbolAnimation: BNTabBarSymbolAnimation { get }
+BNUITabBar | BNTabBarSymbolAnimation.Wiggle.up | var up: BNTabBarSymbolAnimation.Wiggle { get }
+BNUITabBar | BNTabBarSymbolAnimation.Wiggle.wholeSymbol | var wholeSymbol: BNTabBarSymbolAnimation.Wiggle { get }
+BNUITabBar | BNTabBarSymbolAnimation.symbolAnimation | var symbolAnimation: BNTabBarSymbolAnimation { get }
+BNUITabBar | BNTabBarSymbolEffect | nonisolated protocol BNTabBarSymbolEffect : Sendable
+BNUITabBar | BNTabBarSymbolEffect.bounce | static var bounce: BNTabBarSymbolAnimation.Bounce { get }
+BNUITabBar | BNTabBarSymbolEffect.breathe | static var breathe: BNTabBarSymbolAnimation.Breathe { get }
+BNUITabBar | BNTabBarSymbolEffect.drawOn | static var drawOn: BNTabBarSymbolAnimation.DrawOn { get }
+BNUITabBar | BNTabBarSymbolEffect.none | static var none: BNTabBarSymbolAnimation { get }
+BNUITabBar | BNTabBarSymbolEffect.pulse | static var pulse: BNTabBarSymbolAnimation.Pulse { get }
+BNUITabBar | BNTabBarSymbolEffect.rotate | static var rotate: BNTabBarSymbolAnimation.Rotate { get }
+BNUITabBar | BNTabBarSymbolEffect.symbolAnimation | var symbolAnimation: BNTabBarSymbolAnimation { get }
+BNUITabBar | BNTabBarSymbolEffect.wiggle | static var wiggle: BNTabBarSymbolAnimation.Wiggle { get }
 BNUITabBar | BNTabBarTheme | @MainActor struct BNTabBarTheme
 BNUITabBar | BNTabBarTheme.IconSpec | @MainActor struct IconSpec
 BNUITabBar | BNTabBarTheme.IconSpec.init(pointSize:weight:selectedWeight:titleSpacing:) | @MainActor init(pointSize: CGFloat = 20, weight: UIImage.SymbolWeight = .regular, selectedWeight: UIImage.SymbolWeight = .semibold, titleSpacing: CGFloat = 2)

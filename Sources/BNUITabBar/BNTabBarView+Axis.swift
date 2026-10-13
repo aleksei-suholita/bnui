@@ -68,12 +68,16 @@
     }
 
     public extension BNTabBarView {
-        /// A column's view runs the length of the strip, and most of it is empty above the capsule
-        /// — the part of the strip where the system's own buttons go. It takes a touch only where
-        /// it draws, so the touches meant for them reach them.
+        /// The bar's view is larger than what it draws: a row spans the screen beside its capsule,
+        /// a column runs the length of its strip, where the system's own buttons go. It takes a
+        /// touch only where one of its pieces would — the capsule, the action with the margin of
+        /// its touch target, the accessory — so the touches meant for what is under the empty
+        /// rest reach it.
         override func point(inside point: CGPoint, with event: UIEvent?) -> Bool {
-            guard axis == .vertical else { return super.point(inside: point, with: event) }
-            return subviews.contains { $0.frame.contains(point) }
+            subviews.contains { piece in
+                !piece.isHidden && piece.alpha > 0.01 && piece.isUserInteractionEnabled
+                    && piece.point(inside: convert(point, to: piece), with: event)
+            }
         }
     }
 #endif

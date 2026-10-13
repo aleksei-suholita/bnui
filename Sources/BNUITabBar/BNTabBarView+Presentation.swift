@@ -43,6 +43,10 @@
             let slots = visibleItems.count + (moreSlotIndex == nil ? 0 : 1)
             guard slots != baseItemViews.count else { return false }
             rebuildSlots()
+            // The new slots stand at their initial length and the lens on one of them; nothing
+            // else asks for the pass that solves their widths, so without this the lens stays on
+            // the unsolved slot.
+            setNeedsLayout()
             return true
         }
 

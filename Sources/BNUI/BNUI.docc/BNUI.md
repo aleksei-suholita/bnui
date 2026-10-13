@@ -96,6 +96,7 @@ the controls share, and the springs and curves each control's motion vocabulary 
 - ``BNShape``
 - ``BNBadge``
 - ``BNBadgeTheme``
+- ``BNBadgeView``
 - ``BNImageRendering``
 - ``BNSpring``
 - ``BNCurve``
@@ -176,6 +177,7 @@ is written down.
 ### Sections and Slots
 
 - ``BNTabBarItem``
+- ``BNTabBarSymbolEffect``
 - ``BNTabBarSymbolAnimation``
 - ``BNTabBarAction``
 - ``BNTabBarAccessory``
