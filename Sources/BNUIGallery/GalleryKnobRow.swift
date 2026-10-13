@@ -60,6 +60,8 @@
             ])
         }
 
+        nonisolated deinit {}
+
         @available(*, unavailable)
         required init?(coder _: NSCoder) {
             fatalError("init(coder:) is not supported")
@@ -198,6 +200,8 @@
             setTrailing(toggle)
         }
 
+        nonisolated deinit {}
+
         // periphery:ignore - UIKit requires the initializer; `unavailable` keeps anyone from calling it
         @available(*, unavailable)
         required init?(coder _: NSCoder) {
@@ -243,6 +247,8 @@
             field.widthAnchor.constraint(greaterThanOrEqualToConstant: 140).isActive = true
             setTrailing(field)
         }
+
+        nonisolated deinit {}
 
         // periphery:ignore - UIKit requires the initializer; `unavailable` keeps anyone from calling it
         @available(*, unavailable)
@@ -298,6 +304,8 @@
             ])
             titleLabel.isAccessibilityElement = false
         }
+
+        nonisolated deinit {}
 
         // periphery:ignore - UIKit requires the initializer; `unavailable` keeps anyone from calling it
         @available(*, unavailable)

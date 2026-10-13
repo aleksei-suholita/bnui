@@ -221,6 +221,8 @@ public nonisolated enum BNTransition: Equatable, Sendable {
             self.animator = animator
         }
 
+        nonisolated deinit {}
+
         /// Whether it is still under way: started, or waiting out its delay.
         public var isRunning: Bool {
             animator.state == .active

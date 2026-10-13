@@ -14,6 +14,7 @@
             static let axis = 0
             static let labels = 0
             static let alignment = 1
+            static let width = 0
             /// The bar's own default: glass on iOS 26, `.systemMaterial` below it.
             static let material = GalleryBlurThickness.defaultIndex(leading: 0)
             static let sections = 2
@@ -64,7 +65,7 @@
 
         var onGalleryEvent: ((String) -> Void)?
 
-        private var tabBar: BNTabBarView?
+        private(set) var tabBar: BNTabBarView?
         /// The bar along the bottom of the stage, and the bar in a strip down its trailing edge.
         private var rowConstraints: [NSLayoutConstraint] = []
         private var columnConstraints: [NSLayoutConstraint] = []
@@ -89,6 +90,8 @@
             super.init(frame: frame)
             build()
         }
+
+        nonisolated deinit {}
 
         @available(*, unavailable)
         required init?(coder _: NSCoder) {
@@ -157,6 +160,10 @@
             let alignments: [BNTabBarConfiguration.Alignment] = [.leading, .center, .trailing]
             guard alignments.indices.contains(index) else { return }
             tabBar?.configuration.alignment = alignments[index]
+        }
+
+        func setWidth(index: Int) {
+            tabBar?.configuration.width = index == 1 ? .fill : .hug
         }
 
         func setMaterial(index: Int) {
@@ -305,6 +312,7 @@
             setAxis(index: Defaults.axis)
             setLabelMode(index: Defaults.labels)
             setAlignment(index: Defaults.alignment)
+            setWidth(index: Defaults.width)
             setMaterial(index: Defaults.material)
             setHaptics(Defaults.haptics)
         }

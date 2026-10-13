@@ -12,6 +12,18 @@
             case trailing
         }
 
+        /// How wide the capsule is.
+        public enum Width {
+            /// As wide as its sections want, up to the room there is — the default. Beside an
+            /// action the capsule fills the room the action leaves from the theme's
+            /// `fillWidthFromSectionCount` sections on.
+            case hug
+            /// All the room there is, up to the theme's `maxBarWidth`, the sections sharing it
+            /// equally — as the system's tab bar on iOS 26. Alignment places the capsule only on a
+            /// bar wider than that limit.
+            case fill
+        }
+
         /// `selectedOnly` shows the label of the active section only; `never` is an icon-only bar.
         /// VoiceOver names the section in every mode.
         public enum LabelMode {
@@ -21,6 +33,7 @@
         }
 
         public var alignment: Alignment
+        public var width: Width
         public var labelMode: LabelMode
         /// The last slot once there are more sections than the capsule holds; it opens the rest
         /// in a system menu. Only its look is used — its id is never reported, since choosing in
@@ -29,10 +42,12 @@
 
         public init(
             alignment: Alignment = .center,
+            width: Width = .hug,
             labelMode: LabelMode = .always,
             moreItem: BNTabBarItem = BNTabBarItem(id: "BNTabBar.more", icon: .symbol("ellipsis"), title: "More"),
         ) {
             self.alignment = alignment
+            self.width = width
             self.labelMode = labelMode
             self.moreItem = moreItem
         }

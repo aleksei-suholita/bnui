@@ -174,16 +174,23 @@
         /// material, the lens and the action stay as they are: only which sections stand changed.
         func rebuildSlots() {
             guard let lens else { return }
-            // Off their containers first, so the stacks' edge constraints go with them instead of
-            // doubling up when `buildItems` pins them again.
-            baseStack.removeFromSuperview()
-            selectedStack.removeFromSuperview()
-            moreButton?.removeFromSuperview()
-            baseItemViews.removeAll()
-            selectedItemViews.removeAll()
+            // The width that moves a section is often a rotation's, and the new sections are made
+            // inside its animation: laid out there, they would grow out of nothing at the bar's
+            // leading edge. So they are made and take their first places at once, and move on
+            // from there with the rest. The lens is left out of it: it goes on from where it is.
+            UIView.performWithoutAnimation {
+                // Off their containers first, so the stacks' edge constraints go with them instead
+                // of doubling up when `buildItems` pins them again.
+                baseStack.removeFromSuperview()
+                selectedStack.removeFromSuperview()
+                moreButton?.removeFromSuperview()
+                baseItemViews.removeAll()
+                selectedItemViews.removeAll()
 
-            buildItems(in: lens)
-            buildMoreButton()
+                buildItems(in: lens)
+                buildMoreButton()
+                lens.layoutIfNeeded()
+            }
             applySelection(transition: .immediate)
             refreshLongPressActions()
         }
@@ -307,7 +314,7 @@
                 UIAction(
                     title: item.title,
                     subtitle: item.badge?.menuText(countLimit: limit),
-                    image: item.icon.menuImage(pointSize: activeTheme.icon.pointSize),
+                    image: item.icon.menuImage(for: activeTheme.icon),
                     state: item.id == selectedID ? .on : .off,
                 ) { [weak self] _ in
                     self?.commitOverflowSelection(item.id)

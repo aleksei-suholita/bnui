@@ -109,6 +109,8 @@
             inspector.setDetent(detent)
         }
 
+        nonisolated deinit {}
+
         /// Puts the drawer on its stop for the current screen. Stops move with a rotation, a new
         /// safe area or a text size, so this runs on every layout — and does nothing mid-drag or
         /// mid-settle, where the height is owned by the finger or the spring.

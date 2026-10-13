@@ -64,17 +64,23 @@
             /// Symbol weights, not font weights — these feed `UIImage.SymbolConfiguration`.
             public var weight: UIImage.SymbolWeight
             public var selectedWeight: UIImage.SymbolWeight
+            /// How large a symbol is drawn against its point size — the system's own tab bar on
+            /// iOS 26 draws `.large`. Every section's symbol takes it, a system one and the app's
+            /// own.
+            public var scale: UIImage.SymbolScale
             public var titleSpacing: CGFloat
 
             public init(
                 pointSize: CGFloat = 20,
                 weight: UIImage.SymbolWeight = .regular,
                 selectedWeight: UIImage.SymbolWeight = .semibold,
+                scale: UIImage.SymbolScale = .medium,
                 titleSpacing: CGFloat = 2,
             ) {
                 self.pointSize = pointSize
                 self.weight = weight
                 self.selectedWeight = selectedWeight
+                self.scale = scale
                 self.titleSpacing = titleSpacing
             }
 

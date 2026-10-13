@@ -69,6 +69,8 @@
             setBackdrop(.plain)
         }
 
+        nonisolated deinit {}
+
         @available(*, unavailable)
         required init?(coder _: NSCoder) {
             fatalError("init(coder:) is not supported")
@@ -309,6 +311,8 @@
             fit()
         }
 
+        nonisolated deinit {}
+
         // periphery:ignore - UIKit requires the initializer; `unavailable` keeps anyone from calling it
         @available(*, unavailable)
         required init?(coder _: NSCoder) {
@@ -332,6 +336,8 @@
 
     /// Scrolls only when its content is taller than it is.
     private final class GalleryFitScrollView: UIScrollView {
+        nonisolated deinit {}
+
         override func layoutSubviews() {
             super.layoutSubviews()
             let scrolls = contentSize.height > bounds.height + 0.5

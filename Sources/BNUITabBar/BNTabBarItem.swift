@@ -16,6 +16,10 @@
             /// asset does not grow the bar. A picture in its own colours (`.original`) is not
             /// touched by the state: the lens under it is what says the section is chosen. The
             /// action button leaves `size` aside and draws the image as a button draws an icon.
+            ///
+            /// A symbol image — the app's own symbol from its catalogue — is a symbol, not a
+            /// picture: it is drawn and laid out as `.symbol` is, at the theme's point size, weight
+            /// and scale, and `size` is left aside.
             case image(UIImage, size: CGSize? = nil, rendering: BNImageRendering = .template)
         }
 
@@ -77,8 +81,8 @@
 
         /// The image for a system menu, which draws a picture at whatever size it comes: an image
         /// is redrawn into its box first.
-        func menuImage(pointSize: CGFloat) -> UIImage? {
-            guard let image = drawnImage, let box = imageBox(pointSize: pointSize),
+        func menuImage(for icon: BNTabBarTheme.IconSpec) -> UIImage? {
+            guard let image = drawnImage, let box = imageBox(for: icon),
                   image.size.width > 0, image.size.height > 0 else { return drawnImage }
             let scale = min(box.width / image.size.width, box.height / image.size.height)
             let fitted = CGSize(width: image.size.width * scale, height: image.size.height * scale)
@@ -88,15 +92,18 @@
         }
 
         /// The box an image is fitted into: its own size, or the square of a round symbol drawn
-        /// at `pointSize` — the size an avatar takes beside its neighbours. `nil` for a symbol,
-        /// which the point size sizes itself.
-        func imageBox(pointSize: CGFloat) -> CGSize? {
-            guard case let .image(_, size, _) = self else { return nil }
+        /// at the theme's point size and scale — the size an avatar takes beside its neighbours.
+        /// `nil` for a symbol, the app's own passed as an image included, which the theme's
+        /// configuration sizes itself: a box would fit the symbol's alignment rectangle, which its
+        /// insets make smaller than the glyph, and draw it smaller than the system's beside it.
+        func imageBox(for icon: BNTabBarTheme.IconSpec) -> CGSize? {
+            guard case let .image(image, size, _) = self, !image.isSymbolImage else { return nil }
             if let size {
                 return size
             }
-            let circle = UIImage(systemName: "circle", withConfiguration: UIImage.SymbolConfiguration(pointSize: pointSize))
-            let side = circle.map { max($0.size.width, $0.size.height) } ?? pointSize
+            let configuration = UIImage.SymbolConfiguration(pointSize: icon.pointSize, weight: .regular, scale: icon.scale)
+            let circle = UIImage(systemName: "circle", withConfiguration: configuration)
+            let side = circle.map { max($0.size.width, $0.size.height) } ?? icon.pointSize
             return CGSize(width: side, height: side)
         }
     }

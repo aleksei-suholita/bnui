@@ -56,6 +56,13 @@ public nonisolated enum BNTabBarLayoutSolver {
         return count > slots ? slots - 1 : max(count, 0)
     }
 
+    /// Whether the sections share all the room they have rather than stopping at their preferred
+    /// width: always on a bar set to fill it, and beside an action from the theme's count of
+    /// sections on.
+    static func fillsAvailableWidth(fillsWidth: Bool, hasAction: Bool, sectionCount: Int, fillFromSectionCount: Int) -> Bool {
+        fillsWidth || (hasAction && sectionCount >= fillFromSectionCount)
+    }
+
     /// What one section's content needs across, as its renderer measures it. The label is
     /// reported apart from the icon because the solver shrinks and drops it on its own.
     public struct ItemMeasure: Equatable, Sendable {

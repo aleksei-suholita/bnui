@@ -32,7 +32,7 @@
         }
 
         /// Re-lays the slots when the width moved a section into More or out of it. Returns
-        /// whether it did — the widths are solved on the next pass, over the slots that now stand.
+        /// whether it did; the widths are solved next, over the slots that now stand.
         ///
         /// Asked on every pass rather than on each event that can change it: the bar's width, the
         /// action and the theme all end in a layout pass, and the answer is the same until one of
@@ -43,17 +43,13 @@
             let slots = visibleItems.count + (moreSlotIndex == nil ? 0 : 1)
             guard slots != baseItemViews.count else { return false }
             rebuildSlots()
-            // The new slots stand at their initial length and the lens on one of them; nothing
-            // else asks for the pass that solves their widths, so without this the lens stays on
-            // the unsolved slot.
-            setNeedsLayout()
             return true
         }
 
         /// Feeds measured content into the pure solver and applies the widths and label fit it
-        /// returns. Returns whether anything changed — the caller waits a pass before placing the
-        /// lens when it did, so the lens lands on resolved frames rather than stale ones, and the
-        /// items pick up the new label fit with it.
+        /// returns. Returns whether anything changed — the caller lays the bar out again before
+        /// placing the lens when it did, so the lens lands on resolved frames rather than stale
+        /// ones, and the items pick up the new label fit with it.
         ///
         /// A column has nothing to solve: its sections are squares from the start, and it shows no
         /// labels.
@@ -62,7 +58,12 @@
             guard axis == .horizontal, !baseItemViews.isEmpty, itemLengthConstraints.count == baseItemViews.count
             else { return false }
             let geometry = activeTheme.geometry
-            let fills = action != nil && baseItemViews.count >= geometry.fillWidthFromSectionCount
+            let fills = BNTabBarLayoutSolver.fillsAvailableWidth(
+                fillsWidth: configuration.width == .fill,
+                hasAction: action != nil,
+                sectionCount: baseItemViews.count,
+                fillFromSectionCount: geometry.fillWidthFromSectionCount,
+            )
             let solution = BNTabBarLayoutSolver.solve(BNTabBarLayoutSolver.Input(
                 availableWidth: sectionsAvailableLength,
                 items: baseItemViews.map { $0.measure() },
@@ -81,10 +82,6 @@
                 guard abs(constraint.constant - width) > 0.5 else { continue }
                 constraint.constant = width
                 changed = true
-            }
-            // Only ask for another pass when something actually moved, otherwise this loops forever.
-            if changed {
-                setNeedsLayout()
             }
             return changed
         }

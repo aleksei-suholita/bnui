@@ -63,7 +63,9 @@ bar.onEffectiveHeightChange = { height in scrollView.contentInset.bottom = heigh
 
 The bar is sized by its content and detached from the screen edges; the host gives it the
 width, and the sections' capsule aligns itself within that width with
-``BNTabBarConfiguration/Alignment``.
+``BNTabBarConfiguration/Alignment``. Set ``BNTabBarConfiguration/width`` to
+``BNTabBarConfiguration/Width/fill`` and the sections share the whole width instead, as the
+system's tab bar does on iOS 26, up to ``BNTabBarMetrics/maxBarWidth``.
 
 ## Sections and More
 

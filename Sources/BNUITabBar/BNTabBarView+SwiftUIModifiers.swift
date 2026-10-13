@@ -15,6 +15,7 @@
         var itemRenderer: (any BNTabBarItemRenderer)?
         var haptics: BNTabBarHaptics?
         var alignment: BNTabBarConfiguration.Alignment?
+        var width: BNTabBarConfiguration.Width?
         var labelMode: BNTabBarConfiguration.LabelMode?
         var moreItem: BNTabBarItem?
         var margin: CGFloat?
@@ -25,6 +26,7 @@
             let defaults = BNTabBarConfiguration()
             return BNTabBarConfiguration(
                 alignment: alignment ?? defaults.alignment,
+                width: width ?? defaults.width,
                 labelMode: labelMode ?? defaults.labelMode,
                 moreItem: moreItem ?? defaults.moreItem,
             )
@@ -87,6 +89,12 @@
         /// narrower than the bar.
         func bnTabBarAlignment(_ alignment: BNTabBarConfiguration.Alignment) -> some View {
             transformEnvironment(\.bnTabBar) { $0.alignment = alignment }
+        }
+
+        /// Whether the capsule of every ``BN/TabBar`` and ``BN/TabView`` beneath hugs its sections
+        /// or fills the bar.
+        func bnTabBarWidth(_ width: BNTabBarConfiguration.Width) -> some View {
+            transformEnvironment(\.bnTabBar) { $0.width = width }
         }
 
         /// When the sections of every ``BN/TabBar`` and ``BN/TabView`` beneath show their titles.
@@ -156,6 +164,12 @@
             adjusting { $0.alignment = alignment }
         }
 
+        /// Whether this bar's capsule hugs its sections or fills the bar, over any
+        /// `bnTabBarWidth` above it.
+        func bnTabBarWidth(_ width: BNTabBarConfiguration.Width) -> Self {
+            adjusting { $0.width = width }
+        }
+
         /// When this bar's sections show their titles, over any `bnTabBarLabelMode` above it.
         func bnTabBarLabelMode(_ mode: BNTabBarConfiguration.LabelMode) -> Self {
             adjusting { $0.labelMode = mode }
@@ -203,6 +217,12 @@
         /// Where this tab view's capsule sits, over any `bnTabBarAlignment` above it. Read once.
         func bnTabBarAlignment(_ alignment: BNTabBarConfiguration.Alignment) -> Self {
             adjusting { $0.alignment = alignment }
+        }
+
+        /// Whether this tab view's capsule hugs its sections or fills the bar, over any
+        /// `bnTabBarWidth` above it. Read once.
+        func bnTabBarWidth(_ width: BNTabBarConfiguration.Width) -> Self {
+            adjusting { $0.width = width }
         }
 
         /// When this tab view's sections show their titles, over any `bnTabBarLabelMode` above it.

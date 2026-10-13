@@ -102,6 +102,8 @@ public nonisolated struct BNHapticGate: Equatable, Sendable {
 
         public init() {}
 
+        nonisolated deinit {}
+
         /// Warms the generators so the tick lands with the frame that caused it.
         public func prepare(_ signal: BNHapticSignal) {
             guard isEnabled else { return }

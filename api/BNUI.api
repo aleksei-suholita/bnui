@@ -668,6 +668,7 @@ BNUITabBar | BN.TabBar.bnTabBarMaterial(_:) | @MainActor func bnTabBarMaterial(_
 BNUITabBar | BN.TabBar.bnTabBarMoreItem(_:image:) | @MainActor func bnTabBarMoreItem(_ title: String, image: UIImage) -> BN.TabBar<Value>
 BNUITabBar | BN.TabBar.bnTabBarMoreItem(_:systemImage:) | @MainActor func bnTabBarMoreItem(_ title: String, systemImage: String) -> BN.TabBar<Value>
 BNUITabBar | BN.TabBar.bnTabBarTheme(_:) | @MainActor func bnTabBarTheme(_ theme: BNTabBarTheme) -> BN.TabBar<Value>
+BNUITabBar | BN.TabBar.bnTabBarWidth(_:) | @MainActor func bnTabBarWidth(_ width: BNTabBarConfiguration.Width) -> BN.TabBar<Value>
 BNUITabBar | BN.TabBar.init(selection:presentation:content:) | @MainActor init(selection: Binding<Value>, presentation: BNTabBarPresentation = .expanded, @BN.TabBarContentBuilder<Value> content: () -> [BN.Tab<Value, Void>])
 BNUITabBar | BN.TabBar.makeCoordinator() | @MainActor func makeCoordinator() -> BN.TabBar<Value>.Coordinator
 BNUITabBar | BN.TabBar.makeUIView(context:) | @MainActor func makeUIView(context: BN.TabBar<Value>.Context) -> BNTabBarView
@@ -703,6 +704,7 @@ BNUITabBar | BN.TabView.bnTabBarMaterial(_:) | @MainActor func bnTabBarMaterial(
 BNUITabBar | BN.TabView.bnTabBarMoreItem(_:image:) | @MainActor func bnTabBarMoreItem(_ title: String, image: UIImage) -> BN.TabView<Value>
 BNUITabBar | BN.TabView.bnTabBarMoreItem(_:systemImage:) | @MainActor func bnTabBarMoreItem(_ title: String, systemImage: String) -> BN.TabView<Value>
 BNUITabBar | BN.TabView.bnTabBarTheme(_:) | @MainActor func bnTabBarTheme(_ theme: BNTabBarTheme) -> BN.TabView<Value>
+BNUITabBar | BN.TabView.bnTabBarWidth(_:) | @MainActor func bnTabBarWidth(_ width: BNTabBarConfiguration.Width) -> BN.TabView<Value>
 BNUITabBar | BN.TabView.bnTabViewContentGap(_:) | @MainActor func bnTabViewContentGap(_ gap: CGFloat) -> BN.TabView<Value>
 BNUITabBar | BN.TabView.bnTabViewMargin(_:) | @MainActor func bnTabViewMargin(_ margin: CGFloat) -> BN.TabView<Value>
 BNUITabBar | BN.TabView.body | @MainActor var body: some View { get }
@@ -755,10 +757,14 @@ BNUITabBar | BNTabBarConfiguration.LabelMode | @MainActor enum LabelMode
 BNUITabBar | BNTabBarConfiguration.LabelMode.always | case always
 BNUITabBar | BNTabBarConfiguration.LabelMode.never | case never
 BNUITabBar | BNTabBarConfiguration.LabelMode.selectedOnly | case selectedOnly
+BNUITabBar | BNTabBarConfiguration.Width | @MainActor enum Width
+BNUITabBar | BNTabBarConfiguration.Width.fill | case fill
+BNUITabBar | BNTabBarConfiguration.Width.hug | case hug
 BNUITabBar | BNTabBarConfiguration.alignment | @MainActor var alignment: BNTabBarConfiguration.Alignment
-BNUITabBar | BNTabBarConfiguration.init(alignment:labelMode:moreItem:) | @MainActor init(alignment: BNTabBarConfiguration.Alignment = .center, labelMode: BNTabBarConfiguration.LabelMode = .always, moreItem: BNTabBarItem = BNTabBarItem(id: "BNTabBar.more", icon: .symbol("ellipsis"), title: "More"))
+BNUITabBar | BNTabBarConfiguration.init(alignment:width:labelMode:moreItem:) | @MainActor init(alignment: BNTabBarConfiguration.Alignment = .center, width: BNTabBarConfiguration.Width = .hug, labelMode: BNTabBarConfiguration.LabelMode = .always, moreItem: BNTabBarItem = BNTabBarItem(id: "BNTabBar.more", icon: .symbol("ellipsis"), title: "More"))
 BNUITabBar | BNTabBarConfiguration.labelMode | @MainActor var labelMode: BNTabBarConfiguration.LabelMode
 BNUITabBar | BNTabBarConfiguration.moreItem | @MainActor var moreItem: BNTabBarItem
+BNUITabBar | BNTabBarConfiguration.width | @MainActor var width: BNTabBarConfiguration.Width
 BNUITabBar | BNTabBarContainerViewController | @MainActor final class BNTabBarContainerViewController
 BNUITabBar | BNTabBarContainerViewController.Tab | @MainActor struct Tab
 BNUITabBar | BNTabBarContainerViewController.Tab.init(item:viewController:) | @MainActor init(item: BNTabBarItem, viewController: UIViewController)
@@ -973,8 +979,9 @@ BNUITabBar | BNTabBarSymbolEffect.symbolAnimation | var symbolAnimation: BNTabBa
 BNUITabBar | BNTabBarSymbolEffect.wiggle | static var wiggle: BNTabBarSymbolAnimation.Wiggle { get }
 BNUITabBar | BNTabBarTheme | @MainActor struct BNTabBarTheme
 BNUITabBar | BNTabBarTheme.IconSpec | @MainActor struct IconSpec
-BNUITabBar | BNTabBarTheme.IconSpec.init(pointSize:weight:selectedWeight:titleSpacing:) | @MainActor init(pointSize: CGFloat = 20, weight: UIImage.SymbolWeight = .regular, selectedWeight: UIImage.SymbolWeight = .semibold, titleSpacing: CGFloat = 2)
+BNUITabBar | BNTabBarTheme.IconSpec.init(pointSize:weight:selectedWeight:scale:titleSpacing:) | @MainActor init(pointSize: CGFloat = 20, weight: UIImage.SymbolWeight = .regular, selectedWeight: UIImage.SymbolWeight = .semibold, scale: UIImage.SymbolScale = .medium, titleSpacing: CGFloat = 2)
 BNUITabBar | BNTabBarTheme.IconSpec.pointSize | @MainActor var pointSize: CGFloat
+BNUITabBar | BNTabBarTheme.IconSpec.scale | @MainActor var scale: UIImage.SymbolScale
 BNUITabBar | BNTabBarTheme.IconSpec.selectedWeight | @MainActor var selectedWeight: UIImage.SymbolWeight
 BNUITabBar | BNTabBarTheme.IconSpec.standard | @MainActor static let standard: BNTabBarTheme.IconSpec
 BNUITabBar | BNTabBarTheme.IconSpec.titleSpacing | @MainActor var titleSpacing: CGFloat
@@ -1037,5 +1044,6 @@ BNUITabBar | View.bnTabBarMaterial(_:) | @MainActor func bnTabBarMaterial(_ mate
 BNUITabBar | View.bnTabBarMoreItem(_:image:) | @MainActor func bnTabBarMoreItem(_ title: String, image: UIImage) -> some View 
 BNUITabBar | View.bnTabBarMoreItem(_:systemImage:) | @MainActor func bnTabBarMoreItem(_ title: String, systemImage: String) -> some View 
 BNUITabBar | View.bnTabBarTheme(_:) | @MainActor func bnTabBarTheme(_ theme: BNTabBarTheme) -> some View 
+BNUITabBar | View.bnTabBarWidth(_:) | @MainActor func bnTabBarWidth(_ width: BNTabBarConfiguration.Width) -> some View 
 BNUITabBar | View.bnTabViewContentGap(_:) | @MainActor func bnTabViewContentGap(_ gap: CGFloat) -> some View 
 BNUITabBar | View.bnTabViewMargin(_:) | @MainActor func bnTabViewMargin(_ margin: CGFloat) -> some View 

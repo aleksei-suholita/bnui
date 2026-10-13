@@ -64,6 +64,25 @@ if [[ ! -d "$UMBRELLA" ]]; then
 fi
 echo "$SHAPE" >"$SYMBOL_GRAPHS/.shape"
 
+# Every class of the kit declares `nonisolated deinit {}`. Under the default main-actor isolation an
+# implicit deinit is isolated: it runs through `swift_task_deinitOnExecutor`, and the iOS 18 runtime
+# frees a task-local value it does not own when such a deinit runs inside `TaskLocal.withValue` —
+# the app crashes. The compiled objects show an isolated deinit whatever the source looks like.
+OBJECTS="$BUILD/out/Intermediates.noindex/BNUI.build/Debug-iphonesimulator"
+OBJECT_FILES=$(find "$OBJECTS" -path '*Objects-normal*' -name '*.o' 2>/dev/null | LC_ALL=C sort)
+if [[ -z "$OBJECT_FILES" ]]; then
+    echo "✗ no objects under $OBJECTS — update the path in $0" >&2
+    exit 1
+fi
+ISOLATED=$(while read -r object; do
+    nm "$object" 2>/dev/null | grep -q deinitOnExecutor && basename "$object" .o
+done <<<"$OBJECT_FILES" || true)
+if [[ -n "$ISOLATED" ]]; then
+    echo "✗ a class here has no \`nonisolated deinit {}\`, so its deinit hops to the main actor:" >&2
+    echo "$ISOLATED" | sed 's/^/  /' >&2
+    exit 1
+fi
+
 echo "› BNUI + BNUIGallery (release)"
 # Release is how a TestFlight build is made, and the gallery is compiled there too.
 ios_build --target BNUIGallery -c release

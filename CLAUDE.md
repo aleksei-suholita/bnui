@@ -61,7 +61,7 @@ Before handing work over the agent runs one command, and red means not done:
 | `swiftformat --lint` | format |
 | `swiftlint lint --strict` | correctness rules, the kit's boundaries (`custom_rules`), public API without a doc comment (the backlog of 2026-09-28 is in `.swiftlint.baseline`) |
 | `swift test` | tests of the solvers and the shader; a warning is an error; coverage at least `COVERAGE_FLOOR` (90%) |
-| `typecheck-ios.sh` | the package for the iOS simulator (debug and release) and the gallery app; a warning is an error |
+| `typecheck-ios.sh` | the package for the iOS simulator (debug and release) and the gallery app; a warning is an error; a class whose deinit hops to the main actor |
 | Periphery | unused code; a false positive gets `// periphery:ignore - <why>` above the declaration |
 | api | a public type without the `BN` prefix, a declaration no product claims; rewrites `api/BNUI.api` |
 | DocC | a broken ``` ``Symbol`` ``` link, an undocumented parameter |
@@ -82,6 +82,10 @@ arm64-apple-ios16.0-simulator`, not `xcodebuild`.
 
 - Every public type carries the `BN` prefix. An app's name is not in the kit and cannot be.
 - MainActor by default, Swift 6 strict concurrency.
+- Every class declares `nonisolated deinit {}`. Under the default isolation an implicit deinit
+  is isolated: it runs through `swift_task_deinitOnExecutor`, which on iOS 18 crashes the app
+  when the object goes inside `TaskLocal.withValue`. `typecheck-ios.sh` fails on any object that
+  still has one.
 - Pure solvers (geometry, motion, metrics, the haptic merge rule) are kept apart from the
   views and covered by tests: they are what `swift test` checks.
 - No force unwraps outside tests; errors are never swallowed silently.

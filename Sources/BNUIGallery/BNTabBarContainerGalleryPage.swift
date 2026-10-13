@@ -30,6 +30,8 @@
 
     /// What the container is made from; every Present builds it afresh.
     final class BNTabBarContainerDemo {
+        nonisolated deinit {}
+
         enum VerticalBar: CaseIterable, Equatable {
             case automatic
             case disabled
@@ -85,6 +87,8 @@
             super.init(style: .insetGrouped)
             self.title = title
         }
+
+        nonisolated deinit {}
 
         // periphery:ignore - UIKit requires the initializer; `unavailable` keeps anyone from calling it
         @available(*, unavailable)

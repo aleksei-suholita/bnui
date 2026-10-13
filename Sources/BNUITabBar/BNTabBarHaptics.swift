@@ -35,6 +35,8 @@
             self.engine = engine
         }
 
+        nonisolated deinit {}
+
         /// Called on touch-down so the generators are warm by the time the finger moves.
         public func prepare() {
             guard isEnabled else { return }

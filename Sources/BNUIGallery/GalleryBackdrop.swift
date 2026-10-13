@@ -101,6 +101,8 @@
             }
         }
 
+        nonisolated deinit {}
+
         @available(*, unavailable)
         required init?(coder _: NSCoder) {
             fatalError("init(coder:) is not supported")

@@ -178,6 +178,8 @@
             }
         }
 
+        nonisolated deinit {}
+
         @available(*, unavailable)
         required init?(coder _: NSCoder) {
             fatalError("init(coder:) is not supported")
@@ -254,6 +256,8 @@
         /// the animation keeps pulling it — one frame forward, one back. So layout leaves the lens
         /// alone until the spring has settled.
         var selectionSettlesAt: CFTimeInterval = 0
+        /// A pass is already asked for the moment the spring lands.
+        var awaitsSettledLayout = false
 
         /// How long a tap still counts as part of the previous run.
         static let multiTapWindow: CFTimeInterval = 0.18
@@ -318,21 +322,15 @@
 
         override public func layoutSubviews() {
             super.layoutSubviews()
-            // Which sections stand comes first; re-laid slots are sized on the next pass.
-            if applySlotCount() {
-                return
+            // Which sections stand comes first, then their widths, then the lens on them — all in
+            // this pass: a pass asked for from inside this one does not always come, and a
+            // rotation brings only one. New lengths reach the lens and the capsule through the
+            // second `super` call, and the sections through the stacks `applySelection` lays out.
+            let slotsChanged = applySlotCount()
+            if applySolvedWidths() || slotsChanged {
+                super.layoutSubviews()
             }
-            // Changing a width constraint only takes effect on the *next* pass, so placing the
-            // lens now would put it on stale item frames — the drift seen after any rebuild.
-            // Defer to the pass where the widths have actually landed.
-            if applySolvedWidths() {
-                return
-            }
-            // The lens is left alone while the finger drives it, and while a spring is still
-            // carrying it — in both cases something else owns its position.
-            if !isDragging, CACurrentMediaTime() >= selectionSettlesAt {
-                applySelection(transition: .immediate)
-            }
+            placeLensAfterLayout()
             reportHeightIfNeeded()
         }
 

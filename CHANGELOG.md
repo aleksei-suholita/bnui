@@ -4,6 +4,41 @@ Every release of BNUI. The kit follows semantic versioning; while it is at 0.x, 
 may break the API and a patch release does not. Each entry lists what is breaking, what is added
 and what is fixed, by product.
 
+## 0.7.0 — 2026-10-13
+
+### Breaking
+
+- `BNUITabBar`: `BNTabBarTheme.IconSpec`'s initializer takes a `scale`, and
+  `BNTabBarConfiguration`'s a `width` — a call without them reads as before.
+
+### Added
+
+- `BNUITabBar`: `BNTabBarConfiguration.width` — `.hug`, as before, or `.fill`: the sections share
+  the whole width of the bar, with an action or without one, as the system's tab bar does on iOS 26,
+  up to the theme's `maxBarWidth`. SwiftUI faces take it through `bnTabBarWidth(_:)`.
+- `BNUITabBar`: `BNTabBarTheme.IconSpec.scale`, the symbols' `UIImage.SymbolScale` — `.medium`
+  unless set; the system's tab bar on iOS 26 draws `.large`. Every section's symbol takes it, the
+  app's own too, and so does the box an image is fitted into.
+
+### Fixed
+
+- All products: on iOS 18 an app crashed — "pointer being freed was not allocated" — when a kit
+  object went away inside `TaskLocal.withValue`, such as a button changing state there. Under the
+  kit's default main-actor isolation every class's deinit hopped to the main actor, and that
+  runtime frees a task-local value it does not own. Every class now declares a nonisolated deinit,
+  and the gate fails on one that does not.
+- `BNUITabBar`: the lens could stay where the sections used to be after the bar's width changed —
+  44 pt wide, or across two sections, when the sections were given before the bar had a width,
+  and where the portrait put it after a rotation. It read the sections' frames before their stack
+  had laid them out at their solved widths, and waited for a second layout pass a rotation does not
+  bring; the widths are now solved and the lens placed in one pass. A width that changed while a
+  selection spring was running is looked at again once it lands, too.
+- `BNUITabBar`: sections a rotation moves into More or out of it no longer grow out of nothing at
+  the bar's leading edge; they appear in place and move with the rotation.
+- `BNUITabBar`: an app's own symbol passed as an image is laid out as a system symbol is — at the
+  theme's point size, weight and scale. It was fitted into a box by its alignment rectangle and
+  drew about a fifth smaller than the system's beside it; `size` is left aside for a symbol image.
+
 ## 0.6.0 — 2026-10-13
 
 ### Breaking

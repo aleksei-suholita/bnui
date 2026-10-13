@@ -29,6 +29,8 @@
             delaysTouchesEnded = false
         }
 
+        nonisolated deinit {}
+
         /// Movement since touch-down. The lens is positioned from this delta, never from the
         /// absolute touch position.
         public func translation(in _: UIView?) -> CGPoint {

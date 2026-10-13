@@ -19,6 +19,12 @@
             ("Off", .none),
         ]
 
+        func setSymbolScale(index: Int) {
+            let scales: [UIImage.SymbolScale] = [.small, .medium, .large]
+            guard scales.indices.contains(index) else { return }
+            tabBar?.theme.icon.scale = scales[index]
+        }
+
         /// The last section's icon by the knob's index: its symbol, an 80 pt glyph that has to
         /// fit the box instead of growing the bar, a photo kept in its own colours, or its symbol
         /// passed as an image — the way an app's own symbol comes.

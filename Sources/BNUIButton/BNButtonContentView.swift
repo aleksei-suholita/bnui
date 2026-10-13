@@ -23,6 +23,8 @@
             build()
         }
 
+        nonisolated deinit {}
+
         @available(*, unavailable)
         required init?(coder _: NSCoder) {
             fatalError("init(coder:) is not supported")
@@ -206,6 +208,8 @@
     /// holding the full-size glyph, which is exactly what did not fit. The image follows the
     /// frame through `scaleAspectFit`.
     final class BNButtonIconView: UIImageView {
+        nonisolated deinit {}
+
         /// Drawn in the image's own colours rather than tinted by the state.
         var keepsOwnColours = false
 
@@ -241,6 +245,8 @@
                 wrapped.trailingAnchor.constraint(equalTo: trailingAnchor),
             ])
         }
+
+        nonisolated deinit {}
 
         @available(*, unavailable)
         required init?(coder _: NSCoder) {

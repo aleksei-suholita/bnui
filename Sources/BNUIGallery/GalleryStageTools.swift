@@ -43,6 +43,8 @@
             refresh()
         }
 
+        nonisolated deinit {}
+
         // periphery:ignore - UIKit requires the initializer; `unavailable` keeps anyone from calling it
         @available(*, unavailable)
         required init?(coder _: NSCoder) {
@@ -142,6 +144,8 @@
             }
         }
 
+        nonisolated deinit {}
+
         // periphery:ignore - UIKit requires the initializer; `unavailable` keeps anyone from calling it
         @available(*, unavailable)
         required init?(coder _: NSCoder) {
@@ -213,6 +217,8 @@
         init(_ onFrame: @escaping (CADisplayLink) -> Void) {
             self.onFrame = onFrame
         }
+
+        nonisolated deinit {}
 
         @objc func fire(_ link: CADisplayLink) {
             onFrame(link)

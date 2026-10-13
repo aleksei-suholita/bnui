@@ -307,6 +307,8 @@
             init(parent: BN.TabBar<Value>) {
                 self.parent = parent
             }
+
+            nonisolated deinit {}
         }
 
         struct Accessory {

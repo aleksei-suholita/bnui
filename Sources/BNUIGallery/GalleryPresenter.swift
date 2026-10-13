@@ -33,6 +33,8 @@
             carrier.onReset = { [weak self] in self?.dismissDemo() }
         }
 
+        nonisolated deinit {}
+
         // periphery:ignore - UIKit requires the initializer; `unavailable` keeps anyone from calling it
         @available(*, unavailable)
         required init?(coder _: NSCoder) {
@@ -83,6 +85,8 @@
     /// controller dismissing itself go through whichever controller UIKit picked to present from,
     /// and only a swipe reaches a presentation delegate.
     private final class GalleryDismissalWatch: UIView {
+        nonisolated deinit {}
+
         private var onGone: (() -> Void)?
 
         static func attach(to view: UIView, onGone: @escaping () -> Void) {

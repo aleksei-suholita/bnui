@@ -55,6 +55,8 @@
             refreshValue()
         }
 
+        nonisolated deinit {}
+
         // periphery:ignore - UIKit requires the initializer; `unavailable` keeps anyone from calling it
         @available(*, unavailable)
         required init?(coder _: NSCoder) {
@@ -199,6 +201,8 @@
             }
             refresh()
         }
+
+        nonisolated deinit {}
 
         // periphery:ignore - UIKit requires the initializer; `unavailable` keeps anyone from calling it
         @available(*, unavailable)

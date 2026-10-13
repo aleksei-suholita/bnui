@@ -114,6 +114,8 @@
             tabBar.action = action
         }
 
+        nonisolated deinit {}
+
         @available(*, unavailable)
         public required init?(coder _: NSCoder) {
             fatalError("init(coder:) is not supported")

@@ -29,6 +29,25 @@
 
         // MARK: - Selection
 
+        /// Puts the lens on the laid-out selection — unless the finger drives it, or a spring
+        /// still carries it: something else owns its position then. That spring was aimed at the
+        /// frames before this pass, and a pass that moved the sections under it would leave the
+        /// lens where they used to be; so the bar looks again once it lands.
+        func placeLensAfterLayout() {
+            guard !isDragging else { return }
+            let remaining = selectionSettlesAt - CACurrentMediaTime()
+            guard remaining > 0 else {
+                applySelection(transition: .immediate)
+                return
+            }
+            guard !awaitsSettledLayout else { return }
+            awaitsSettledLayout = true
+            DispatchQueue.main.asyncAfter(deadline: .now() + remaining) { [weak self] in
+                self?.awaitsSettledLayout = false
+                self?.setNeedsLayout()
+            }
+        }
+
         /// Moves the lens onto the selected section and refreshes both item copies.
         ///
         /// `velocity` is the finger's speed when a gesture just let go, zero for every other
@@ -36,10 +55,17 @@
         func applySelection(transition: BNTransition, velocity: CGFloat = 0) {
             guard baseItemViews.indices.contains(selectedIndex), let lens else { return }
             // The sections sit two stacks deep and are laid out after this view, so their frames
-            // are read once their own layout has run. A row waits a pass for its solved widths and
-            // gets that for free; a column has nothing to solve, and on its first pass read them
-            // where the stack had not yet moved them — the lens six points off its section.
+            // are read once their own layout has run. A column has nothing to solve, and on its
+            // first pass read them where the stack had not yet moved them — the lens six points
+            // off its section. A row's solved length is in the engine the moment it is set, but in
+            // a section's frame only once its stack lays out, and a stack is not asked to when only
+            // its sections' lengths change: the lens landed on the frames of the pass before. So
+            // the stacks are laid out here, after the lens has placed them.
             lens.layoutIfNeeded()
+            for stack in [baseStack, selectedStack] {
+                stack.setNeedsLayout()
+                stack.layoutIfNeeded()
+            }
             let itemFrame = frameInLens(of: baseItemViews[selectedIndex])
             // Nothing is laid out yet (a rebuild, or the host has not sized the bar). Placing the
             // lens on a zero-width frame is exactly the sliver seen on any change — wait for a real

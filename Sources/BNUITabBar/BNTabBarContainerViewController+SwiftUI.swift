@@ -171,6 +171,8 @@
             init(container: BN.TabView<Value>) {
                 self.container = container
             }
+
+            nonisolated deinit {}
         }
     }
 #endif

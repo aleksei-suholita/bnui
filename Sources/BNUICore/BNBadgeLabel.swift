@@ -6,6 +6,8 @@
     /// UILabel has no text insets, so the intrinsic size is widened by hand; a `width >= height`
     /// constraint on the badge then keeps a single digit circular rather than an oval.
     final class BNBadgeLabel: UILabel {
+        nonisolated deinit {}
+
         var horizontalInset: CGFloat = 5 {
             didSet { invalidateIntrinsicContentSize() }
         }

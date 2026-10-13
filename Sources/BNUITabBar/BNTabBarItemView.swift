@@ -35,6 +35,8 @@
             build()
         }
 
+        nonisolated deinit {}
+
         @available(*, unavailable)
         required init?(coder _: NSCoder) {
             fatalError("init(coder:) is not supported")
@@ -54,6 +56,7 @@
                 imageView.preferredSymbolConfiguration = UIImage.SymbolConfiguration(
                     pointSize: theme.icon.pointSize,
                     weight: state.isSelected ? theme.icon.selectedWeight : theme.icon.weight,
+                    scale: theme.icon.scale,
                 )
                 let font = state.isSelected ? theme.typography.selectedTitle : theme.typography.title
                 // Scaled here rather than left to the label, so every section in a crowded bar
@@ -96,7 +99,7 @@
                 ]).width)
             return BNTabBarLayoutSolver.ItemMeasure(
                 labelWidth: labelWidth,
-                iconWidth: item.icon.imageBox(pointSize: theme.icon.pointSize)?.width ?? theme.icon.pointSize,
+                iconWidth: item.icon.imageBox(for: theme.icon)?.width ?? theme.icon.pointSize,
                 inset: theme.geometry.itemSpacing,
             )
         }
@@ -107,7 +110,7 @@
             imageView.image = item.icon.drawnImage
             imageView.contentMode = .scaleAspectFit
             imageView.translatesAutoresizingMaskIntoConstraints = false
-            if item.icon.imageBox(pointSize: theme.icon.pointSize) != nil {
+            if item.icon.imageBox(for: theme.icon) != nil {
                 imageBoxConstraints = [
                     imageView.widthAnchor.constraint(equalToConstant: 0),
                     imageView.heightAnchor.constraint(equalToConstant: 0),
@@ -206,7 +209,7 @@
     private extension BNTabBarItemView {
         /// An image sits in its box, not at its own size: the box is what the bar is measured by.
         func fitImageBox() {
-            guard imageBoxConstraints.count == 2, let box = item.icon.imageBox(pointSize: theme.icon.pointSize) else { return }
+            guard imageBoxConstraints.count == 2, let box = item.icon.imageBox(for: theme.icon) else { return }
             imageBoxConstraints[0].constant = box.width
             imageBoxConstraints[1].constant = box.height
         }

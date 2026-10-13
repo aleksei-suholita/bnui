@@ -127,6 +127,8 @@ public nonisolated enum BNShape: Equatable, Sendable {
             accessibilityElementsHidden = true
         }
 
+        nonisolated deinit {}
+
         @available(*, unavailable)
         required init?(coder _: NSCoder) {
             fatalError("init(coder:) is not supported")

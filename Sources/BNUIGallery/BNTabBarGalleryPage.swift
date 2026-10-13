@@ -26,7 +26,8 @@
 
         func makeKnobs(for demoView: UIView) -> [BNGalleryKnob] {
             guard let demo = demoView as? BNTabBarDemoView else { return [] }
-            return composition(demo) + placement(demo) + appearance(demo) + fingerMotion(demo) + hostMotion(demo) + state(demo)
+            return composition(demo) + placement(demo) + appearance(demo) + icons(demo)
+                + fingerMotion(demo) + hostMotion(demo) + state(demo)
         }
 
         private func composition(_ demo: BNTabBarDemoView) -> [BNGalleryKnob] {
@@ -94,6 +95,16 @@
                     note: "A row's. Ignored while the action button is on — sections go leading, the action trailing — "
                         + "and in a column, which stands at the bottom of its strip.",
                 ),
+                BNGalleryKnob(
+                    label: "Width",
+                    control: .segmented(
+                        options: ["Hug", "Fill"],
+                        initial: BNTabBarDemoView.Defaults.width,
+                        onChange: { demo.setWidth(index: $0) },
+                    ),
+                    note: "Fill shares the whole row among the sections, as the system's bar on iOS 26, up to the theme's "
+                        + "maximum width. Hugging, the capsule fills beside an action only from three sections on.",
+                ),
             ]
         }
 
@@ -124,6 +135,12 @@
                     initial: false,
                     onChange: { demo.setTickingBadge($0) },
                 )),
+            ]
+        }
+
+        private func icons(_ demo: BNTabBarDemoView) -> [BNGalleryKnob] {
+            [
+                .header("Icons"),
                 BNGalleryKnob(
                     label: "Last icon",
                     control: .segmented(
@@ -133,6 +150,15 @@
                     ),
                     note: "An image fits a box the size of a round symbol, so a large asset does not grow the bar. "
                         + "A photo keeps its colours; only the lens says it is chosen.",
+                ),
+                BNGalleryKnob(
+                    label: "Symbol scale",
+                    control: .segmented(
+                        options: ["Small", "Medium", "Large"],
+                        initial: 1,
+                        onChange: { demo.setSymbolScale(index: $0) },
+                    ),
+                    note: "The system's tab bar on iOS 26 draws its symbols large. A symbol image takes the scale too.",
                 ),
                 BNGalleryKnob(
                     label: "Symbol effect",

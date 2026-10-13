@@ -73,6 +73,8 @@
             setNeedsLayout()
         }
 
+        nonisolated deinit {}
+
         @available(*, unavailable)
         required init?(coder _: NSCoder) {
             fatalError("init(coder:) is not supported")
@@ -302,6 +304,8 @@
     /// Lets a vertical drag that starts on a button, a switch or segments scroll the list — the
     /// default keeps it on any control — while a slider keeps its drag.
     private final class GalleryInspectorScrollView: UIScrollView {
+        nonisolated deinit {}
+
         override func touchesShouldCancel(in view: UIView) -> Bool {
             !(view is UISlider)
         }
@@ -321,6 +325,8 @@
             accessibilityLabel = "Controls panel"
             accessibilityTraits = .adjustable
         }
+
+        nonisolated deinit {}
 
         @available(*, unavailable)
         required init?(coder _: NSCoder) {
@@ -354,6 +360,8 @@
                 thickness,
             ])
         }
+
+        nonisolated deinit {}
 
         @available(*, unavailable)
         required init?(coder _: NSCoder) {

@@ -21,6 +21,29 @@
             ))
         }
 
+        override public func point(inside point: CGPoint, with _: UIEvent?) -> Bool {
+            hitRect.contains(point)
+        }
+
+        /// Keeps the button in the hit-test even when it is disabled.
+        ///
+        /// `UIControl` drops itself out of hit-testing once `isEnabled` is false, which takes its
+        /// gesture recognizers down with it — so a disabled button cannot hear the touch it is
+        /// supposed to refuse. Interactive subviews still get first refusal, because that is how
+        /// system glass lights up under the finger; everything else lands on the control.
+        override public func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
+            guard isUserInteractionEnabled, !isHidden, alpha > 0.01 else { return nil }
+            guard self.point(inside: point, with: event) else { return nil }
+
+            for subview in subviews.reversed() {
+                let converted = convert(point, to: subview)
+                if let hit = subview.hitTest(converted, with: event) {
+                    return hit
+                }
+            }
+            return self
+        }
+
         /// The area used while a finger is already down — slightly more forgiving than the hit area,
         /// so a tremor at the edge does not read as the button refusing the tap.
         private var trackingRect: CGRect {

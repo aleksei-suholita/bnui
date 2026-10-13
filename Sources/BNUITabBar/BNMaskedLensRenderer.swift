@@ -65,6 +65,8 @@
             baseMask.fillRule = .evenOdd
         }
 
+        nonisolated deinit {}
+
         @available(*, unavailable)
         required init?(coder _: NSCoder) {
             fatalError("init(coder:) is not supported")
@@ -233,6 +235,8 @@
         init(lens: BNMaskedLensView) {
             self.lens = lens
         }
+
+        nonisolated deinit {}
 
         @objc func tick(_ link: CADisplayLink) {
             guard let lens else {
