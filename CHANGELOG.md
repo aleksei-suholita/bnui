@@ -4,6 +4,21 @@ Every release of BNUI. The kit follows semantic versioning; while it is at 0.x, 
 may break the API and a patch release does not. Each entry lists what is breaking, what is added
 and what is fixed, by product.
 
+## 0.7.2 — 2026-10-14
+
+### Fixed
+
+- `BNUIButton`: a button with an SF Symbol is as tall as its size. A symbol's alignment rectangle
+  reaches past its image — 1.7 pt above and below a 20 pt bold `plus` — and the button grew by that
+  much: 48 pt laid out at 51.3, 40 at 43.3. The icon is now laid out by the image's own box, the one
+  the button measures. A tab bar's action is such a button too.
+- `BNUIGallery`: a page whose only knob is short opens its inspector. The stop that shows every
+  knob was dropped as too close to the collapsed one, which left the header alone and the knob out
+  of reach.
+- `BNUIGallery`: a demo that switches between hugging and filling — a knob that sets a button's
+  width — follows at once on a `.centred` page and in its states. The rule was read on the holder's
+  own layout pass, which a demo held edge to edge never brought; Auto Layout now decides it.
+
 ## 0.7.1 — 2026-10-13
 
 ### Fixed

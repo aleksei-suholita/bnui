@@ -282,33 +282,26 @@
 
     /// Holds a demo across its width or centred at its own, as the demo says: one with a width of
     /// its own — a button that hugs its title — is centred at it; one without — a button that
-    /// fills — spans. Asked again on every layout pass, so a demo that switches between the two
-    /// is laid out again.
+    /// fills — spans. Auto Layout decides, so a demo that switches between the two moves at once:
+    /// the edges pull just below a view's default hugging, which a width of its own outweighs.
     final class GalleryWidthFitView: UIView {
-        private let demo: UIView
-        private var across: [NSLayoutConstraint] = []
-        private var centred: [NSLayoutConstraint] = []
-        private var spans: Bool?
-
         init(demo: UIView) {
-            self.demo = demo
             super.init(frame: .zero)
             demo.translatesAutoresizingMaskIntoConstraints = false
             addSubview(demo)
+            let leading = demo.leadingAnchor.constraint(equalTo: leadingAnchor)
+            let trailing = demo.trailingAnchor.constraint(equalTo: trailingAnchor)
+            leading.priority = UILayoutPriority(UILayoutPriority.defaultLow.rawValue - 1)
+            trailing.priority = leading.priority
             NSLayoutConstraint.activate([
                 demo.topAnchor.constraint(equalTo: topAnchor),
                 demo.bottomAnchor.constraint(equalTo: bottomAnchor),
-            ])
-            across = [
-                demo.leadingAnchor.constraint(equalTo: leadingAnchor),
-                demo.trailingAnchor.constraint(equalTo: trailingAnchor),
-            ]
-            centred = [
                 demo.centerXAnchor.constraint(equalTo: centerXAnchor),
                 demo.leadingAnchor.constraint(greaterThanOrEqualTo: leadingAnchor),
                 demo.trailingAnchor.constraint(lessThanOrEqualTo: trailingAnchor),
-            ]
-            fit()
+                leading,
+                trailing,
+            ])
         }
 
         nonisolated deinit {}
@@ -317,20 +310,6 @@
         @available(*, unavailable)
         required init?(coder _: NSCoder) {
             fatalError("init(coder:) is not supported")
-        }
-
-        override func layoutSubviews() {
-            // Before the pass, so a demo that changed its mind is placed by the new rule in it.
-            fit()
-            super.layoutSubviews()
-        }
-
-        private func fit() {
-            let spans = demo.intrinsicContentSize.width == UIView.noIntrinsicMetric
-            guard spans != self.spans else { return }
-            self.spans = spans
-            NSLayoutConstraint.deactivate(spans ? centred : across)
-            NSLayoutConstraint.activate(spans ? across : centred)
         }
     }
 

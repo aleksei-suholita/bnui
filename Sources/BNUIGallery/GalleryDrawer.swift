@@ -139,7 +139,10 @@
             if medium - collapsed >= Self.minimumStopGap {
                 result.append(Stop(detent: .medium, height: medium))
             }
-            if let last = result.last, expanded - last.height >= Self.minimumStopGap {
+            // The stop that shows every knob stays close above the collapsed one too: without it a page of one
+            // short knob would be left with the header alone and its knob out of reach.
+            let expandedGap: CGFloat = result.count == 1 ? 0.5 : Self.minimumStopGap
+            if let last = result.last, expanded - last.height >= expandedGap {
                 result.append(Stop(detent: .expanded, height: expanded))
             }
             return result

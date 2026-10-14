@@ -225,6 +225,13 @@
             guard scale < 1, natural.width > 0, natural.height > 0 else { return natural }
             return CGSize(width: natural.width * scale, height: natural.height * scale)
         }
+
+        /// Laid out by the image's own box, the one the layout solver measures. A symbol's alignment
+        /// rect reaches past it for its baseline (1.7 pt above and below a 20 pt bold `plus`), and
+        /// Auto Layout fitting that rect into the solver's insets made the button that much taller.
+        override var alignmentRectInsets: UIEdgeInsets {
+            .zero
+        }
     }
 
     /// The view behind ``BNCustomViewContentRenderer``: a frame around whatever the host supplied.
