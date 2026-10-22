@@ -880,11 +880,17 @@ BNUITabBar | BNTabBarLensRenderer | @MainActor protocol BNTabBarLensRenderer
 BNUITabBar | BNTabBarLensRenderer.makeLens() | @MainActor func makeLens() -> any BNTabBarLens
 BNUITabBar | BNTabBarLensState | @MainActor struct BNTabBarLensState
 BNUITabBar | BNTabBarLensState.axis | @MainActor var axis: NSLayoutConstraint.Axis
-BNUITabBar | BNTabBarLensState.init(size:selection:isLifted:velocity:axis:) | @MainActor init(size: CGSize, selection: CGRect, isLifted: Bool = false, velocity: CGFloat = 0, axis: NSLayoutConstraint.Axis = .horizontal)
+BNUITabBar | BNTabBarLensState.init(size:selection:isLifted:velocity:axis:stretch:) | @MainActor init(size: CGSize, selection: CGRect, isLifted: Bool = false, velocity: CGFloat = 0, axis: NSLayoutConstraint.Axis = .horizontal, stretch: BNTabBarLensStretch = .none)
 BNUITabBar | BNTabBarLensState.isLifted | @MainActor var isLifted: Bool
 BNUITabBar | BNTabBarLensState.selection | @MainActor var selection: CGRect
 BNUITabBar | BNTabBarLensState.size | @MainActor var size: CGSize
+BNUITabBar | BNTabBarLensState.stretch | @MainActor var stretch: BNTabBarLensStretch
 BNUITabBar | BNTabBarLensState.velocity | @MainActor var velocity: CGFloat
+BNUITabBar | BNTabBarLensStretch | nonisolated struct BNTabBarLensStretch
+BNUITabBar | BNTabBarLensStretch.init(scale:offset:) | init(scale: CGVector = .zero, offset: CGVector = .zero)
+BNUITabBar | BNTabBarLensStretch.none | static let none: BNTabBarLensStretch
+BNUITabBar | BNTabBarLensStretch.offset | var offset: CGVector
+BNUITabBar | BNTabBarLensStretch.scale | var scale: CGVector
 BNUITabBar | BNTabBarMaterial | @MainActor protocol BNTabBarMaterial
 BNUITabBar | BNTabBarMaterial.allowsLensSwell | @MainActor var allowsLensSwell: Bool { get }
 BNUITabBar | BNTabBarMaterial.makeActionMaterial(prominent:) | @MainActor func makeActionMaterial(prominent: Bool) -> any BNButtonMaterial
@@ -896,10 +902,11 @@ BNUITabBar | BNTabBarMetrics.capsulePadding | var capsulePadding: CGFloat
 BNUITabBar | BNTabBarMetrics.effectiveItemHeight | var effectiveItemHeight: CGFloat { get }
 BNUITabBar | BNTabBarMetrics.effectiveMinimumItemWidth | var effectiveMinimumItemWidth: CGFloat { get }
 BNUITabBar | BNTabBarMetrics.fillWidthFromSectionCount | var fillWidthFromSectionCount: Int
-BNUITabBar | BNTabBarMetrics.init(itemHeight:preferredItemWidth:minimumItemWidth:itemSpacing:capsulePadding:lensInset:liftedScale:maxBarWidth:actionSide:actionSpacing:fillWidthFromSectionCount:minimumLabelScale:) | init(itemHeight: CGFloat = 52, preferredItemWidth: CGFloat = 80, minimumItemWidth: CGFloat = 60, itemSpacing: CGFloat = 4, capsulePadding: CGFloat = 6, lensInset: CGFloat = 4, liftedScale: CGFloat = 1.15, maxBarWidth: CGFloat = 500, actionSide: CGFloat = 56, actionSpacing: CGFloat = 8, fillWidthFromSectionCount: Int = 3, minimumLabelScale: CGFloat = 0.8)
+BNUITabBar | BNTabBarMetrics.init(itemHeight:preferredItemWidth:minimumItemWidth:itemSpacing:capsulePadding:lensInset:liftedScale:lensStretch:maxBarWidth:actionSide:actionSpacing:fillWidthFromSectionCount:minimumLabelScale:) | init(itemHeight: CGFloat = 52, preferredItemWidth: CGFloat = 80, minimumItemWidth: CGFloat = 60, itemSpacing: CGFloat = 4, capsulePadding: CGFloat = 6, lensInset: CGFloat = 4, liftedScale: CGFloat = 1.15, lensStretch: CGFloat = 1, maxBarWidth: CGFloat = 500, actionSide: CGFloat = 56, actionSpacing: CGFloat = 8, fillWidthFromSectionCount: Int = 3, minimumLabelScale: CGFloat = 0.8)
 BNUITabBar | BNTabBarMetrics.itemHeight | var itemHeight: CGFloat
 BNUITabBar | BNTabBarMetrics.itemSpacing | var itemSpacing: CGFloat
 BNUITabBar | BNTabBarMetrics.lensInset | var lensInset: CGFloat
+BNUITabBar | BNTabBarMetrics.lensStretch | var lensStretch: CGFloat
 BNUITabBar | BNTabBarMetrics.liftedScale | var liftedScale: CGFloat
 BNUITabBar | BNTabBarMetrics.maxBarWidth | var maxBarWidth: CGFloat
 BNUITabBar | BNTabBarMetrics.minimumItemWidth | var minimumItemWidth: CGFloat

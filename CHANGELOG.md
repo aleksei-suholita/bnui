@@ -4,6 +4,37 @@ Every release of BNUI. The kit follows semantic versioning; while it is at 0.x, 
 may break the API and a patch release does not. Each entry lists what is breaking, what is added
 and what is fixed, by product.
 
+## 0.8.0 — 2026-10-23
+
+### Breaking
+
+- `BNUITabBar`: `BNTabBarMetrics`'s initializer takes a `lensStretch`, and `BNTabBarLensState`'s a
+  `stretch` — a call without them reads as before.
+
+### Added
+
+- `BNUITabBar`: the lens stretches with the bar's glass. When a finger leaves the capsule — past
+  the bar's end or up off it — the system stretches the capsule's interactive glass toward the
+  finger; the marker lies on that glass and goes with it, stretched by as much and carried by its
+  place on it, on the glass' own spring, so the two keep step. The law and its numbers are the
+  system's for glass the capsule's size. `BNTabBarMetrics.lensStretch` sets how strongly — 1 is the
+  system's, 0 none; there is none over flat glass, blur or paint, or under Reduce Motion, and a
+  column stretches along itself only. A lens renderer receives it as `BNTabBarLensState.stretch`,
+  a `BNTabBarLensStretch`.
+- `BNUIGallery`: a Stretch knob on the tab bar page.
+
+### Fixed
+
+- `BNUITabBar`: no more "Unable to simultaneously satisfy constraints" when the sections change or
+  the bar narrows. A layout pass forced before the bar solves its widths met the sections at
+  widths meant for another room — five preferred widths in a bar too narrow for them, a wider
+  bar's widths after it narrowed — and UIKit broke a constraint to fit them. For that moment the
+  capsule now reaches past the bar instead; the sections keep their lengths, so the lens stays on
+  them.
+- `BNUITabBar`: turning the accessory on with More in the bar no longer crashes. The accessory's
+  entrance laid the bar out in the middle of a rebuild, and the slots were rebuilt into the lens
+  just taken off the bar, with More's button pinned to it — which UIKit traps.
+
 ## 0.7.2 — 2026-10-14
 
 ### Fixed

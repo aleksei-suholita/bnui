@@ -23,11 +23,12 @@
         var resolvedTheme: BNTabBarTheme {
             var resolved = theme
             resolved.motion = resolvedMotion
-            // Growing under the finger is decoration, so Reduce Motion drops it — unlike the
-            // marker travelling, which is the navigation itself and always happens. Dropped as
-            // well where the material declines it.
+            // Growing under the finger and stretching after it are decoration, so Reduce Motion
+            // drops them — unlike the marker travelling, which is the navigation itself and always
+            // happens. Dropped as well where the material declines them.
             if UIAccessibility.isReduceMotionEnabled || !resolvedMaterial.allowsLensSwell {
                 resolved.geometry.liftedScale = 1
+                resolved.geometry.lensStretch = 0
             }
             return resolved
         }

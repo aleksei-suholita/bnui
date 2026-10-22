@@ -232,18 +232,6 @@
         var barRowTopConstraint: NSLayoutConstraint?
         var animateAccessoryIn = false
 
-        /// The finger driving the lens. One value for the whole gesture, so its pieces cannot
-        /// outlive each other: everything goes when it ends.
-        struct Drag {
-            /// Where the lens started along the bar when the finger landed. The lens moves by the
-            /// finger's delta from here, so it never teleports under the touch.
-            var start: CGFloat
-            /// The section under the finger; a change plays the boundary tick.
-            var hoveredIndex: Int
-            /// The finger has travelled past `dragThreshold`, and the lens follows it from now on.
-            var isFollowing = false
-        }
-
         var drag: Drag?
 
         var isDragging: Bool {
@@ -341,6 +329,10 @@
             subviews.forEach { $0.removeFromSuperview() }
             baseItemViews.removeAll()
             selectedItemViews.removeAll()
+            // Off the bar now, and nothing is built into it again: a layout pass forced before the
+            // new one exists — the accessory's, on its way in — would otherwise rebuild the slots
+            // into it, and pin a More button in the bar to a lens outside it, which UIKit traps.
+            lens = nil
             // A drag in progress goes with the surface its recogniser sat on, and the selection
             // applied at the end of the rebuild puts the lens back.
             drag = nil

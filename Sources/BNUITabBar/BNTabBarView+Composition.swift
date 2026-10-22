@@ -116,24 +116,38 @@
             // Anchored to the row guide, not the view: an accessory changes where the row sits
             // without changing how the row is composed. Leading/trailing use the guide too — it
             // spans the full width — so RTL mirrors both schemes for free.
+            //
+            // The capsule's reach, though, is just below required, and the action's gap with it.
+            // The solver fits the sections to the room in `layoutSubviews`, and a pass forced
+            // before it — the selection's, a host's — meets them at lengths meant for another
+            // room: the preferred width in a bar too narrow for it, a wider bar's widths once it
+            // narrows. For that moment the capsule reaches past the bar instead. Required, these
+            // would make UIKit break a constraint and log it; and the sections must not be what
+            // gives way — squeezed, their frames are no place to put the lens.
+            let leading = capsule.leadingAnchor.constraint(greaterThanOrEqualTo: barRowGuide.leadingAnchor)
+            let trailing = capsule.trailingAnchor.constraint(lessThanOrEqualTo: barRowGuide.trailingAnchor)
+            leading.priority = .required - 1
+            trailing.priority = .required - 1
             var constraints = [
                 capsule.topAnchor.constraint(equalTo: barRowGuide.topAnchor),
                 capsule.bottomAnchor.constraint(equalTo: barRowGuide.bottomAnchor),
-                capsule.leadingAnchor.constraint(greaterThanOrEqualTo: barRowGuide.leadingAnchor),
-                capsule.trailingAnchor.constraint(lessThanOrEqualTo: barRowGuide.trailingAnchor),
+                leading,
+                trailing,
             ]
 
             // With an action the composition is fixed rather than chosen: sections lead, action
             // trails, gap between. Host alignment only applies when the bar is sections alone.
             if let actionView {
+                let gap = actionView.leadingAnchor.constraint(
+                    greaterThanOrEqualTo: capsule.trailingAnchor,
+                    constant: activeTheme.geometry.actionSpacing,
+                )
+                gap.priority = .required - 1
                 constraints += [
                     capsule.leadingAnchor.constraint(equalTo: barRowGuide.leadingAnchor),
                     actionView.centerYAnchor.constraint(equalTo: barRowGuide.centerYAnchor),
                     actionView.trailingAnchor.constraint(equalTo: barRowGuide.trailingAnchor),
-                    actionView.leadingAnchor.constraint(
-                        greaterThanOrEqualTo: capsule.trailingAnchor,
-                        constant: activeTheme.geometry.actionSpacing,
-                    ),
+                    gap,
                 ]
                 return constraints
             }

@@ -112,12 +112,22 @@
             let inset = theme.geometry.lensInset
             let rest = state.selection.insetBy(dx: inset, dy: inset)
             let scale = state.isLifted ? theme.geometry.liftedScale : 1
-            let size = state.axis == .vertical
+            let lifted = state.axis == .vertical
                 ? CGSize(width: rest.width, height: rest.height * scale)
                 : CGSize(width: rest.width * scale, height: rest.height * scale)
+            // The marker lies on the glass, and the glass pulled by a finger that has left it is
+            // scaled around its own centre and moved toward the finger: the marker goes with it,
+            // stretched by as much and carried by its place on the glass.
+            let stretch = state.stretch
+            let glassScale = CGSize(width: max(1 + stretch.scale.dx, 0), height: max(1 + stretch.scale.dy, 0))
+            let size = CGSize(width: lifted.width * glassScale.width, height: lifted.height * glassScale.height)
+            let centre = CGPoint(
+                x: state.size.width / 2 + (rest.midX - state.size.width / 2) * glassScale.width + stretch.offset.dx,
+                y: state.size.height / 2 + (rest.midY - state.size.height / 2) * glassScale.height + stretch.offset.dy,
+            )
             let target = CGRect(
-                x: rest.midX - size.width / 2,
-                y: rest.midY - size.height / 2,
+                x: centre.x - size.width / 2,
+                y: centre.y - size.height / 2,
                 width: size.width,
                 height: size.height,
             )

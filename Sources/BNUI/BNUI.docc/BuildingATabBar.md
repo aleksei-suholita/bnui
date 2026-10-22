@@ -112,8 +112,10 @@ choice.
 
 The marker is a flat tinted capsule and never turns to glass itself. Over glass that answers a
 touch it swells a little while a finger is on the bar, the way the system's glass lens does
-(``BNTabBarMetrics/liftedScale``); over blur or paint, and under Reduce Motion, it keeps its size
-and only travels. The lens is still a replaceable seam — ``BNMaskedLensRenderer``
+(``BNTabBarMetrics/liftedScale``), and when a finger pulls the glass — past the bar's end, off
+the capsule — the marker stretches with it, in step, by the system's law for glass the capsule's
+size (``BNTabBarMetrics/lensStretch``); over blur or paint, and under Reduce Motion, it keeps its
+size and only travels. The lens is still a replaceable seam — ``BNMaskedLensRenderer``
 is the default, and a renderer that reveals a second content layer colours the section
 exactly along the marker's edge, so the change flows through an icon during a drag.
 

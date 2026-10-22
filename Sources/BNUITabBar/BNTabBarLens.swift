@@ -25,6 +25,11 @@
         /// keeps for bars beside the content. The marker travels along it, and in a column swells
         /// along it only — across, the strip is too narrow to grow into.
         public var axis: NSLayoutConstraint.Axis
+        /// How the finger pulls the glass under the lens — this whole space — the way the system
+        /// pulls interactive glass of its size: past the bar's end or off the capsule, the glass
+        /// stretches toward the finger, and the marker on it goes with it.
+        /// ``BNTabBarLensStretch/none`` with no finger pulling.
+        public var stretch: BNTabBarLensStretch
 
         public init(
             size: CGSize,
@@ -32,12 +37,14 @@
             isLifted: Bool = false,
             velocity: CGFloat = 0,
             axis: NSLayoutConstraint.Axis = .horizontal,
+            stretch: BNTabBarLensStretch = .none,
         ) {
             self.size = size
             self.selection = selection
             self.isLifted = isLifted
             self.velocity = velocity
             self.axis = axis
+            self.stretch = stretch
         }
     }
 

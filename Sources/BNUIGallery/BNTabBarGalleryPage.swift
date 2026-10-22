@@ -204,6 +204,14 @@
                     note: "No growth over glass flat, blur or solid, or under Reduce Motion. "
                         + "In a column it grows along the column only.",
                 ),
+                BNGalleryKnob(
+                    label: "Stretch",
+                    control: .slider(min: 0, max: 3, initial: BNTabBarDemoView.Defaults.lensStretch, onChange: { demo.setLensStretch($0) }),
+                    unit: "×",
+                    note: "Drag past the bar's end or up off the capsule: the lens stretches with the glass under it. "
+                        + "1 keeps step with the capsule, as the system stretches it; 0 turns it off. "
+                        + "None where it does not grow; in a column, along the column only.",
+                ),
             ]
         }
 

@@ -187,6 +187,25 @@
 
         // MARK: - Drag
 
+        /// The finger driving the lens. One value for the whole gesture, so its pieces cannot
+        /// outlive each other: everything goes when it ends, the stretch's spring included.
+        struct Drag {
+            /// Where the lens started along the bar when the finger landed. The lens moves by the
+            /// finger's delta from here, so it never teleports under the touch.
+            var start: CGFloat
+            /// The section under the finger; a change plays the boundary tick.
+            var hoveredIndex: Int
+            /// Where the finger came down, in the lens' space — on the glass under the lens, which
+            /// measures its pull from here.
+            var touchStart: CGPoint
+            /// Where the finger has put the lens. Each frame of the stretch is drawn over it.
+            var selection: CGRect
+            /// The glass' stretch on its way to the finger's pull.
+            let stretch: BNTabBarStretchDriver
+            /// The finger has travelled past `dragThreshold`, and the lens follows it from now on.
+            var isFollowing = false
+        }
+
         /// On touch-down the marker moves to the section under the finger.
         ///
         /// To the *section*, not to the exact touch point: a tap would otherwise animate twice in
@@ -197,10 +216,17 @@
         ///
         /// Deliberately a spring, not a jump: the marker darts to the finger and swells on the
         /// way, rather than appearing under it.
-        func beginDrag(hovering index: Int) {
+        func beginDrag(hovering index: Int, at touch: CGPoint) {
             guard baseItemViews.indices.contains(index) else { return }
             let target = selectionRect(for: frameInLens(of: baseItemViews[index]))
-            drag = Drag(start: axis.start(of: target), hoveredIndex: index)
+            let stretch = BNTabBarStretchDriver { [weak self] stretch in self?.drawDrag(stretch: stretch) }
+            drag = Drag(
+                start: axis.start(of: target),
+                hoveredIndex: index,
+                touchStart: touch,
+                selection: target,
+                stretch: stretch,
+            )
             updateLens(selection: target, lifted: true, transition: .spring(activeTheme.motion.lift))
         }
 
@@ -208,8 +234,9 @@
         /// the difference between "grabbed and dragging" and a lens that snaps under the touch.
         ///
         /// No animation here on purpose: the finger *is* the animation, and its velocity carries
-        /// into the spring that takes over on release.
-        func updateDrag(translation: CGFloat, hovering index: Int) {
+        /// into the spring that takes over on release. Only the stretch has a spring of its own —
+        /// the glass under the lens', which the stretch keeps step with.
+        func updateDrag(translation: CGFloat, hovering index: Int, touch: CGPoint) {
             guard let drag, let lens, baseItemViews.indices.contains(index) else { return }
             // Length tracks the section under the finger; position tracks the delta. The clamp is
             // one-dimensional, so a column hands it lengths along its own axis.
@@ -224,12 +251,40 @@
                 length: axis.length(of: hovered),
                 thickness: axis.thickness(of: hovered),
             )
-            updateLens(selection: selection, lifted: true, transition: .immediate)
+            self.drag?.selection = selection
+            drag.stretch.pull(
+                to: glassPull(touch: touch, from: drag.touchStart, in: lens.bounds.size),
+                on: .glassTracking(for: lens.bounds.size),
+            )
+            updateLens(selection: selection, lifted: true, stretch: drag.stretch.stretch, transition: .immediate)
             // Fed every frame so `selectionProgress` tracks the lens instead of jumping with it.
             refreshItemStates(transition: .immediate, lensFrame: selection)
         }
 
-        private func updateLens(selection: CGRect, lifted: Bool, velocity: CGFloat = 0, transition: BNTransition) {
+        /// How the finger pulls the glass under the lens — the capsule, the lens' whole space — the
+        /// way the system pulls interactive glass of that size, from where the finger came down. A
+        /// column takes the finger along itself only: across, its strip is too narrow to stretch
+        /// into.
+        private func glassPull(touch: CGPoint, from start: CGPoint, in size: CGSize) -> BNTabBarLensStretch {
+            let strength = activeTheme.geometry.lensStretch
+            guard strength > 0 else { return .none }
+            let finger = axis == .vertical ? CGPoint(x: start.x, y: touch.y) : touch
+            return BNTabBarLensStretch.glass(touch: finger, start: start, size: size).scaled(by: strength)
+        }
+
+        /// One frame of the stretch on its spring, drawn over where the finger has put the lens.
+        private func drawDrag(stretch: BNTabBarLensStretch) {
+            guard let drag else { return }
+            updateLens(selection: drag.selection, lifted: true, stretch: stretch, transition: .immediate)
+        }
+
+        private func updateLens(
+            selection: CGRect,
+            lifted: Bool,
+            velocity: CGFloat = 0,
+            stretch: BNTabBarLensStretch = .none,
+            transition: BNTransition,
+        ) {
             guard let lens else { return }
             lens.update(
                 state: BNTabBarLensState(
@@ -238,6 +293,7 @@
                     isLifted: lifted,
                     velocity: velocity,
                     axis: axis,
+                    stretch: stretch,
                 ),
                 theme: activeTheme,
                 transition: transition,
