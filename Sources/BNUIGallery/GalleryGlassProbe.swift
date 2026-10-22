@@ -65,10 +65,6 @@
         let base: any BNTabBarMaterial
         let onChange: (String) -> Void
 
-        var allowsLensSwell: Bool {
-            base.allowsLensSwell
-        }
-
         func makeSurface() -> BNTabBarSurface {
             let surface = base.makeSurface()
             let probe = GalleryGlassProbe()

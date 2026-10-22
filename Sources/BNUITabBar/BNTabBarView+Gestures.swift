@@ -83,10 +83,8 @@
             // Which section is meant is decided by the finger's absolute position, while where the
             // lens sits is decided by how far the finger travelled since it was pulled under the
             // touch. Both are asked in the lens' coordinate space, where the items live, and along
-            // the bar — across a row, down a column. The finger's place itself is what pulls the
-            // lens once it cannot follow.
-            let touch = gesture.location(in: lens)
-            let index = nearestIndex(to: touch)
+            // the bar — across a row, down a column.
+            let index = nearestIndex(to: gesture.location(in: lens))
 
             switch gesture.state {
             case .began:
@@ -94,13 +92,9 @@
                 if index != selectedIndex {
                     haptics.pressedDown()
                 }
-                beginDrag(hovering: index, at: touch)
+                beginDrag(hovering: index)
             case .changed:
-                continueDrag(
-                    hovering: index,
-                    translation: axis.position(of: gesture.translation(in: lens)),
-                    touch: touch,
-                )
+                continueDrag(hovering: index, translation: axis.position(of: gesture.translation(in: lens)))
             case .ended:
                 guard isDragging else { return }
                 drag = nil
@@ -119,7 +113,7 @@
 
         /// The finger moved: past the drag threshold the lens follows it, and crossing into
         /// another section plays the boundary tick.
-        private func continueDrag(hovering index: Int, translation: CGFloat, touch: CGPoint) {
+        private func continueDrag(hovering index: Int, translation: CGFloat) {
             // A drag dropped mid-gesture stays dropped.
             guard let hovered = drag?.hoveredIndex else { return }
             // A touch shifts by a point or so as it lands — a finger settling, a mouse in the
@@ -135,7 +129,7 @@
             }
             // Follows for the whole gesture, outside the capsule included; magnetising to a
             // section happens on release only.
-            updateDrag(translation: translation, hovering: index, touch: touch)
+            updateDrag(translation: translation, hovering: index)
         }
 
         /// Lets go of the drag without choosing anything: the lens goes back to the section that

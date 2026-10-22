@@ -8,20 +8,16 @@ and what is fixed, by product.
 
 ### Breaking
 
-- `BNUITabBar`: `BNTabBarMetrics`'s initializer takes a `lensStretch`, and `BNTabBarLensState`'s a
-  `stretch` — a call without them reads as before.
+- `BNUITabBar`: the lens no longer grows under the finger by itself — the glass lifts it now — so
+  `BNTabBarMetrics.liftedScale` and `BNTabBarMaterial.allowsLensSwell` are gone. A theme drops the
+  `liftedScale:` argument; a material of the host's own drops `allowsLensSwell`.
 
 ### Added
 
-- `BNUITabBar`: the lens stretches with the bar's glass. When a finger leaves the capsule — past
-  the bar's end or up off it — the system stretches the capsule's interactive glass toward the
-  finger; the marker lies on that glass and goes with it, stretched by as much and carried by its
-  place on it, on the glass' own spring, so the two keep step. The law and its numbers are the
-  system's for glass the capsule's size. `BNTabBarMetrics.lensStretch` sets how strongly — 1 is the
-  system's, 0 none; there is none over flat glass, blur or paint, or under Reduce Motion, and a
-  column stretches along itself only. A lens renderer receives it as `BNTabBarLensState.stretch`,
-  a `BNTabBarLensStretch`.
-- `BNUIGallery`: a Stretch knob on the tab bar page.
+- `BNUITabBar`: the sections and the lens lie inside the bar's material. On system glass they move
+  with the glass itself, by its own response: it lifts them when a finger lands, and when the
+  finger pulls it past the bar's end or up off the capsule, they stretch with it, in step. A lens
+  renderer draws no glass of its own — inside glass it would be glass on glass.
 
 ### Fixed
 

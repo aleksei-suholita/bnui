@@ -711,12 +711,10 @@ BNUITabBar | BN.TabView.body | @MainActor var body: some View { get }
 BNUITabBar | BN.TabView.init(selection:content:) | @MainActor init(selection: Binding<Value>, @BN.TabContentBuilder<Value> content: () -> [BN.Tab<Value, AnyView>])
 BNUITabBar | BN.TabView.onMultiTap(_:) | @MainActor func onMultiTap(_ handler: @escaping (Value, Int) -> Void) -> BN.TabView<Value>
 BNUITabBar | BNBlurTabBarMaterial | @MainActor struct BNBlurTabBarMaterial
-BNUITabBar | BNBlurTabBarMaterial.allowsLensSwell | @MainActor var allowsLensSwell: Bool { get }
 BNUITabBar | BNBlurTabBarMaterial.init(style:tintColor:) | @MainActor init(style: UIBlurEffect.Style = .systemMaterial, tintColor: UIColor? = nil)
 BNUITabBar | BNBlurTabBarMaterial.makeActionMaterial(prominent:) | @MainActor func makeActionMaterial(prominent: Bool) -> any BNButtonMaterial
 BNUITabBar | BNBlurTabBarMaterial.makeSurface() | @MainActor func makeSurface() -> BNTabBarSurface
 BNUITabBar | BNGlassTabBarMaterial | @MainActor struct BNGlassTabBarMaterial
-BNUITabBar | BNGlassTabBarMaterial.allowsLensSwell | @MainActor var allowsLensSwell: Bool { get }
 BNUITabBar | BNGlassTabBarMaterial.init(style:isInteractive:tintColor:) | @MainActor init(style: UIGlassEffect.Style = .regular, isInteractive: Bool = true, tintColor: UIColor? = nil)
 BNUITabBar | BNGlassTabBarMaterial.makeActionMaterial(prominent:) | @MainActor func makeActionMaterial(prominent: Bool) -> any BNButtonMaterial
 BNUITabBar | BNGlassTabBarMaterial.makeSurface() | @MainActor func makeSurface() -> BNTabBarSurface
@@ -724,7 +722,6 @@ BNUITabBar | BNMaskedLensRenderer | @MainActor struct BNMaskedLensRenderer
 BNUITabBar | BNMaskedLensRenderer.init() | @MainActor init()
 BNUITabBar | BNMaskedLensRenderer.makeLens() | @MainActor func makeLens() -> any BNTabBarLens
 BNUITabBar | BNSolidTabBarMaterial | @MainActor struct BNSolidTabBarMaterial
-BNUITabBar | BNSolidTabBarMaterial.allowsLensSwell | @MainActor var allowsLensSwell: Bool { get }
 BNUITabBar | BNSolidTabBarMaterial.init(color:) | @MainActor init(color: UIColor = .secondarySystemBackground)
 BNUITabBar | BNSolidTabBarMaterial.makeActionMaterial(prominent:) | @MainActor func makeActionMaterial(prominent: Bool) -> any BNButtonMaterial
 BNUITabBar | BNSolidTabBarMaterial.makeSurface() | @MainActor func makeSurface() -> BNTabBarSurface
@@ -880,19 +877,12 @@ BNUITabBar | BNTabBarLensRenderer | @MainActor protocol BNTabBarLensRenderer
 BNUITabBar | BNTabBarLensRenderer.makeLens() | @MainActor func makeLens() -> any BNTabBarLens
 BNUITabBar | BNTabBarLensState | @MainActor struct BNTabBarLensState
 BNUITabBar | BNTabBarLensState.axis | @MainActor var axis: NSLayoutConstraint.Axis
-BNUITabBar | BNTabBarLensState.init(size:selection:isLifted:velocity:axis:stretch:) | @MainActor init(size: CGSize, selection: CGRect, isLifted: Bool = false, velocity: CGFloat = 0, axis: NSLayoutConstraint.Axis = .horizontal, stretch: BNTabBarLensStretch = .none)
+BNUITabBar | BNTabBarLensState.init(size:selection:isLifted:velocity:axis:) | @MainActor init(size: CGSize, selection: CGRect, isLifted: Bool = false, velocity: CGFloat = 0, axis: NSLayoutConstraint.Axis = .horizontal)
 BNUITabBar | BNTabBarLensState.isLifted | @MainActor var isLifted: Bool
 BNUITabBar | BNTabBarLensState.selection | @MainActor var selection: CGRect
 BNUITabBar | BNTabBarLensState.size | @MainActor var size: CGSize
-BNUITabBar | BNTabBarLensState.stretch | @MainActor var stretch: BNTabBarLensStretch
 BNUITabBar | BNTabBarLensState.velocity | @MainActor var velocity: CGFloat
-BNUITabBar | BNTabBarLensStretch | nonisolated struct BNTabBarLensStretch
-BNUITabBar | BNTabBarLensStretch.init(scale:offset:) | init(scale: CGVector = .zero, offset: CGVector = .zero)
-BNUITabBar | BNTabBarLensStretch.none | static let none: BNTabBarLensStretch
-BNUITabBar | BNTabBarLensStretch.offset | var offset: CGVector
-BNUITabBar | BNTabBarLensStretch.scale | var scale: CGVector
 BNUITabBar | BNTabBarMaterial | @MainActor protocol BNTabBarMaterial
-BNUITabBar | BNTabBarMaterial.allowsLensSwell | @MainActor var allowsLensSwell: Bool { get }
 BNUITabBar | BNTabBarMaterial.makeActionMaterial(prominent:) | @MainActor func makeActionMaterial(prominent: Bool) -> any BNButtonMaterial
 BNUITabBar | BNTabBarMaterial.makeSurface() | @MainActor func makeSurface() -> BNTabBarSurface
 BNUITabBar | BNTabBarMetrics | nonisolated struct BNTabBarMetrics
@@ -902,12 +892,10 @@ BNUITabBar | BNTabBarMetrics.capsulePadding | var capsulePadding: CGFloat
 BNUITabBar | BNTabBarMetrics.effectiveItemHeight | var effectiveItemHeight: CGFloat { get }
 BNUITabBar | BNTabBarMetrics.effectiveMinimumItemWidth | var effectiveMinimumItemWidth: CGFloat { get }
 BNUITabBar | BNTabBarMetrics.fillWidthFromSectionCount | var fillWidthFromSectionCount: Int
-BNUITabBar | BNTabBarMetrics.init(itemHeight:preferredItemWidth:minimumItemWidth:itemSpacing:capsulePadding:lensInset:liftedScale:lensStretch:maxBarWidth:actionSide:actionSpacing:fillWidthFromSectionCount:minimumLabelScale:) | init(itemHeight: CGFloat = 52, preferredItemWidth: CGFloat = 80, minimumItemWidth: CGFloat = 60, itemSpacing: CGFloat = 4, capsulePadding: CGFloat = 6, lensInset: CGFloat = 4, liftedScale: CGFloat = 1.15, lensStretch: CGFloat = 1, maxBarWidth: CGFloat = 500, actionSide: CGFloat = 56, actionSpacing: CGFloat = 8, fillWidthFromSectionCount: Int = 3, minimumLabelScale: CGFloat = 0.8)
+BNUITabBar | BNTabBarMetrics.init(itemHeight:preferredItemWidth:minimumItemWidth:itemSpacing:capsulePadding:lensInset:maxBarWidth:actionSide:actionSpacing:fillWidthFromSectionCount:minimumLabelScale:) | init(itemHeight: CGFloat = 52, preferredItemWidth: CGFloat = 80, minimumItemWidth: CGFloat = 60, itemSpacing: CGFloat = 4, capsulePadding: CGFloat = 6, lensInset: CGFloat = 4, maxBarWidth: CGFloat = 500, actionSide: CGFloat = 56, actionSpacing: CGFloat = 8, fillWidthFromSectionCount: Int = 3, minimumLabelScale: CGFloat = 0.8)
 BNUITabBar | BNTabBarMetrics.itemHeight | var itemHeight: CGFloat
 BNUITabBar | BNTabBarMetrics.itemSpacing | var itemSpacing: CGFloat
 BNUITabBar | BNTabBarMetrics.lensInset | var lensInset: CGFloat
-BNUITabBar | BNTabBarMetrics.lensStretch | var lensStretch: CGFloat
-BNUITabBar | BNTabBarMetrics.liftedScale | var liftedScale: CGFloat
 BNUITabBar | BNTabBarMetrics.maxBarWidth | var maxBarWidth: CGFloat
 BNUITabBar | BNTabBarMetrics.minimumItemWidth | var minimumItemWidth: CGFloat
 BNUITabBar | BNTabBarMetrics.minimumLabelScale | var minimumLabelScale: CGFloat

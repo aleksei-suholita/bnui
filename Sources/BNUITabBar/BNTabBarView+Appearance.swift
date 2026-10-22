@@ -8,10 +8,10 @@
         ///
         /// System glass tracks the brightness of what lies beneath it and flips between light and
         /// dark to keep its content legible, handing the flip to the views inside it as an ordinary
-        /// trait change — verified on device with the gallery's glass probe. The sections are not
-        /// inside the glass: the lens draws them beside it, so the flip would pass them by and leave
-        /// dark icons on glass that has gone dark. A probe inside the material reads what the
-        /// material hands its content, and the lens is told the same.
+        /// trait change — verified on device with the gallery's glass probe. The lens lies inside the
+        /// glass, but holds its own appearance, so the flip reaches the sections as a cross-fade
+        /// rather than a snap: a probe beside it reads what the material hands its content, and the
+        /// lens follows.
         ///
         /// A material that does not adapt — the solid one — hands back the bar's own appearance, so
         /// following it changes nothing there.

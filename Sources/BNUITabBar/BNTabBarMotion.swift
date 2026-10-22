@@ -9,7 +9,7 @@ import Foundation
 public nonisolated struct BNTabBarMotion: Equatable, Sendable {
     /// Commit: the lens travels to the chosen section.
     public var selection: BNSpring
-    /// The finger landed on the bar: the lens darts to the section under it and swells.
+    /// The finger landed on the bar: the lens darts to the section under it.
     public var lift: BNSpring
     /// The finger left the bar: the lens settles onto the section it lands on.
     ///

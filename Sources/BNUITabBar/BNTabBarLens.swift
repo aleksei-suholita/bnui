@@ -11,7 +11,7 @@
         public var size: CGSize
         /// Where the marker should be, in that same space.
         public var selection: CGRect
-        /// A finger is on the bar. The marker grows while it is.
+        /// A finger is on the bar.
         public var isLifted: Bool
         /// Speed along the bar the marker should start with, in points per second of the lens'
         /// space — across a row, down a column.
@@ -22,14 +22,8 @@
         /// to travel, which is the unit its spring actually wants.
         public var velocity: CGFloat
         /// Which way the bar runs: a row along the bottom, or a column in the strip iPhone Duo
-        /// keeps for bars beside the content. The marker travels along it, and in a column swells
-        /// along it only — across, the strip is too narrow to grow into.
+        /// keeps for bars beside the content. The marker travels along it.
         public var axis: NSLayoutConstraint.Axis
-        /// How the finger pulls the glass under the lens — this whole space — the way the system
-        /// pulls interactive glass of its size: past the bar's end or off the capsule, the glass
-        /// stretches toward the finger, and the marker on it goes with it.
-        /// ``BNTabBarLensStretch/none`` with no finger pulling.
-        public var stretch: BNTabBarLensStretch
 
         public init(
             size: CGSize,
@@ -37,14 +31,12 @@
             isLifted: Bool = false,
             velocity: CGFloat = 0,
             axis: NSLayoutConstraint.Axis = .horizontal,
-            stretch: BNTabBarLensStretch = .none,
         ) {
             self.size = size
             self.selection = selection
             self.isLifted = isLifted
             self.velocity = velocity
             self.axis = axis
-            self.stretch = stretch
         }
     }
 
@@ -58,6 +50,10 @@
     ///
     /// A lens that cannot do two layers simply leaves `selectedContentView` empty and reports
     /// `revealsSelectedContent == false`; the bar then colours the items directly.
+    ///
+    /// The lens lies inside the bar's material — in system glass, inside the glass — so it moves
+    /// with whatever the material does under a finger. It draws no glass of its own: inside glass
+    /// that would be glass on glass.
     public protocol BNTabBarLens: UIView {
         /// Items drawn in their unselected state.
         var contentView: UIView { get }

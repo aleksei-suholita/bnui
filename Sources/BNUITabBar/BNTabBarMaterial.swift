@@ -32,11 +32,6 @@
     /// layer per element. Reduce Transparency is the control's to answer — it swaps the solid
     /// material in.
     public protocol BNTabBarMaterial {
-        /// Whether the lens swells under the finger over this surface. The swell mimics glass
-        /// reacting to a touch, so it suits system glass with its interactive response on; over
-        /// flat glass or matte paint it reads as a wobble. Reduce Motion drops it regardless.
-        var allowsLensSwell: Bool { get }
-
         /// A new surface for the capsule. The bar asks again on every rebuild, so each call
         /// returns fresh views.
         func makeSurface() -> BNTabBarSurface
@@ -75,11 +70,6 @@
             self.tintColor = tintColor
         }
 
-        /// The swell repeats the glass's own response, so it is there exactly when that is.
-        public var allowsLensSwell: Bool {
-            isInteractive
-        }
-
         public func makeSurface() -> BNTabBarSurface {
             let glass = UIGlassEffect(style: style)
             glass.isInteractive = isInteractive
@@ -112,10 +102,6 @@
             self.tintColor = tintColor
         }
 
-        public var allowsLensSwell: Bool {
-            false
-        }
-
         public func makeSurface() -> BNTabBarSurface {
             let plate = BNBlurPlateView(effect: style, shape: .capsule, fill: tintColor)
             return BNTabBarSurface(view: plate, contentContainer: plate.contentView)
@@ -134,10 +120,6 @@
 
         public init(color: UIColor = .secondarySystemBackground) {
             self.color = color
-        }
-
-        public var allowsLensSwell: Bool {
-            false
         }
 
         public func makeSurface() -> BNTabBarSurface {

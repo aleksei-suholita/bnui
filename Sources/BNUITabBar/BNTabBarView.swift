@@ -232,6 +232,18 @@
         var barRowTopConstraint: NSLayoutConstraint?
         var animateAccessoryIn = false
 
+        /// The finger driving the lens. One value for the whole gesture, so its pieces cannot
+        /// outlive each other: everything goes when it ends.
+        struct Drag {
+            /// Where the lens started along the bar when the finger landed. The lens moves by the
+            /// finger's delta from here, so it never teleports under the touch.
+            var start: CGFloat
+            /// The section under the finger; a change plays the boundary tick.
+            var hoveredIndex: Int
+            /// The finger has travelled past `dragThreshold`, and the lens follows it from now on.
+            var isFollowing = false
+        }
+
         var drag: Drag?
 
         var isDragging: Bool {
@@ -347,25 +359,26 @@
             let lens = resolvedLensRenderer.makeLens()
             self.lens = lens
 
-            // Sibling, not child: the lens carries the items and the marker, and sits beside the
-            // capsule rather than inside its content view, so the capsule's glass samples only the
-            // backdrop. It is exactly one glass layer per element, whatever renderer is plugged in.
+            // Inside, not beside: the lens carries the items and the marker, and lies in the
+            // capsule's content view, so whatever the glass does under a finger — lifting, stretching
+            // after a finger that has left it — the sections and the marker do with it, as one
+            // surface. The marker is flat paint, so the bar stays one glass layer.
             surface.view.translatesAutoresizingMaskIntoConstraints = false
             lens.translatesAutoresizingMaskIntoConstraints = false
             addSubview(surface.view)
-            addSubview(lens)
+            surface.contentContainer.addSubview(lens)
             followAppearance(of: surface)
 
             // Built before the constraints below: an action changes the composition, so it has to
             // exist by the time alignment is decided.
             buildAction()
 
-            // The lens carries the items, so it is what the bar measures; the capsule follows it.
-            NSLayoutConstraint.activate(alignmentConstraints(for: lens) + [
-                surface.view.topAnchor.constraint(equalTo: lens.topAnchor),
-                surface.view.bottomAnchor.constraint(equalTo: lens.bottomAnchor),
-                surface.view.leadingAnchor.constraint(equalTo: lens.leadingAnchor),
-                surface.view.trailingAnchor.constraint(equalTo: lens.trailingAnchor),
+            // The lens carries the items, so it is what the bar measures; the capsule takes its size.
+            NSLayoutConstraint.activate(alignmentConstraints(for: surface.view) + [
+                lens.topAnchor.constraint(equalTo: surface.contentContainer.topAnchor),
+                lens.bottomAnchor.constraint(equalTo: surface.contentContainer.bottomAnchor),
+                lens.leadingAnchor.constraint(equalTo: surface.contentContainer.leadingAnchor),
+                lens.trailingAnchor.constraint(equalTo: surface.contentContainer.trailingAnchor),
             ])
 
             // Counted against the action just built, so the slots are not built twice.

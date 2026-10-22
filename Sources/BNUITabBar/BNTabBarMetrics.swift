@@ -20,16 +20,6 @@ public nonisolated struct BNTabBarMetrics: Equatable, Sendable {
     public var capsulePadding: CGFloat
     /// How much the lens is inset from the item it covers, measured at rest.
     public var lensInset: CGFloat
-    /// Factor the marker grows by while a finger is on the bar, around its own centre, the way the
-    /// system's glass lens swells when pressed — the same on both axes in a row, along the bar
-    /// only in a column. 1 means no growth; Reduce Motion and a material that does not respond to
-    /// touch resolve it to 1.
-    public var liftedScale: CGFloat
-    /// How strongly the marker goes with the glass under it when a finger pulls the glass — past
-    /// the bar's end, off the capsule — as a share of the system's stretch of glass the capsule's
-    /// size: 1 is the system's, so the marker keeps step with the capsule; 0 none. Along the bar
-    /// only in a column. Resolves to 0 where `liftedScale` resolves to 1.
-    public var lensStretch: CGFloat
     /// Keeps the bar a capsule on wide screens instead of stretching edge to edge.
     public var maxBarWidth: CGFloat
     /// The action button's side. Square rather than a pill: shape is one of the channels that
@@ -61,8 +51,6 @@ public nonisolated struct BNTabBarMetrics: Equatable, Sendable {
         itemSpacing: CGFloat = 4,
         capsulePadding: CGFloat = 6,
         lensInset: CGFloat = 4,
-        liftedScale: CGFloat = 1.15,
-        lensStretch: CGFloat = 1,
         maxBarWidth: CGFloat = 500,
         actionSide: CGFloat = 56,
         actionSpacing: CGFloat = 8,
@@ -75,8 +63,6 @@ public nonisolated struct BNTabBarMetrics: Equatable, Sendable {
         self.itemSpacing = itemSpacing
         self.capsulePadding = capsulePadding
         self.lensInset = lensInset
-        self.liftedScale = liftedScale
-        self.lensStretch = lensStretch
         self.maxBarWidth = maxBarWidth
         self.actionSide = actionSide
         self.actionSpacing = actionSpacing

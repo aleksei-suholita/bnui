@@ -21,8 +21,6 @@
             static let presentation = 0
             static let action = 0
             static let accessory = false
-            static let liftScale = Double(BNTabBarMetrics.standard.liftedScale)
-            static let lensStretch = Double(BNTabBarMetrics.standard.lensStretch)
             static let minimumItemWidth = Double(BNTabBarMetrics.standard.minimumItemWidth)
             static let motion = BNTabBarMotion.standard
             static let haptics = true

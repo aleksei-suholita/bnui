@@ -104,33 +104,11 @@
         func update(state: BNTabBarLensState, theme: BNTabBarTheme, transition: BNTransition) {
             shape.backgroundColor = theme.palette.lensTint
 
-            // The marker sits a little inside its section. While a finger is on the bar it grows
-            // around that same centre and shrinks back on release: in a row by the same factor on
-            // both axes, out past the capsule's height the way the system lens does; in a column
-            // along it only, since across it the capsule is narrow and the marker would bulge out
-            // of its sides. Inset and scale are both symmetric, so neither ever moves the centre.
+            // The marker sits a little inside its section. It does not grow under the finger by
+            // itself: it lies in the bar's material, and glass that answers a touch lifts it along
+            // with everything else on it.
             let inset = theme.geometry.lensInset
-            let rest = state.selection.insetBy(dx: inset, dy: inset)
-            let scale = state.isLifted ? theme.geometry.liftedScale : 1
-            let lifted = state.axis == .vertical
-                ? CGSize(width: rest.width, height: rest.height * scale)
-                : CGSize(width: rest.width * scale, height: rest.height * scale)
-            // The marker lies on the glass, and the glass pulled by a finger that has left it is
-            // scaled around its own centre and moved toward the finger: the marker goes with it,
-            // stretched by as much and carried by its place on the glass.
-            let stretch = state.stretch
-            let glassScale = CGSize(width: max(1 + stretch.scale.dx, 0), height: max(1 + stretch.scale.dy, 0))
-            let size = CGSize(width: lifted.width * glassScale.width, height: lifted.height * glassScale.height)
-            let centre = CGPoint(
-                x: state.size.width / 2 + (rest.midX - state.size.width / 2) * glassScale.width + stretch.offset.dx,
-                y: state.size.height / 2 + (rest.midY - state.size.height / 2) * glassScale.height + stretch.offset.dy,
-            )
-            let target = CGRect(
-                x: centre.x - size.width / 2,
-                y: centre.y - size.height / 2,
-                width: size.width,
-                height: size.height,
-            )
+            let target = state.selection.insetBy(dx: inset, dy: inset)
             let targetCenter = CGPoint(x: target.midX, y: target.midY)
             let targetBounds = CGRect(origin: .zero, size: target.size)
             lastFrame = target
@@ -148,9 +126,9 @@
                 return
             }
 
-            // Only re-spring the position when the centre actually moves: a lift or a release
-            // changes the size only, so the travel in progress finishes rather than being reset to
-            // zero velocity.
+            // Only re-spring the position when the centre actually moves: a section of another
+            // width changes the size only, so the travel in progress finishes rather than being
+            // reset to zero velocity.
             if abs(targetCenter.x - lastCenter.x) > 0.5 || abs(targetCenter.y - lastCenter.y) > 0.5 {
                 positionAnimation?.interrupt()
                 // Stopping leaves the marker where it is on screen, so the distance still to go
@@ -168,7 +146,7 @@
                 positionAnimation = transition.carrying(momentum).run { [shape] in shape.center = targetCenter }
                 lastCenter = targetCenter
             }
-            // Size carries the swell; around a fixed centre it grows symmetrically, no edge twitch.
+            // Around a fixed centre the size changes symmetrically, no edge twitch.
             boundsAnimation?.interrupt()
             boundsAnimation = transition.run { [shape] in shape.bounds = targetBounds }
 
