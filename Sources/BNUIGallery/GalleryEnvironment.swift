@@ -3,12 +3,14 @@
     import UIKit
 
     /// The settings the stage is shown under — the ones a checklist asks about and Settings.app
-    /// would otherwise have to be opened for: appearance, text size, layout direction — and the
-    /// stage's tools: a phone's width, slowed animation, a frame meter, view outlines.
+    /// would otherwise have to be opened for: appearance, text size, layout direction, Reduce
+    /// Motion and Reduce Transparency — and the stage's tools: a phone's width, slowed animation,
+    /// a frame meter, view outlines.
     ///
     /// Applied to the stage alone, traits as overrides. The inspector keeps the app's own traits
     /// and speed, so the panel stays readable and quick while the demo is judged at an
-    /// accessibility size, in RTL or at a tenth of its speed.
+    /// accessibility size, in RTL or at a tenth of its speed. Reduce Motion and Reduce
+    /// Transparency reach the kit's controls only: the system's own views read Settings.
     struct GalleryEnvironment: Equatable {
         enum Appearance: CaseIterable {
             case system, light, dark
@@ -93,7 +95,7 @@
             var phone: String? {
                 switch self {
                 case .device: nil
-                case .points320: "iPhone SE (1st generation)"
+                case .points320: "SE or mini, Display Zoom"
                 case .points375: "iPhone SE, mini"
                 case .points430: "Pro Max, Plus"
                 }
@@ -135,6 +137,8 @@
         var appearance = Appearance.system
         var textSize = TextSize.system
         var direction = Direction.system
+        var reducesMotion = false
+        var reducesTransparency = false
         var width = Width.device
         var speed = Speed.normal
         var showsFrameRate = false
@@ -146,6 +150,16 @@
 
         var isDefault: Bool {
             self == GalleryEnvironment()
+        }
+
+        /// The stage's settings on a controller presented over it, so a demo shown full screen stays
+        /// under them. iOS 16 overrides the appearance alone.
+        static func applyCurrent(to controller: UIViewController) {
+            guard #available(iOS 17.0, *) else {
+                controller.overrideUserInterfaceStyle = current.appearance.style ?? .unspecified
+                return
+            }
+            current.apply(to: &controller.traitOverrides)
         }
 
         @available(iOS 17.0, *)
@@ -164,6 +178,18 @@
                 traits.layoutDirection = layoutDirection
             } else {
                 traits.remove(UITraitLayoutDirection.self)
+            }
+            // Off reads the system rather than forcing it off: the switch adds a setting, it does
+            // not hide the one in Settings.
+            if reducesMotion {
+                traits[BNForcedReduceMotion.self] = true
+            } else {
+                traits.remove(BNForcedReduceMotion.self)
+            }
+            if reducesTransparency {
+                traits[BNForcedReduceTransparency.self] = true
+            } else {
+                traits.remove(BNForcedReduceTransparency.self)
             }
             // A phone's width is a compact one, on an iPad stage too.
             if width.points != nil {

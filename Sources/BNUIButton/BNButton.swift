@@ -89,15 +89,6 @@
             }
         }
 
-        /// Forces accessibility settings instead of reading the system. For the gallery; production
-        /// leaves it alone.
-        public var accessibilityOverrides: BNButtonAccessibilityOverrides {
-            didSet {
-                guard accessibilityOverrides != oldValue else { return }
-                rebuild()
-            }
-        }
-
         public let haptics: BNButtonHaptics
 
         // MARK: - State (the host owns the truth)
@@ -230,7 +221,6 @@
             theme: BNButtonTheme = .standard,
             material: (any BNButtonMaterial)? = nil,
             haptics: BNButtonHaptics = BNButtonHaptics(),
-            accessibilityOverrides: BNButtonAccessibilityOverrides = .none,
         ) {
             self.content = content
             self.style = style
@@ -239,7 +229,6 @@
             self.theme = theme
             self.material = material
             self.haptics = haptics
-            self.accessibilityOverrides = accessibilityOverrides
             status = .enabled
             super.init(frame: .zero)
             observeEnvironment()

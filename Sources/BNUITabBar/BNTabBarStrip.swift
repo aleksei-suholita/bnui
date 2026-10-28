@@ -28,7 +28,7 @@ nonisolated struct BNTabBarStrip: Equatable {
     /// than `minimumLength` — the bar then stays a row at the bottom of the screen.
     ///
     /// - Parameters:
-    ///   - bounds: The space the strip runs along — the container's view.
+    ///   - bounds: The space the strip runs along — the tab bar controller's view.
     ///   - top: The safe area's top inset; the strip starts under it.
     ///   - bottom: The safe area's bottom inset; the strip ends above it.
     ///   - thickness: How wide the bar is across the strip.

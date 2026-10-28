@@ -61,9 +61,13 @@ buttons carrying words and does not apply here. Two icons without a title are co
 glyph, and size like a title does.
 
 Beside a title, or beside each other, icons are no taller than one line the size holds — its
-height less ``BNButtonSize/verticalPadding``. A larger image is shrunk, both icons together,
-rather than growing the button: only text, wrapped or grown by Dynamic Type, takes a button past
-its size.
+height less ``BNButtonSize/verticalPadding`` — or than a line of the title, once Dynamic Type has
+made that the taller. A larger image is shrunk, both icons together, rather than growing the
+button: only text, wrapped or grown by Dynamic Type, takes a button past its size.
+
+A symbol beside a title grows with Dynamic Type as the title does, along the title font's text
+style, from ``BNButtonSize/iconPointSize`` at the default text size. A lone icon keeps that point
+size, as its circle keeps the size's height.
 
 ## Content
 
@@ -207,8 +211,8 @@ The guarantees the control keeps whatever the theme asks for:
 
 - The touch area is never smaller than 44 × 44 pt, however small the button is drawn. Set
   ``BNButton/showsHitTargetOutline`` to see it.
-- Dynamic Type grows the button rather than cropping the label, and at accessibility sizes
-  an icon and a title restack vertically instead of truncating.
+- Dynamic Type grows the button rather than cropping the label, and the symbols beside it with
+  it; at accessibility sizes an icon and a title restack vertically instead of truncating.
 - Right-to-left mirrors the layout; the control never sets `semanticContentAttribute`.
 - The trait is `.button`; `disabled` is unavailable and `loading` is busy.
 - Reduce Transparency is answered by the control as a whole, not by each material.
@@ -217,7 +221,7 @@ The guarantees the control keeps whatever the theme asks for:
 
 ### Create a button
 
-- ``BNButton/init(content:style:size:configuration:theme:material:haptics:accessibilityOverrides:)``
+- ``BNButton/init(content:style:size:configuration:theme:material:haptics:)``
 - ``BNButtonContent``
 - ``BNButtonStyle``
 - ``BNButtonSize``

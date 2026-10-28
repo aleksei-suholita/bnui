@@ -159,6 +159,11 @@
             }
             guard visibleItems.indices.contains(index) else { return }
             let item = visibleItems[index]
+            guard shouldSelect?(item.id) ?? true else {
+                // Refused: the lens settles back on the selection, as from a drag that chose nothing.
+                applySelection(transition: .spring(activeTheme.motion.unlift), velocity: velocity)
+                return
+            }
             let isReselection = item.id == selectedID
             selectedID = item.id
             // Release rides the un-lift spring, picked up from wherever the lift left the lens.
@@ -172,6 +177,7 @@
         /// A section picked in the More menu. The lens travels to More on the selection spring —
         /// no finger is on the bar, so there is no lift to settle from.
         func commitOverflowSelection(_ id: String) {
+            guard shouldSelect?(id) ?? true else { return }
             let isReselection = id == selectedID
             selectedID = id
             applySelection(transition: .spring(activeTheme.motion.selection))

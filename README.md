@@ -22,7 +22,7 @@ Then depend on the whole kit or only on the controls you use:
 |---|---|---|
 | `BNUI` | everything below | — |
 | `BNUIButton` | `BNButton` and its SwiftUI face `BN.Button` | `BNUICore` |
-| `BNUITabBar` | `BNTabBarView`, `BNTabBarContainerViewController` and their SwiftUI faces | `BNUIButton` |
+| `BNUITabBar` | `BNTabBarView`, `BNTabBarController` and their SwiftUI faces | `BNUIButton` |
 | `BNUICore` | motion, haptics, shapes and materials every control is made of | — |
 | `BNUIGallery` | a bench with a page per control, open to an app's own pages; compiled in every configuration | `BNUI` |
 
@@ -51,17 +51,18 @@ navigates.
 
 ### Tab bar
 
-`BNTabBarContainerViewController` replaces `UITabBarController`: it holds a controller per tab,
-floats the bar over the content and switches tabs itself.
+`BNTabBarController` replaces `UITabBarController`: it holds a controller per tab, floats the
+bar over the content and switches tabs itself.
 
 ```swift
 import BNUITabBar
 
-let tabs = BNTabBarContainerViewController(
+let tabs = BNTabBarController(
     tabs: [
-        .init(item: BNTabBarItem(id: "home", icon: .symbol("house.fill"), title: "Home"),
+        .init(item: BNTabBarItem(id: "home", icon: .symbol("house"), selectedIcon: .symbol("house.fill"),
+                                 title: "Home"),
               viewController: UINavigationController(rootViewController: HomeViewController())),
-        .init(item: BNTabBarItem(id: "reports", icon: .symbol("chart.bar.fill"), title: "Reports"),
+        .init(item: BNTabBarItem(id: "reports", icon: .symbol("chart.bar"), title: "Reports"),
               viewController: UINavigationController(rootViewController: ReportsViewController())),
     ],
     action: BNTabBarAction(icon: .symbol("plus"), accessibilityLabel: "New", style: .prominent)
@@ -71,9 +72,12 @@ tabs.setBadge(.count(3), for: "home")
 window.rootViewController = tabs
 ```
 
-Every tab's safe area grows by the bar's height, so scroll views keep clear of it on their own.
-On iPhone Duo, built against the iOS 27.1 SDK, the container stands the bar in the strip beside
-the content where the system moves its own bars.
+It speaks UIKit's words where they mean the same: a screen finds it as `bnTabBarController`,
+`setTabBarHidden(_:animated:)` hides the bar — a screen that is to be without it calls it as it
+appears — and a second tap on a tab takes its stack back to the root. Every screen's safe
+area reaches up to the bar's top, so scroll views keep clear of it on their own. On iPhone Duo,
+built against the iOS 27.1 SDK, the controller stands the bar in the strip beside the content
+where the system moves its own bars.
 
 `BNTabBarView` is the bar alone, for a host that switches its content itself: it draws
 `selectedID` and reports `onSelect`.
@@ -138,7 +142,7 @@ extension BNTabBarTheme {
 }
 
 let save = BNButton(content: .title("Save"), style: .brand)
-let tabs = BNTabBarContainerViewController(tabs: tabList, theme: .app)
+let tabs = BNTabBarController(tabs: tabList, theme: .app)
 ```
 
 A button takes its colours and material from its style and type, geometry and motion from a

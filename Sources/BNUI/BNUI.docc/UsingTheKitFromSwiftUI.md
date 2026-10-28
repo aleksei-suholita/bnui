@@ -19,7 +19,7 @@ Each face lives beside its control, in `<UIKit type>+SwiftUI.swift`:
 |---|---|
 | ``BNButton`` | ``BN/Button`` |
 | ``BNTabBarView`` | ``BN/TabBar`` |
-| ``BNTabBarContainerViewController`` | ``BN/TabView`` |
+| ``BNTabBarController`` | ``BN/TabView`` |
 
 The models — content, styles, themes, items — are shared, so a theme written for a
 UIKit screen dresses a SwiftUI one unchanged.

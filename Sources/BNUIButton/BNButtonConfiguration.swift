@@ -22,7 +22,8 @@ public nonisolated struct BNButtonConfiguration: Equatable, Sendable {
     public enum TitleBehavior: Equatable, Sendable {
         /// One line with an ellipsis.
         case truncate
-        /// Grow in height; `lines` of 0 means no limit.
+        /// Grow in height, up to `lines` lines — 0 means no limit; a title that runs past the last
+        /// one ends there with an ellipsis.
         case wrap(lines: Int)
 
         /// Line count to hand a label. 1 for truncation, `lines` otherwise.

@@ -3,14 +3,9 @@
     import UIKit
 
     /// Gallery page for ``BNButton``.
-    ///
-    /// Kit rule: a control is not done until it has a page of its own. For the button that
-    /// page is also the calibration bench — the motion numbers in the theme are placeholders until
-    /// someone has moved these sliders on a device with a system button next to them.
     struct BNButtonGalleryPage: BNGalleryPage {
         let title = "Button"
         let symbol = "capsule"
-        let summary: String? = "Styles, materials, press motion and refusal"
         let layout = BNGalleryLayout.fill(share: 0.42)
 
         func makeDemoView() -> UIView {
@@ -23,8 +18,7 @@
 
         func makeKnobs(for demoView: UIView) -> [BNGalleryKnob] {
             guard let demo = demoView as? BNButtonDemoView else { return [] }
-            return content(demo) + appearance(demo) + motion(demo) + release(demo) + state(demo)
-                + refusal(demo) + haptics(demo) + bench(demo) + environment(demo)
+            return content(demo) + appearance(demo) + state(demo) + refusal(demo) + haptics(demo) + bench(demo)
         }
     }
 
@@ -47,15 +41,11 @@
                     initial: BNButtonDemoView.Defaults.contentIndex,
                     onChange: { demo.setContentKind(index: $0) },
                 )),
-                BNGalleryKnob(
-                    label: "Icon",
-                    control: .segmented(
-                        options: ["Gear", "Plus", "Chevron", "Tall", "Wide", "Wider", "Picture"],
-                        initial: BNButtonDemoView.Defaults.iconIndex,
-                        onChange: { demo.setIcon(index: $0) },
-                    ),
-                    note: "Picture is an 80 pt image in its own colours: the size holds it, beside a title too.",
-                ),
+                BNGalleryKnob(label: "Icon", control: .segmented(
+                    options: ["Gear", "Plus", "Chevron", "Tall", "Wide", "Wider", "Picture"],
+                    initial: BNButtonDemoView.Defaults.iconIndex,
+                    onChange: { demo.setIcon(index: $0) },
+                )),
                 BNGalleryKnob(label: "Long title", control: .toggle(
                     initial: BNButtonDemoView.Defaults.usesLongTitle,
                     onChange: { demo.setLongTitle($0) },
@@ -96,74 +86,14 @@
                     initial: BNButtonDemoView.Defaults.widthIndex,
                     onChange: { demo.setWidth(index: $0) },
                 )),
-            ]
-        }
-
-        func motion(_ demo: BNButtonDemoView) -> [BNGalleryKnob] {
-            [
-                .header("Motion"),
                 BNGalleryKnob(
-                    label: "Pressed scale",
-                    control: .slider(
-                        min: 0.90, max: 1.0,
-                        initial: BNButtonDemoView.Defaults.pressedScale,
-                        onChange: { demo.setPressedScale($0) },
+                    label: "Alignment",
+                    control: .segmented(
+                        options: ["Leading", "Center", "Trailing"],
+                        initial: BNButtonDemoView.Defaults.alignmentIndex,
+                        onChange: { demo.setAlignment(index: $0) },
                     ),
-                    unit: "×",
-                    note: "Glass draws its own press, so this section acts on Glass static, Blur and Solid only.",
-                ),
-                BNGalleryKnob(
-                    label: "Press duration",
-                    control: .slider(
-                        min: 0.06, max: 0.40,
-                        initial: BNButtonDemoView.Defaults.pressDuration,
-                        onChange: { demo.setPressDuration($0) },
-                    ),
-                    unit: "s",
-                ),
-            ]
-        }
-
-        /// Still the Motion section, apart only for length: the return after the finger lifts,
-        /// springier the quicker the press was.
-        func release(_ demo: BNButtonDemoView) -> [BNGalleryKnob] {
-            [
-                BNGalleryKnob(
-                    label: "Fast release bounce",
-                    control: .slider(
-                        min: 0, max: 0.7,
-                        initial: BNButtonDemoView.Defaults.fastBounce,
-                        onChange: { demo.setFastBounce($0) },
-                    ),
-                    note: "Overshoot of the return after an instant click.",
-                ),
-                BNGalleryKnob(
-                    label: "Slow release bounce",
-                    control: .slider(
-                        min: 0, max: 0.4,
-                        initial: BNButtonDemoView.Defaults.slowBounce,
-                        onChange: { demo.setSlowBounce($0) },
-                    ),
-                    note: "Overshoot of the return after a press held past the snap window.",
-                ),
-                BNGalleryKnob(
-                    label: "Snap window",
-                    control: .slider(
-                        min: 0.05, max: 0.60,
-                        initial: BNButtonDemoView.Defaults.snapWindow,
-                        onChange: { demo.setSnapWindow($0) },
-                    ),
-                    unit: "s",
-                    note: "How long a press may last and still count as a click. In between, the return blends fast into slow.",
-                ),
-                BNGalleryKnob(
-                    label: "Max release velocity",
-                    control: .slider(
-                        min: 0, max: 12,
-                        initial: BNButtonDemoView.Defaults.maxVelocity,
-                        onChange: { demo.setMaxVelocity($0) },
-                    ),
-                    note: "The push an instant click gives the return; a held press gives none.",
+                    note: "Seen with Width Fill or 200.",
                 ),
             ]
         }
@@ -176,29 +106,21 @@
                     initial: BNButtonDemoView.Defaults.statusIndex,
                     onChange: { demo.setStatus(index: $0) },
                 )),
-                BNGalleryKnob(
-                    label: "Badge",
-                    control: .segmented(
-                        options: ["None", "3", "120", "New", "Dot"],
-                        initial: BNButtonDemoView.Defaults.badgeIndex,
-                        onChange: { demo.setBadge(index: $0) },
-                    ),
-                    note: "Hangs on the outline and moves with the press; try it on a lone icon and with Rounded.",
-                ),
+                BNGalleryKnob(label: "Badge", control: .segmented(
+                    options: ["None", "3", "120", "New", "Dot"],
+                    initial: BNButtonDemoView.Defaults.badgeIndex,
+                    onChange: { demo.setBadge(index: $0) },
+                )),
                 BNGalleryKnob(label: "Badge corner", control: .segmented(
                     options: ["Top", "Bottom"],
                     initial: 0,
                     onChange: { demo.setBadgePosition(index: $0) },
                 )),
-                BNGalleryKnob(
-                    label: "Menu",
-                    control: .segmented(
-                        options: ["None", "Tap", "Long press"],
-                        initial: BNButtonDemoView.Defaults.menuIndex,
-                        onChange: { demo.setMenu(index: $0) },
-                    ),
-                    note: "Tap: the menu opens as the finger lands, and the button fires nothing. Long press: a tap still fires.",
-                ),
+                BNGalleryKnob(label: "Menu", control: .segmented(
+                    options: ["None", "Tap", "Long press"],
+                    initial: BNButtonDemoView.Defaults.menuIndex,
+                    onChange: { demo.setMenu(index: $0) },
+                )),
                 BNGalleryKnob(
                     label: "Cooldown",
                     control: .slider(
@@ -207,7 +129,6 @@
                         onChange: { demo.setCooldown($0) },
                     ),
                     unit: "s",
-                    note: "A tap this soon after the last one that fired is swallowed, silently. 0 — off.",
                 ),
             ]
         }
@@ -224,43 +145,10 @@
                     ),
                     note: "Set Status to Disabled, then tap the button.",
                 ),
-                BNGalleryKnob(
-                    label: "Refusal travel",
-                    control: .slider(
-                        min: 0, max: 16,
-                        initial: BNButtonDemoView.Defaults.rejectionTravel,
-                        onChange: { demo.setRejectionTravel($0) },
-                    ),
-                    unit: "pt",
-                    note: "How far the shake goes sideways. 0 — no shake.",
-                ),
-                BNGalleryKnob(
-                    label: "Refusal hold",
-                    control: .slider(
-                        min: 0, max: 1.2,
-                        initial: BNButtonDemoView.Defaults.rejectionHold,
-                        onChange: { demo.setRejectionHold($0) },
-                    ),
-                    unit: "s",
-                    note: "How long the flash stays at full strength before it fades.",
-                ),
-                BNGalleryKnob(
-                    label: "Refusal flash",
-                    control: .slider(
-                        min: 0, max: 1,
-                        initial: BNButtonDemoView.Defaults.rejectionFlashAlpha,
-                        onChange: { demo.setRejectionFlashAlpha($0) },
-                    ),
-                    note: "Peak strength of the red flash. 0 — no flash.",
-                ),
-                BNGalleryKnob(
-                    label: "Refusal haptic",
-                    control: .toggle(
-                        initial: BNButtonDemoView.Defaults.rejectionHaptic,
-                        onChange: { demo.setRejectionHaptic($0) },
-                    ),
-                    note: "The error buzz. Off — the refusal is seen, not felt.",
-                ),
+                BNGalleryKnob(label: "Refusal haptic", control: .toggle(
+                    initial: BNButtonDemoView.Defaults.rejectionHaptic,
+                    onChange: { demo.setRejectionHaptic($0) },
+                )),
             ]
         }
 
@@ -290,26 +178,6 @@
                 BNGalleryKnob(label: "Show hit target", control: .toggle(
                     initial: BNButtonDemoView.Defaults.showsHitTarget,
                     onChange: { demo.setShowsHitTarget($0) },
-                )),
-                BNGalleryKnob(label: "System button beside", control: .toggle(
-                    initial: BNButtonDemoView.Defaults.showsSystemButton,
-                    onChange: { demo.setShowsSystemButton($0) },
-                )),
-            ]
-        }
-
-        /// Forcing the accessibility settings here rather than in Settings.app: two checklist
-        /// items depend on them, and a trip out of the app is how those items get skipped.
-        func environment(_ demo: BNButtonDemoView) -> [BNGalleryKnob] {
-            [
-                .header("Accessibility"),
-                BNGalleryKnob(label: "Reduce Motion", control: .toggle(
-                    initial: BNButtonDemoView.Defaults.forcedAccessibility,
-                    onChange: { demo.setReduceMotion($0) },
-                )),
-                BNGalleryKnob(label: "Reduce Transparency", control: .toggle(
-                    initial: BNButtonDemoView.Defaults.forcedAccessibility,
-                    onChange: { demo.setReduceTransparency($0) },
                 )),
             ]
         }

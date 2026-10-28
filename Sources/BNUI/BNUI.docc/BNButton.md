@@ -4,7 +4,7 @@
 
 ### Creating a button
 
-- ``init(content:style:size:configuration:theme:material:haptics:accessibilityOverrides:)``
+- ``init(content:style:size:configuration:theme:material:haptics:)``
 
 ### Composition
 
@@ -40,5 +40,4 @@
 
 ### Accessibility and diagnostics
 
-- ``accessibilityOverrides``
 - ``showsHitTargetOutline``

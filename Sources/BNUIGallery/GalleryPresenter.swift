@@ -48,7 +48,7 @@
         private func presentDemo() {
             guard presentedViewController == nil else { return }
             let controller = make()
-            applyEnvironment(to: controller)
+            GalleryEnvironment.applyCurrent(to: controller)
             // A popover, or an action sheet on a regular-width screen, points at the button.
             if let popover = controller.popoverPresentationController {
                 popover.sourceView = button
@@ -68,15 +68,6 @@
         private func dismissDemo() {
             guard presentedViewController != nil else { return }
             dismiss(animated: true)
-        }
-
-        private func applyEnvironment(to controller: UIViewController) {
-            let environment = GalleryEnvironment.current
-            guard #available(iOS 17.0, *) else {
-                controller.overrideUserInterfaceStyle = environment.appearance.style ?? .unspecified
-                return
-            }
-            environment.apply(to: &controller.traitOverrides)
         }
     }
 

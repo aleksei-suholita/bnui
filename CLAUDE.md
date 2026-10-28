@@ -104,15 +104,20 @@ arm64-apple-ios16.0-simulator`, not `xcodebuild`.
 
 - `Sources/BNUICore/` — `BNHaptics`, `BNBlur` (the blur plate: system material, rim, shadow),
   `BNShapes` (`BNShape` — a control's outline from its theme, capsule or radius — and applying it
-  to a view on any iOS), `BNMotion` (`BNSpring`/`BNCurve`/`BNTransition`/`BNAnimation`). There are
+  to a view on any iOS), `BNMotion` (`BNSpring`/`BNCurve`/`BNTransition`/`BNAnimation`),
+  `BNAccessibilitySettings` (Reduce Motion and Reduce Transparency as every control reads them;
+  the gallery's stage forces them through a `package` trait, not API). There are
   no contrast checks (WCAG, a veil) and no Increase Contrast handling in the kit: removed until
   after the alpha
 - `Sources/BNUIButton/` — `BNButton`: theme, roles, materials, motion
-- `Sources/BNUITabBar/` — `BNTabBarView` (lens, materials, section renderers) and
-  `BNTabBarContainerViewController`, a replacement for `UITabBarController` that hosts the content
-  and owns the selected section; "+" lives in the bar as an action, not as a tab. On iPhone Duo
-  the container stands the bar as a column in the system's strip beside the content
-  (`BNTabBarStrip` decides where, `+VerticalBar` reads the iOS 27.1 API)
+- `Sources/BNUITabBar/` — `BNTabBarView` (lens, materials, section renderers, badges drawn above
+  the material) and `BNTabBarController`, a replacement for `UITabBarController` that hosts the
+  content and owns the selected section; "+" lives in the bar as an action, not as a tab. It is a
+  plain `UIViewController` speaking UIKit's words: `bnTabBarController`, `setTabBarHidden`
+  (`+Hiding`; `hidesBottomBarWhenPushed` is not followed — a plain navigation controller tells no
+  one what it pushes), appearance handed to the tab on screen (`+Appearance`), its pure rules in
+  `BNTabBarControllerRules`. On iPhone Duo it stands the bar as a column in the system's strip
+  beside the content (`BNTabBarStrip` decides where, `+VerticalBar` reads the iOS 27.1 API)
 - `Sources/BNUI/` — `Exports.swift` (the whole kit behind one import) and `BNUI.docc`
 - `Sources/BNUIGallery/` — the showcase, open to an app's own pages. Public, `BNGallery*`: the
   entry `BNGallery` (present, `-OpenGallery`, `post` to the feed), a page `BNGalleryPage` or the

@@ -6,10 +6,10 @@
     // iPhone Duo moves an app's bars into a strip beside the content: the status bar, the
     // navigation bar's buttons, the tab bar. The API that says so arrives with the iOS 27.1 SDK, so
     // it is compiled only by a toolchain that has it — UIKit's own module version tells — and an
-    // older one builds a container that always keeps the bar a row.
+    // older one builds a controller that always keeps the bar a row.
 
     #if canImport(UIKit, _version: 9127.1)
-        extension BNTabBarContainerViewController {
+        extension BNTabBarController {
             /// The tab on screen decides whether its bars go vertical, as under
             /// `UITabBarController`. Kept out of the documented API: it is UIKit's contract, and
             /// the API listing would otherwise change with the SDK the kit is built against.
@@ -72,7 +72,7 @@
             func observeVerticalBar() {
                 guard #available(iOS 27.1, *) else { return }
                 let traits = UITraitCollection.systemTraitsAffectingVerticalBarEdge
-                registerForTraitChanges(traits) { (controller: BNTabBarContainerViewController, _: UITraitCollection) in
+                registerForTraitChanges(traits) { (controller: BNTabBarController, _: UITraitCollection) in
                     controller.view.setNeedsLayout()
                 }
             }
@@ -89,7 +89,7 @@
             }
         }
     #else
-        extension BNTabBarContainerViewController {
+        extension BNTabBarController {
             /// Built without the iOS 27.1 SDK: no strip is known, and the bar stays a row.
             func verticalBarStrip() -> BNTabBarStrip? {
                 nil

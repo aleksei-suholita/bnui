@@ -4,7 +4,7 @@ import Testing
 
 /// An icon beside a title, or beside another icon: the size's height holds whatever the icon's own
 /// size, as it does for a lone icon. An 80 pt asset shrinks instead of growing the button to a
-/// hundred points.
+/// hundred points. A title grown by Dynamic Type takes the icon up to its own line.
 @Suite("BNButtonLayoutSolver — icon beside a title")
 struct BNButtonIconBesideTitleLayoutTests {
     private func solve(
@@ -12,6 +12,7 @@ struct BNButtonIconBesideTitleLayoutTests {
         iconHeight: CGFloat,
         titleWidth: CGFloat = 60,
         titleHeight: CGFloat = 22,
+        titleLineHeight: CGFloat? = nil,
         size: BNButtonSize = .medium,
         isAccessibilitySize: Bool = false,
     ) -> BNButtonLayoutSolver.Output {
@@ -19,6 +20,7 @@ struct BNButtonIconBesideTitleLayoutTests {
             availableWidth: 320,
             titleWidth: titleWidth,
             titleHeight: titleHeight,
+            titleLineHeight: titleLineHeight,
             iconWidths: iconWidths,
             iconHeight: iconHeight,
             size: size,
@@ -61,10 +63,25 @@ struct BNButtonIconBesideTitleLayoutTests {
     }
 
     @Test
-    func `a title grown by Dynamic Type still grows the button`() {
-        // The text is what the height gives way to; the icon keeps the size's limit beside it.
+    func `a title grown by Dynamic Type takes the icon up to its line`() {
+        // The text is what the height gives way to; the icon goes as far as a line of it, and the
+        // button no further than the text takes it.
         let output = solve(iconWidths: [80], iconHeight: 80, titleHeight: 60)
         #expect(output.buttonHeight == 60 + 2 * BNButtonSize.medium.verticalPadding)
+        #expect(output.iconScale == 0.75)
+    }
+
+    @Test
+    func `an icon grown with the title keeps its size within the title's line`() {
+        // A small button at the largest standard text size: a 24 pt symbol beside a 25 pt line,
+        // taller than the 20 pt the size's own line holds. Dynamic Type grew both; nothing shrinks.
+        let output = solve(iconWidths: [24], iconHeight: 24, titleHeight: 25, size: .small)
+        #expect(output.iconScale == 1)
+    }
+
+    @Test
+    func `a wrapped title lets the icon no further than one line`() {
+        let output = solve(iconWidths: [80], iconHeight: 80, titleHeight: 60, titleLineHeight: 20)
         #expect(output.iconScale == room(.medium) / 80)
     }
 

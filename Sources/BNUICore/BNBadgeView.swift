@@ -15,8 +15,8 @@
     /// It takes no touches and says nothing to VoiceOver: the control it marks speaks for it, with
     /// ``spokenText`` in its value.
     ///
-    /// A tab bar's own item renderer draws its sections' badges with it, and so can one of the
-    /// host's:
+    /// A tab bar draws its sections' badges with it, above its material, and a renderer of the
+    /// host's own can draw them inside its sections:
     ///
     /// ```swift
     /// let badge = BNBadgeView(theme: theme.badge, crossFade: theme.motion.crossFade)
@@ -62,7 +62,8 @@
 
         /// Hangs the badge from `view`'s trailing corner — the top or the bottom, as the theme's
         /// ``BNBadgeTheme/position`` says — the way a tab bar's section hangs it from its icon.
-        /// Both views must already share a superview.
+        /// Both views must already be in one hierarchy; the badge may lie in another branch of it,
+        /// above a material its anchor is inside.
         public func pin(toCornerOf view: UIView) {
             let corner = theme.position == .bottomTrailing ? view.bottomAnchor : view.topAnchor
             NSLayoutConstraint.activate([

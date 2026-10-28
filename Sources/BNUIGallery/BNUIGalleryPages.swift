@@ -8,7 +8,6 @@
         public static func all() -> [any BNGalleryPage] {
             [
                 BNTabBarGalleryPage(),
-                BNTabBarContainerGalleryPage.make(),
                 BNButtonGalleryPage(),
             ]
         }

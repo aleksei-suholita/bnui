@@ -37,7 +37,6 @@ BNUIButton | BNBlurButtonMaterial.pressResponse | @MainActor var pressResponse: 
 BNUIButton | BNButton | @MainActor final class BNButton
 BNUIButton | BNButton.accessibilityActivate() | @MainActor override func accessibilityActivate() -> Bool
 BNUIButton | BNButton.accessibilityLabel | @MainActor override var accessibilityLabel: String? { get set }
-BNUIButton | BNButton.accessibilityOverrides | @MainActor var accessibilityOverrides: BNButtonAccessibilityOverrides { get set }
 BNUIButton | BNButton.badge | @MainActor var badge: BNBadge? { get set }
 BNUIButton | BNButton.beginTracking(_:with:) | @MainActor override func beginTracking(_: UITouch, with _: UIEvent?) -> Bool
 BNUIButton | BNButton.canBecomeFocused | @MainActor override var canBecomeFocused: Bool { get }
@@ -51,7 +50,7 @@ BNUIButton | BNButton.gestureRecognizer(_:shouldRecognizeSimultaneouslyWith:) | 
 BNUIButton | BNButton.gestureRecognizerShouldBegin(_:) | @MainActor override func gestureRecognizerShouldBegin(_ recognizer: UIGestureRecognizer) -> Bool
 BNUIButton | BNButton.haptics | @MainActor let haptics: BNButtonHaptics
 BNUIButton | BNButton.hitTest(_:with:) | @MainActor override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView?
-BNUIButton | BNButton.init(content:style:size:configuration:theme:material:haptics:accessibilityOverrides:) | @MainActor init(content: BNButtonContent, style: BNButtonStyle = .primary, size: BNButtonSize = .medium, configuration: BNButtonConfiguration = BNButtonConfiguration(), theme: BNButtonTheme = .standard, material: (any BNButtonMaterial)? = nil, haptics: BNButtonHaptics = BNButtonHaptics(), accessibilityOverrides: BNButtonAccessibilityOverrides = .none)
+BNUIButton | BNButton.init(content:style:size:configuration:theme:material:haptics:) | @MainActor init(content: BNButtonContent, style: BNButtonStyle = .primary, size: BNButtonSize = .medium, configuration: BNButtonConfiguration = BNButtonConfiguration(), theme: BNButtonTheme = .standard, material: (any BNButtonMaterial)? = nil, haptics: BNButtonHaptics = BNButtonHaptics())
 BNUIButton | BNButton.intrinsicContentSize | @MainActor override var intrinsicContentSize: CGSize { get }
 BNUIButton | BNButton.isEnabled | @MainActor override var isEnabled: Bool { get set }
 BNUIButton | BNButton.isLoading | @MainActor var isLoading: Bool { get }
@@ -76,13 +75,6 @@ BNUIButton | BNButton.status | @MainActor var status: BNButtonStatus { get set }
 BNUIButton | BNButton.style | @MainActor var style: BNButtonStyle { get set }
 BNUIButton | BNButton.theme | @MainActor var theme: BNButtonTheme { get set }
 BNUIButton | BNButton.traitCollectionDidChange(_:) | @MainActor override func traitCollectionDidChange(_ previous: UITraitCollection?)
-BNUIButton | BNButtonAccessibilityOverrides | nonisolated struct BNButtonAccessibilityOverrides
-BNUIButton | BNButtonAccessibilityOverrides.init(reduceMotion:reduceTransparency:) | init(reduceMotion: Bool? = nil, reduceTransparency: Bool? = nil)
-BNUIButton | BNButtonAccessibilityOverrides.none | static let none: BNButtonAccessibilityOverrides
-BNUIButton | BNButtonAccessibilityOverrides.reduceMotion | var reduceMotion: Bool?
-BNUIButton | BNButtonAccessibilityOverrides.reduceTransparency | var reduceTransparency: Bool?
-BNUIButton | BNButtonAccessibilityOverrides.resolvedReduceMotion(system:) | func resolvedReduceMotion(system: Bool) -> Bool
-BNUIButton | BNButtonAccessibilityOverrides.resolvedReduceTransparency(system:) | func resolvedReduceTransparency(system: Bool) -> Bool
 BNUIButton | BNButtonAccessibilityStrings | nonisolated struct BNButtonAccessibilityStrings
 BNUIButton | BNButtonAccessibilityStrings.busyValue | var busyValue: String
 BNUIButton | BNButtonAccessibilityStrings.disabledHint | var disabledHint: String?
@@ -706,7 +698,7 @@ BNUITabBar | BN.TabView.bnTabBarMoreItem(_:systemImage:) | @MainActor func bnTab
 BNUITabBar | BN.TabView.bnTabBarTheme(_:) | @MainActor func bnTabBarTheme(_ theme: BNTabBarTheme) -> BN.TabView<Value>
 BNUITabBar | BN.TabView.bnTabBarWidth(_:) | @MainActor func bnTabBarWidth(_ width: BNTabBarConfiguration.Width) -> BN.TabView<Value>
 BNUITabBar | BN.TabView.bnTabViewContentGap(_:) | @MainActor func bnTabViewContentGap(_ gap: CGFloat) -> BN.TabView<Value>
-BNUITabBar | BN.TabView.bnTabViewMargin(_:) | @MainActor func bnTabViewMargin(_ margin: CGFloat) -> BN.TabView<Value>
+BNUITabBar | BN.TabView.bnTabViewPlacement(_:) | @MainActor func bnTabViewPlacement(_ placement: BNTabBarController.Placement) -> BN.TabView<Value>
 BNUITabBar | BN.TabView.body | @MainActor var body: some View { get }
 BNUITabBar | BN.TabView.init(selection:content:) | @MainActor init(selection: Binding<Value>, @BN.TabContentBuilder<Value> content: () -> [BN.Tab<Value, AnyView>])
 BNUITabBar | BN.TabView.onMultiTap(_:) | @MainActor func onMultiTap(_ handler: @escaping (Value, Int) -> Void) -> BN.TabView<Value>
@@ -762,26 +754,42 @@ BNUITabBar | BNTabBarConfiguration.init(alignment:width:labelMode:moreItem:) | @
 BNUITabBar | BNTabBarConfiguration.labelMode | @MainActor var labelMode: BNTabBarConfiguration.LabelMode
 BNUITabBar | BNTabBarConfiguration.moreItem | @MainActor var moreItem: BNTabBarItem
 BNUITabBar | BNTabBarConfiguration.width | @MainActor var width: BNTabBarConfiguration.Width
-BNUITabBar | BNTabBarContainerViewController | @MainActor final class BNTabBarContainerViewController
-BNUITabBar | BNTabBarContainerViewController.Tab | @MainActor struct Tab
-BNUITabBar | BNTabBarContainerViewController.Tab.init(item:viewController:) | @MainActor init(item: BNTabBarItem, viewController: UIViewController)
-BNUITabBar | BNTabBarContainerViewController.Tab.item | @MainActor let item: BNTabBarItem
-BNUITabBar | BNTabBarContainerViewController.Tab.viewController | @MainActor let viewController: UIViewController
-BNUITabBar | BNTabBarContainerViewController.action | @MainActor var action: BNTabBarAction? { get set }
-BNUITabBar | BNTabBarContainerViewController.init(tabs:action:configuration:theme:margin:contentGap:material:lensRenderer:itemRenderer:haptics:) | @MainActor init(tabs: [BNTabBarContainerViewController.Tab], action: BNTabBarAction? = nil, configuration: BNTabBarConfiguration = BNTabBarConfiguration(), theme: BNTabBarTheme = BNTabBarTheme(), margin: CGFloat = 16, contentGap: CGFloat = 16, material: any BNTabBarMaterial = BNTabBarView.standardMaterial, lensRenderer: any BNTabBarLensRenderer = BNMaskedLensRenderer(), itemRenderer: (any BNTabBarItemRenderer)? = nil, haptics: BNTabBarHaptics = BNTabBarHaptics())
-BNUITabBar | BNTabBarContainerViewController.items | @MainActor var items: [BNTabBarItem] { get set }
-BNUITabBar | BNTabBarContainerViewController.onAction | @MainActor var onAction: (() -> Void)?
-BNUITabBar | BNTabBarContainerViewController.onMultiTap | @MainActor var onMultiTap: ((String, Int) -> Void)?
-BNUITabBar | BNTabBarContainerViewController.onSelect | @MainActor var onSelect: ((String) -> Void)?
-BNUITabBar | BNTabBarContainerViewController.select(tabID:animated:) | @MainActor func select(tabID: String, animated: Bool = true)
-BNUITabBar | BNTabBarContainerViewController.selectedTabID | @MainActor var selectedTabID: String? { get }
-BNUITabBar | BNTabBarContainerViewController.setBadge(_:for:) | @MainActor func setBadge(_ badge: BNBadge?, for tabID: String)
-BNUITabBar | BNTabBarContainerViewController.updateItems(_:) | @MainActor func updateItems(_ items: [BNTabBarItem])
-BNUITabBar | BNTabBarContainerViewController.viewDidAppear(_:) | @MainActor override func viewDidAppear(_ animated: Bool)
-BNUITabBar | BNTabBarContainerViewController.viewDidLayoutSubviews() | @MainActor override func viewDidLayoutSubviews()
-BNUITabBar | BNTabBarContainerViewController.viewDidLoad() | @MainActor override func viewDidLoad()
-BNUITabBar | BNTabBarContainerViewController.viewWillLayoutSubviews() | @MainActor override func viewWillLayoutSubviews()
-BNUITabBar | BNTabBarContainerViewController.viewWillTransition(to:with:) | @MainActor override func viewWillTransition(to size: CGSize, with coordinator: any UIViewControllerTransitionCoordinator)
+BNUITabBar | BNTabBarController | @MainActor final class BNTabBarController
+BNUITabBar | BNTabBarController.Placement | nonisolated enum Placement
+BNUITabBar | BNTabBarController.Placement.safeArea(margin:) | case safeArea(margin: CGFloat)
+BNUITabBar | BNTabBarController.Placement.system | case system
+BNUITabBar | BNTabBarController.Tab | @MainActor struct Tab
+BNUITabBar | BNTabBarController.Tab.init(item:viewController:) | @MainActor init(item: BNTabBarItem, viewController: UIViewController)
+BNUITabBar | BNTabBarController.Tab.item | @MainActor let item: BNTabBarItem
+BNUITabBar | BNTabBarController.Tab.viewController | @MainActor let viewController: UIViewController
+BNUITabBar | BNTabBarController.action | @MainActor var action: BNTabBarAction? { get set }
+BNUITabBar | BNTabBarController.childForStatusBarHidden | @MainActor override var childForStatusBarHidden: UIViewController? { get }
+BNUITabBar | BNTabBarController.childForStatusBarStyle | @MainActor override var childForStatusBarStyle: UIViewController? { get }
+BNUITabBar | BNTabBarController.init(tabs:action:configuration:theme:placement:contentGap:material:lensRenderer:itemRenderer:haptics:) | @MainActor init(tabs: [BNTabBarController.Tab], action: BNTabBarAction? = nil, configuration: BNTabBarConfiguration = BNTabBarConfiguration(), theme: BNTabBarTheme = BNTabBarTheme(), placement: BNTabBarController.Placement = .system, contentGap: CGFloat = 0, material: any BNTabBarMaterial = BNTabBarView.standardMaterial, lensRenderer: any BNTabBarLensRenderer = BNMaskedLensRenderer(), itemRenderer: (any BNTabBarItemRenderer)? = nil, haptics: BNTabBarHaptics = BNTabBarHaptics())
+BNUITabBar | BNTabBarController.isTabBarHidden | @MainActor var isTabBarHidden: Bool { get set }
+BNUITabBar | BNTabBarController.items | @MainActor var items: [BNTabBarItem] { get set }
+BNUITabBar | BNTabBarController.onAction | @MainActor var onAction: (() -> Void)?
+BNUITabBar | BNTabBarController.onMultiTap | @MainActor var onMultiTap: ((String, Int) -> Void)?
+BNUITabBar | BNTabBarController.onReselect | @MainActor var onReselect: ((String) -> Void)?
+BNUITabBar | BNTabBarController.onSelect | @MainActor var onSelect: ((String) -> Void)?
+BNUITabBar | BNTabBarController.select(tabID:animated:) | @MainActor func select(tabID: String, animated: Bool = true)
+BNUITabBar | BNTabBarController.selectedTabID | @MainActor var selectedTabID: String? { get }
+BNUITabBar | BNTabBarController.selectedViewController | @MainActor var selectedViewController: UIViewController? { get }
+BNUITabBar | BNTabBarController.setBadge(_:for:) | @MainActor func setBadge(_ badge: BNBadge?, for tabID: String)
+BNUITabBar | BNTabBarController.setSelectedIcon(_:for:) | @MainActor func setSelectedIcon(_ icon: BNTabBarItem.Icon?, for tabID: String)
+BNUITabBar | BNTabBarController.setTabBarHidden(_:animated:) | @MainActor func setTabBarHidden(_ hidden: Bool, animated: Bool)
+BNUITabBar | BNTabBarController.shouldAutomaticallyForwardAppearanceMethods | @MainActor override var shouldAutomaticallyForwardAppearanceMethods: Bool { get }
+BNUITabBar | BNTabBarController.shouldSelect | @MainActor var shouldSelect: ((String) -> Bool)?
+BNUITabBar | BNTabBarController.tabs | @MainActor var tabs: [BNTabBarController.Tab] { get set }
+BNUITabBar | BNTabBarController.viewDidAppear(_:) | @MainActor override func viewDidAppear(_ animated: Bool)
+BNUITabBar | BNTabBarController.viewDidDisappear(_:) | @MainActor override func viewDidDisappear(_ animated: Bool)
+BNUITabBar | BNTabBarController.viewDidLayoutSubviews() | @MainActor override func viewDidLayoutSubviews()
+BNUITabBar | BNTabBarController.viewDidLoad() | @MainActor override func viewDidLoad()
+BNUITabBar | BNTabBarController.viewSafeAreaInsetsDidChange() | @MainActor override func viewSafeAreaInsetsDidChange()
+BNUITabBar | BNTabBarController.viewWillAppear(_:) | @MainActor override func viewWillAppear(_ animated: Bool)
+BNUITabBar | BNTabBarController.viewWillDisappear(_:) | @MainActor override func viewWillDisappear(_ animated: Bool)
+BNUITabBar | BNTabBarController.viewWillLayoutSubviews() | @MainActor override func viewWillLayoutSubviews()
+BNUITabBar | BNTabBarController.viewWillTransition(to:with:) | @MainActor override func viewWillTransition(to size: CGSize, with coordinator: any UIViewControllerTransitionCoordinator)
 BNUITabBar | BNTabBarDragRecognizer | @MainActor final class BNTabBarDragRecognizer
 BNUITabBar | BNTabBarDragRecognizer.init(target:action:) | @MainActor override init(target: Any?, action: Selector?)
 BNUITabBar | BNTabBarDragRecognizer.reset() | @MainActor override func reset()
@@ -812,7 +820,8 @@ BNUITabBar | BNTabBarItem.accessibilityLabel | @MainActor let accessibilityLabel
 BNUITabBar | BNTabBarItem.badge | @MainActor var badge: BNBadge?
 BNUITabBar | BNTabBarItem.icon | @MainActor let icon: BNTabBarItem.Icon
 BNUITabBar | BNTabBarItem.id | @MainActor let id: String
-BNUITabBar | BNTabBarItem.init(id:icon:title:badge:selectionAnimation:accessibilityLabel:) | @MainActor init(id: String, icon: BNTabBarItem.Icon, title: String, badge: BNBadge? = nil, selectionAnimation: some BNTabBarSymbolEffect = .bounce, accessibilityLabel: String? = nil)
+BNUITabBar | BNTabBarItem.init(id:icon:selectedIcon:title:badge:selectionAnimation:accessibilityLabel:) | @MainActor init(id: String, icon: BNTabBarItem.Icon, selectedIcon: BNTabBarItem.Icon? = nil, title: String, badge: BNBadge? = nil, selectionAnimation: some BNTabBarSymbolEffect = .bounce, accessibilityLabel: String? = nil)
+BNUITabBar | BNTabBarItem.selectedIcon | @MainActor var selectedIcon: BNTabBarItem.Icon?
 BNUITabBar | BNTabBarItem.selectionAnimation | @MainActor let selectionAnimation: BNTabBarSymbolAnimation
 BNUITabBar | BNTabBarItem.title | @MainActor let title: String
 BNUITabBar | BNTabBarItemLayer | @MainActor enum BNTabBarItemLayer
@@ -822,10 +831,14 @@ BNUITabBar | BNTabBarItemRenderer | @MainActor protocol BNTabBarItemRenderer
 BNUITabBar | BNTabBarItemRenderer.makeItemView(for:layer:) | @MainActor func makeItemView(for item: BNTabBarItem, layer: BNTabBarItemLayer) -> any BNTabBarItemRendering
 BNUITabBar | BNTabBarItemRendering | @MainActor protocol BNTabBarItemRendering : UIView
 BNUITabBar | BNTabBarItemRendering.apply(state:transition:) | @MainActor func apply(state: BNTabBarItemState, transition: BNTransition)
+BNUITabBar | BNTabBarItemRendering.badgeAnchor | @MainActor var badgeAnchor: UIView? { get }
+BNUITabBar | BNTabBarItemRendering.badgeAnchor | @MainActor var badgeAnchor: UIView? { get }
 BNUITabBar | BNTabBarItemRendering.measure() | @MainActor func measure() -> BNTabBarLayoutSolver.ItemMeasure
 BNUITabBar | BNTabBarItemRendering.playSelectionAnimation() | @MainActor func playSelectionAnimation()
 BNUITabBar | BNTabBarItemRendering.updateBadge(_:transition:) | @MainActor func updateBadge(_ badge: BNBadge?, transition: BNTransition) -> Bool
 BNUITabBar | BNTabBarItemRendering.updateBadge(_:transition:) | @MainActor func updateBadge(_: BNBadge?, transition _: BNTransition) -> Bool
+BNUITabBar | BNTabBarItemRendering.updateSelectedIcon(_:transition:) | @MainActor func updateSelectedIcon(_ icon: BNTabBarItem.Icon?, transition: BNTransition) -> Bool
+BNUITabBar | BNTabBarItemRendering.updateSelectedIcon(_:transition:) | @MainActor func updateSelectedIcon(_: BNTabBarItem.Icon?, transition _: BNTransition) -> Bool
 BNUITabBar | BNTabBarItemState | @MainActor struct BNTabBarItemState
 BNUITabBar | BNTabBarItemState.init(isSelected:selectionProgress:isCompact:titleScale:isPressed:theme:layer:) | @MainActor init(isSelected: Bool, selectionProgress: CGFloat, isCompact: Bool, titleScale: CGFloat = 1, isPressed: Bool, theme: BNTabBarTheme, layer: BNTabBarItemLayer)
 BNUITabBar | BNTabBarItemState.isCompact | @MainActor var isCompact: Bool
@@ -1027,9 +1040,12 @@ BNUITabBar | BNTabBarView.selectedID | @MainActor var selectedID: String? { get 
 BNUITabBar | BNTabBarView.setBadge(_:for:) | @MainActor func setBadge(_ badge: BNBadge?, for id: String)
 BNUITabBar | BNTabBarView.setPresentation(_:animated:) | @MainActor func setPresentation(_ presentation: BNTabBarPresentation, animated: Bool)
 BNUITabBar | BNTabBarView.setSelectedID(_:animated:) | @MainActor func setSelectedID(_ id: String, animated: Bool)
+BNUITabBar | BNTabBarView.setSelectedIcon(_:for:) | @MainActor func setSelectedIcon(_ icon: BNTabBarItem.Icon?, for id: String)
+BNUITabBar | BNTabBarView.shouldSelect | @MainActor var shouldSelect: ((String) -> Bool)?
 BNUITabBar | BNTabBarView.standardMaterial | @MainActor static var standardMaterial: any BNTabBarMaterial { get }
 BNUITabBar | BNTabBarView.theme | @MainActor var theme: BNTabBarTheme { get set }
 BNUITabBar | BNTabBarView.traitCollectionDidChange(_:) | @MainActor override func traitCollectionDidChange(_ previous: UITraitCollection?)
+BNUITabBar | UIViewController.bnTabBarController | @MainActor var bnTabBarController: BNTabBarController? { get }
 BNUITabBar | View.bnTabBarAlignment(_:) | @MainActor func bnTabBarAlignment(_ alignment: BNTabBarConfiguration.Alignment) -> some View 
 BNUITabBar | View.bnTabBarHaptics(_:) | @MainActor func bnTabBarHaptics(_ haptics: BNTabBarHaptics) -> some View 
 BNUITabBar | View.bnTabBarItemRenderer(_:) | @MainActor func bnTabBarItemRenderer(_ renderer: any BNTabBarItemRenderer) -> some View 
@@ -1041,4 +1057,4 @@ BNUITabBar | View.bnTabBarMoreItem(_:systemImage:) | @MainActor func bnTabBarMor
 BNUITabBar | View.bnTabBarTheme(_:) | @MainActor func bnTabBarTheme(_ theme: BNTabBarTheme) -> some View 
 BNUITabBar | View.bnTabBarWidth(_:) | @MainActor func bnTabBarWidth(_ width: BNTabBarConfiguration.Width) -> some View 
 BNUITabBar | View.bnTabViewContentGap(_:) | @MainActor func bnTabViewContentGap(_ gap: CGFloat) -> some View 
-BNUITabBar | View.bnTabViewMargin(_:) | @MainActor func bnTabViewMargin(_ margin: CGFloat) -> some View 
+BNUITabBar | View.bnTabViewPlacement(_:) | @MainActor func bnTabViewPlacement(_ placement: BNTabBarController.Placement) -> some View 

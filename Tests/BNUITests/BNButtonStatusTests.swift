@@ -22,22 +22,6 @@ struct BNButtonStatusTests {
 @Suite("BNButtonAccessibility")
 struct BNButtonAccessibilityTests {
     @Test
-    func `an override left empty reads the system`() {
-        let overrides = BNButtonAccessibilityOverrides.none
-        #expect(overrides.resolvedReduceMotion(system: true))
-        #expect(!overrides.resolvedReduceMotion(system: false))
-        #expect(overrides.resolvedReduceTransparency(system: true))
-        #expect(!overrides.resolvedReduceTransparency(system: false))
-    }
-
-    @Test
-    func `a forced override wins over the system`() {
-        let overrides = BNButtonAccessibilityOverrides(reduceMotion: false, reduceTransparency: true)
-        #expect(!overrides.resolvedReduceMotion(system: true))
-        #expect(overrides.resolvedReduceTransparency(system: false))
-    }
-
-    @Test
     func `the standard words leave the disabled hint to the system`() {
         let strings = BNButtonAccessibilityStrings.standard
         #expect(!strings.busyValue.isEmpty)

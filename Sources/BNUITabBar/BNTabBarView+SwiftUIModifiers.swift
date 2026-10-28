@@ -7,7 +7,7 @@
     ///
     /// Every field is optional: unset means the bar's own default. A modifier nearer the bar
     /// writes over a farther one, and one applied to ``BN/TabBar`` or ``BN/TabView`` itself writes
-    /// over both. The margin and the gap belong to ``BN/TabView`` alone.
+    /// over both. The placement and the gap belong to ``BN/TabView`` alone.
     nonisolated struct BNTabBarEnvironment {
         var theme: BNTabBarTheme?
         var material: (any BNTabBarMaterial)?
@@ -18,7 +18,7 @@
         var width: BNTabBarConfiguration.Width?
         var labelMode: BNTabBarConfiguration.LabelMode?
         var moreItem: BNTabBarItem?
-        var margin: CGFloat?
+        var placement: BNTabBarController.Placement?
         var contentGap: CGFloat?
 
         /// The configuration the fields add up to, field by field over the kit's defaults.
@@ -115,10 +115,10 @@
             return transformEnvironment(\.bnTabBar) { $0.moreItem = item }
         }
 
-        /// The inset of the floating capsule from the safe-area edges in every ``BN/TabView``
-        /// beneath. Read once, when the tab view is made.
-        func bnTabViewMargin(_ margin: CGFloat) -> some View {
-            transformEnvironment(\.bnTabBar) { $0.margin = margin }
+        /// Where the bar stands in every ``BN/TabView`` beneath — as the system's floating bar
+        /// does, or off the safe area's edges. Read once, when the tab view is made.
+        func bnTabViewPlacement(_ placement: BNTabBarController.Placement) -> some View {
+            transformEnvironment(\.bnTabBar) { $0.placement = placement }
         }
 
         /// The distance kept between the bar and the content in every ``BN/TabView`` beneath. Read
@@ -245,9 +245,9 @@
             return adjusting { $0.moreItem = item }
         }
 
-        /// This tab view's capsule inset, over any `bnTabViewMargin` above it. Read once.
-        func bnTabViewMargin(_ margin: CGFloat) -> Self {
-            adjusting { $0.margin = margin }
+        /// Where this tab view's bar stands, over any `bnTabViewPlacement` above it. Read once.
+        func bnTabViewPlacement(_ placement: BNTabBarController.Placement) -> Self {
+            adjusting { $0.placement = placement }
         }
 
         /// This tab view's gap above the content, over any `bnTabViewContentGap` above it. Read once.

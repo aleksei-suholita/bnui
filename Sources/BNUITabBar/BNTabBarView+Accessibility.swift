@@ -16,7 +16,7 @@
         /// Movement itself never stops — the lens travelling *is* the navigation, not decoration
         /// on top of it — only the springs degrade.
         var resolvedMotion: BNTabBarMotion {
-            theme.motion.resolved(reduceMotion: UIAccessibility.isReduceMotionEnabled)
+            theme.motion.resolved(reduceMotion: bnReducesMotion)
         }
 
         /// Theme after accessibility overrides.
@@ -32,7 +32,7 @@
         /// piece to opt out separately is how you end up with an opaque bar and a see-through
         /// marker on it. So the control overrides both together, whatever the host asked for.
         var reducesTransparency: Bool {
-            UIAccessibility.isReduceTransparencyEnabled
+            bnReducesTransparency
         }
 
         var resolvedMaterial: any BNTabBarMaterial {
@@ -46,8 +46,13 @@
         // MARK: - Observation
 
         /// One place to re-read the environment. Settings changes arrive as notifications, text
-        /// size as a trait change; both end in the same rebuild.
+        /// size and a stage's forced settings as trait changes; all end in the same rebuild.
         func startObservingEnvironment() {
+            if #available(iOS 17.0, *) {
+                registerForTraitChanges(Self.bnForcedAccessibilityTraits) { (view: BNTabBarView, _) in
+                    view.rebuild()
+                }
+            }
             let centre = NotificationCenter.default
             for name in [
                 UIAccessibility.reduceMotionStatusDidChangeNotification,

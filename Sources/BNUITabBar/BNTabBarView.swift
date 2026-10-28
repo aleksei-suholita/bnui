@@ -22,9 +22,9 @@
                 if let selectedID, !items.contains(where: { $0.id == selectedID }) {
                     self.selectedID = items.first?.id
                 }
-                // A change of badges alone is drawn in place: a counter that ticks while a finger
-                // drives the lens must not take the gesture away.
-                guard !updateBadgesInPlace(from: oldValue) else { return }
+                // A change of badges or selected icons alone is drawn in place: a counter that ticks
+                // while a finger drives the lens must not take the gesture away.
+                guard !updateInPlace(from: oldValue) else { return }
                 rebuild()
             }
         }
@@ -78,6 +78,13 @@
 
         public let haptics: BNTabBarHaptics
 
+        /// Asked before a section the user chose is selected, and before a reselection is reported:
+        /// `false` keeps the selection where it is, and the lens goes back to it. Not asked for
+        /// ``setSelectedID(_:animated:)`` — the host chose that itself.
+        ///
+        /// For a section that opens something instead of being a place — a locked one that offers
+        /// an invitation — rather than one the host has to take back after the bar has moved.
+        public var shouldSelect: ((String) -> Bool)?
         /// A different section was chosen.
         public var onSelect: ((String) -> Void)?
         /// The already-active section was chosen again. What that means is the host's business —
@@ -108,8 +115,8 @@
         public private(set) var presentation: BNTabBarPresentation = .expanded
 
         /// A row along the bottom of the screen, or a column in the strip the system keeps for bars
-        /// beside the content — where its own bars go on iPhone Duo. `BNTabBarContainerViewController`
-        /// turns the bar into a column there by itself. In a column the sections are icons, the
+        /// beside the content — where its own bars go on iPhone Duo. `BNTabBarController` turns the
+        /// bar into a column there by itself. In a column the sections are icons, the
         /// action stands under them, and an accessory is not shown: the strip has no room for one.
         package var axis: NSLayoutConstraint.Axis = .horizontal {
             didSet {
@@ -191,15 +198,6 @@
             applySelection(transition: animated ? .spring(activeTheme.motion.selection) : .immediate)
         }
 
-        /// Shows `badge` on the section with `id`, or takes its badge away with `nil` — drawn in
-        /// place, as a change to ``items`` that touches only badges is. Found by id rather than by
-        /// position, so it holds when the host orders its sections differently. Unknown ids are
-        /// ignored rather than trapped: an id is data, and a stale one must not crash the app.
-        public func setBadge(_ badge: BNBadge?, for id: String) {
-            guard let index = items.firstIndex(where: { $0.id == id }), items[index].badge != badge else { return }
-            items[index].badge = badge
-        }
-
         public func setPresentation(_ presentation: BNTabBarPresentation, animated: Bool) {
             guard presentation != self.presentation else { return }
             self.presentation = presentation
@@ -216,6 +214,10 @@
         var lens: (any BNTabBarLens)?
         var baseItemViews: [any BNTabBarItemRendering] = []
         var selectedItemViews: [any BNTabBarItemRendering] = []
+        /// Where the badges are drawn: above the material, over the sections.
+        let badgeOverlay = UIView()
+        /// A badge per slot, in slot order; `nil` where the section's view draws its own.
+        var badgeViews: [BNBadgeView?] = []
         var reportedHeight: CGFloat?
         /// Each section's extent along the bar: its width in a row, its height in a column.
         var itemLengthConstraints: [NSLayoutConstraint] = []
@@ -288,17 +290,6 @@
             overflowItems.isEmpty ? nil : visibleItems.count
         }
 
-        /// What the More slot draws: the host's More item, with a dot while a section behind it
-        /// has a badge — a badge in a closed menu would otherwise go unseen. What the dot stands
-        /// for is said by the slot's accessibility value, not by the dot.
-        var moreSlotItem: BNTabBarItem {
-            let limit = activeTheme.badge.countLimit
-            let hasBadge = overflowItems.contains { $0.badge?.appearance(countLimit: limit) != nil }
-            var item = configuration.moreItem
-            item.badge = hasBadge ? .dot(accessibilityLabel: "") : nil
-            return item
-        }
-
         /// The slot the lens marks. A section chosen from the menu is marked on More itself —
         /// the slot keeps its own glyph, and the menu ticks which section is active.
         var selectedIndex: Int {
@@ -341,6 +332,7 @@
             subviews.forEach { $0.removeFromSuperview() }
             baseItemViews.removeAll()
             selectedItemViews.removeAll()
+            badgeViews.removeAll()
             // Off the bar now, and nothing is built into it again: a layout pass forced before the
             // new one exists — the accessory's, on its way in — would otherwise rebuild the slots
             // into it, and pin a More button in the bar to a lens outside it, which UIKit traps.
@@ -368,6 +360,7 @@
             addSubview(surface.view)
             surface.contentContainer.addSubview(lens)
             followAppearance(of: surface)
+            buildBadgeOverlay()
 
             // Built before the constraints below: an action changes the composition, so it has to
             // exist by the time alignment is decided.

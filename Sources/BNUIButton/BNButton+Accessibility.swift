@@ -1,16 +1,18 @@
 #if canImport(UIKit)
+    import BNUICore
     import UIKit
 
     extension BNButton {
         // MARK: - Environment
 
-        /// Reduce Motion, as the control sees it — the system's answer unless the host forced one.
+        /// Reduce Motion, as the control sees it — the system's answer unless a stage above it forced
+        /// one.
         var reducesMotion: Bool {
-            accessibilityOverrides.resolvedReduceMotion(system: UIAccessibility.isReduceMotionEnabled)
+            bnReducesMotion
         }
 
         var reducesTransparency: Bool {
-            accessibilityOverrides.resolvedReduceTransparency(system: UIAccessibility.isReduceTransparencyEnabled)
+            bnReducesTransparency
         }
 
         /// The theme after accessibility has had its say. Resolved once per rebuild and stored in
@@ -55,6 +57,10 @@
             registerForTraitChanges([UITraitUserInterfaceStyle.self]) { (button: BNButton, _) in
                 // Light and dark resolve to different colours, and the border is a layer colour,
                 // which does not follow the appearance by itself.
+                button.rebuildForEnvironment()
+            }
+
+            registerForTraitChanges(Self.bnForcedAccessibilityTraits) { (button: BNButton, _) in
                 button.rebuildForEnvironment()
             }
         }

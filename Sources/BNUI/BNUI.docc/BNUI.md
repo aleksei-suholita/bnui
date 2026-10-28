@@ -9,10 +9,10 @@ BNUI gives a UIKit or SwiftUI app two controls:
 - ``BNButton`` — one press, one result. The press answers the speed of the finger, a disabled
   button refuses a tap visibly instead of ignoring it, haptics follow a contract of their own,
   and the loading mode does not move the button. See <doc:BuildingAButton>.
-- ``BNTabBarContainerViewController`` — a replacement for `UITabBarController` with a floating
-  bar: a selection lens that follows the finger, a More menu when the sections outgrow the
-  width, an action button and an accessory above the bar. ``BNTabBarView`` is the bar alone.
-  See <doc:BuildingATabBar>.
+- ``BNTabBarController`` — a replacement for `UITabBarController` with a floating bar: a
+  selection lens that follows the finger, a More menu when the sections outgrow the width, an
+  action button and an accessory above the bar. It speaks UIKit's words — `bnTabBarController`,
+  `setTabBarHidden`. ``BNTabBarView`` is the bar alone. See <doc:BuildingATabBar>.
 
 Both follow Dynamic Type, VoiceOver, right-to-left, Reduce Motion and Reduce Transparency, and
 both have a SwiftUI face — the same UIKit control underneath, not a second implementation. See
@@ -23,7 +23,7 @@ both have a SwiftUI face — the same UIKit control underneath, not a second imp
 ```swift
 import BNUI
 
-let tabs = BNTabBarContainerViewController(tabs: [
+let tabs = BNTabBarController(tabs: [
     .init(item: BNTabBarItem(id: "home", icon: .symbol("house.fill"), title: "Home"),
           viewController: HomeViewController()),
     .init(item: BNTabBarItem(id: "settings", icon: .symbol("gearshape.fill"), title: "Settings"),
@@ -36,7 +36,7 @@ save.onTap = { model.save() }
 ```
 
 The controls report and the host acts: a button never performs its action itself, and the
-container switches tabs but leaves every other flow to the host.
+tab bar controller switches tabs but leaves every other flow to the host.
 
 ### Looks come from outside
 
@@ -65,7 +65,7 @@ control is enough.
 |---|---|---|
 | `BNUICore` | Motion, haptics, shapes, the blur plate and the ``BN`` namespace | — |
 | `BNUIButton` | ``BNButton`` and ``BN/Button`` | `BNUICore` |
-| `BNUITabBar` | ``BNTabBarView``, ``BNTabBarContainerViewController`` and their SwiftUI faces | `BNUIButton` |
+| `BNUITabBar` | ``BNTabBarView``, ``BNTabBarController`` and their SwiftUI faces | `BNUIButton` |
 | `BNUIGallery` | A bench with a page per control, open to an app's own pages; documented on its own | `BNUI` |
 
 ## Topics
@@ -75,7 +75,7 @@ control is enough.
 - <doc:BuildingAButton>
 - ``BNButton``
 - <doc:BuildingATabBar>
-- ``BNTabBarContainerViewController``
+- ``BNTabBarController``
 - ``BNTabBarView``
 
 ### SwiftUI
@@ -172,7 +172,6 @@ is written down.
 - ``BNButtonContentMeasurement``
 - ``BNButtonContentAxis``
 - ``BNButtonAccessibilityStrings``
-- ``BNButtonAccessibilityOverrides``
 
 ### Sections and Slots
 

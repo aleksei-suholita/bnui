@@ -90,6 +90,14 @@
             applyWidthConstraints()
         }
 
+        func setAlignment(index: Int) {
+            button.configuration.alignment = switch index {
+            case 0: .leading
+            case 2: .trailing
+            default: .center
+            }
+        }
+
         func setStyle(index: Int) {
             guard Self.styles.indices.contains(index) else { return }
             button.style = Self.styles[index]
@@ -104,38 +112,6 @@
         func setCorner(index: Int) {
             cornerShape = index == 1 ? .rounded(radius: 12) : .capsule
             button.size.shape = cornerShape
-        }
-
-        func setReduceTransparency(_ forced: Bool) {
-            button.accessibilityOverrides.reduceTransparency = forced ? true : nil
-        }
-
-        func setReduceMotion(_ forced: Bool) {
-            button.accessibilityOverrides.reduceMotion = forced ? true : nil
-        }
-
-        func setPressedScale(_ scale: Double) {
-            button.theme.geometry.pressedScale = CGFloat(scale)
-        }
-
-        func setPressDuration(_ duration: Double) {
-            button.theme.motion.press.duration = duration
-        }
-
-        func setFastBounce(_ bounce: Double) {
-            button.theme.motion.releaseFast.bounce = CGFloat(bounce)
-        }
-
-        func setSlowBounce(_ bounce: Double) {
-            button.theme.motion.releaseSlow.bounce = CGFloat(bounce)
-        }
-
-        func setSnapWindow(_ window: Double) {
-            button.theme.motion.snapWindow = window
-        }
-
-        func setMaxVelocity(_ velocity: Double) {
-            button.theme.motion.releaseVelocityRange = 0 ... CGFloat(velocity)
         }
 
         func setStatus(index: Int) {
@@ -176,20 +152,8 @@
             button.theme.motion.rejection = enabled ? .standard : .none
         }
 
-        func setRejectionTravel(_ travel: Double) {
-            button.theme.motion.rejection.travel = CGFloat(travel)
-        }
-
         func setRejectionHaptic(_ enabled: Bool) {
             button.theme.motion.rejection.isHapticEnabled = enabled
-        }
-
-        func setRejectionHold(_ hold: Double) {
-            button.theme.motion.rejection.flashHold = hold
-        }
-
-        func setRejectionFlashAlpha(_ alpha: Double) {
-            button.theme.motion.rejection.flashAlpha = CGFloat(alpha)
         }
 
         func setHapticsEnabled(_ enabled: Bool) {
@@ -205,11 +169,9 @@
             button.showsHitTargetOutline = shows
         }
 
-        func setShowsSystemButton(_ shows: Bool) {
-            systemButton.isHidden = !shows
-        }
-
+        /// The theme goes back first: the knobs after it set what it holds.
         func reset() {
+            button.theme = .standard
             setLongTitle(Defaults.usesLongTitle)
             setIcon(index: Defaults.iconIndex)
             setContentKind(index: Defaults.contentIndex)
@@ -217,31 +179,19 @@
             setTitle(Defaults.title)
             setSize(index: Defaults.sizeIndex)
             setWidth(index: Defaults.widthIndex)
+            setAlignment(index: Defaults.alignmentIndex)
             setStyle(index: Defaults.styleIndex)
             setMaterial(index: Defaults.materialIndex)
             setCorner(index: Defaults.cornerIndex)
-            setReduceMotion(Defaults.forcedAccessibility)
-            setReduceTransparency(Defaults.forcedAccessibility)
             setStatus(index: Defaults.statusIndex)
             setBadge(index: Defaults.badgeIndex)
             setMenu(index: Defaults.menuIndex)
             setCooldown(Defaults.cooldown)
             setRejection(Defaults.rejectionEnabled)
-            setRejectionTravel(Defaults.rejectionTravel)
             setRejectionHaptic(Defaults.rejectionHaptic)
-            setRejectionHold(Defaults.rejectionHold)
-            setRejectionFlashAlpha(Defaults.rejectionFlashAlpha)
-            button.theme = .standard
-            setPressedScale(Defaults.pressedScale)
-            setPressDuration(Defaults.pressDuration)
-            setFastBounce(Defaults.fastBounce)
-            setSlowBounce(Defaults.slowBounce)
-            setSnapWindow(Defaults.snapWindow)
-            setMaxVelocity(Defaults.maxVelocity)
             setHapticsEnabled(Defaults.hapticsEnabled)
             setHapticMergeWindow(Defaults.hapticMergeWindow)
             setShowsHitTarget(Defaults.showsHitTarget)
-            setShowsSystemButton(Defaults.showsSystemButton)
         }
 
         private func applyWidthConstraints() {

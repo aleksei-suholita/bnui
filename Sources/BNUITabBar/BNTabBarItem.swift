@@ -25,6 +25,12 @@
 
         public let id: String
         public let icon: Icon
+        /// The icon the section shows while it is selected — `house.fill` for `house` — or `nil` to
+        /// keep ``icon``. Under the kit's lens it changes exactly on the lens edge, as the colour
+        /// does. Changeable while the bar is on screen — a camera's section showing the filter in
+        /// use — through `setSelectedIcon(_:for:)`, in place and animated: a symbol gives way by
+        /// the system's replace effect, a picture cross-fades.
+        public var selectedIcon: Icon?
         public let title: String
         /// A count, a short text or a dot. Changing only the badges of a bar's sections redraws the
         /// badges alone, and a finger on the bar keeps its gesture — one in place reads
@@ -42,6 +48,7 @@
         public init(
             id: String,
             icon: Icon,
+            selectedIcon: Icon? = nil,
             title: String,
             badge: BNBadge? = nil,
             selectionAnimation: some BNTabBarSymbolEffect = .bounce,
@@ -49,6 +56,7 @@
         ) {
             self.id = id
             self.icon = icon
+            self.selectedIcon = selectedIcon
             self.title = title
             self.badge = badge
             self.selectionAnimation = selectionAnimation.symbolAnimation
@@ -57,9 +65,9 @@
     }
 
     extension BNTabBarItem {
-        /// Whether the two are the same section and only the badge tells them apart — the change a
-        /// bar draws in place instead of rebuilding.
-        func differsOnlyInBadge(from other: BNTabBarItem) -> Bool {
+        /// Whether the two are the same section and only the badge or the selected icon tells them
+        /// apart — the changes a bar draws in place instead of rebuilding.
+        func differsOnlyInPlace(from other: BNTabBarItem) -> Bool {
             id == other.id
                 && icon == other.icon
                 && title == other.title

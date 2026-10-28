@@ -14,11 +14,17 @@
         private let stack = UIStackView()
         private let titleLabel = UILabel()
         private var iconViews: [BNButtonIconView] = []
+        /// What each of `iconViews` shows, to draw it again at another point size.
+        private var icons: [BNButtonIcon] = []
+        /// The point size the symbols are drawn at: the size's own, until Dynamic Type grows the
+        /// title beside them and takes them along.
+        private var iconPointSize: CGFloat
 
         init(content: BNButtonContent, theme: BNButtonTheme, size: BNButtonSize) {
             self.content = content
             self.theme = theme
             self.size = size
+            iconPointSize = size.iconPointSize
             super.init(frame: .zero)
             build()
         }
@@ -74,12 +80,13 @@
             view.setContentHuggingPriority(.required, for: .horizontal)
             view.setContentCompressionResistancePriority(.required, for: .horizontal)
             iconViews.append(view)
+            icons.append(icon)
             return view
         }
 
         private func image(for icon: BNButtonIcon) -> UIImage? {
             let configuration = UIImage.SymbolConfiguration(
-                pointSize: size.iconPointSize,
+                pointSize: iconPointSize,
                 weight: theme.icon.weight,
                 scale: theme.icon.scale,
             )
@@ -121,7 +128,9 @@
 
             titleLabel.font = state.theme.typography.font(for: state.size)
             titleLabel.numberOfLines = state.numberOfLines
-            titleLabel.lineBreakMode = state.numberOfLines == 1 ? .byTruncatingTail : .byWordWrapping
+            // Lines break between words either way; the tail mode is what ends a title that runs
+            // past its last line with an ellipsis instead of cutting it off.
+            titleLabel.lineBreakMode = .byTruncatingTail
             titleLabel.textAlignment = textAlignment(for: state)
             stack.spacing = state.size.iconSpacing
             stack.axis = axis
@@ -155,10 +164,37 @@
             }
         }
 
+        /// A symbol beside a title grows as the title does: along the title's text style, at the text
+        /// size of the traits the content is shown under — the ones the label follows. A lone icon
+        /// keeps the size's point size, as its circle keeps the size's height, and so does an icon
+        /// beside a title in a font of no text style, which does not grow either.
+        private var textSizeIconPointSize: CGFloat {
+            let font = theme.typography.font(for: size)
+            guard content.hasTitle,
+                  let style = font.fontDescriptor.object(forKey: .textStyle) as? String
+            else { return size.iconPointSize }
+            return UIFontMetrics(forTextStyle: UIFont.TextStyle(rawValue: style))
+                .scaledValue(for: size.iconPointSize, compatibleWith: traitCollection)
+        }
+
+        /// Draws the symbols again once the text size has moved their point size. A picture is drawn
+        /// as given, so drawing it again changes nothing.
+        private func followTextSize() {
+            let pointSize = textSizeIconPointSize
+            guard pointSize != iconPointSize else { return }
+            iconPointSize = pointSize
+            for (view, icon) in zip(iconViews, icons) {
+                view.image = image(for: icon)
+            }
+        }
+
         func measure(fittingWidth: CGFloat) -> BNButtonContentMeasurement {
             // Measured from the text itself rather than through `systemLayoutSizeFitting`: the
             // button's width comes back from the solver as a constraint, and asking the view what
-            // it fits would echo that constraint straight back.
+            // it fits would echo that constraint straight back. The symbols are brought to the
+            // text size first: measuring is the first time the content is surely among the traits
+            // it is shown under.
+            followTextSize()
             let iconSizes = iconViews.compactMap(\.image?.size)
             guard content.hasTitle, let text = content.title else {
                 return BNButtonContentMeasurement(titleSize: .zero, iconSizes: iconSizes)

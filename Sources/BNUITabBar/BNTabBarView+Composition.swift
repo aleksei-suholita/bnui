@@ -198,40 +198,19 @@
                 baseStack.removeFromSuperview()
                 selectedStack.removeFromSuperview()
                 moreButton?.removeFromSuperview()
+                badgeViews.forEach { $0?.removeFromSuperview() }
                 baseItemViews.removeAll()
                 selectedItemViews.removeAll()
+                badgeViews.removeAll()
 
                 buildItems(in: lens)
                 buildMoreButton()
                 lens.layoutIfNeeded()
+                // The badges hang from the sections just placed, so they take their places here too.
+                badgeOverlay.layoutIfNeeded()
             }
             applySelection(transition: .immediate)
             refreshLongPressActions()
-        }
-
-        /// Shows new badges on the sections already built, when nothing but badges changed.
-        /// `false` when anything else did, or when a renderer cannot draw a badge in place — the
-        /// caller rebuilds then.
-        func updateBadgesInPlace(from oldItems: [BNTabBarItem]) -> Bool {
-            guard !baseItemViews.isEmpty,
-                  oldItems.count == items.count,
-                  zip(oldItems, items).allSatisfy({ old, new in new.differsOnlyInBadge(from: old) })
-            else { return false }
-            let slots = Array(visibleItems) + (moreSlotIndex == nil ? [] : [moreSlotItem])
-            guard slots.count == baseItemViews.count, slots.count == selectedItemViews.count else { return false }
-
-            // The pop is decoration, so Reduce Motion shows the new badge at once.
-            let transition: BNTransition = UIAccessibility.isReduceMotionEnabled
-                ? .immediate
-                : .spring(activeTheme.motion.itemAccent)
-            for (index, item) in slots.enumerated() {
-                guard baseItemViews[index].updateBadge(item.badge, transition: transition),
-                      selectedItemViews[index].updateBadge(item.badge, transition: transition)
-                else { return false }
-            }
-            // More's spoken value names the badges behind it, so it is said anew.
-            refreshAccessibilitySelection()
-            return true
         }
 
         func buildItems(in lens: any BNTabBarLens) {
@@ -249,6 +228,7 @@
                 let base = renderer.makeItemView(for: item, layer: .base)
                 baseItemViews.append(base)
                 baseStack.addArrangedSubview(base)
+                badgeViews.append(makeBadge(for: item, on: base))
                 let length = lengthAnchor(of: base).constraint(equalToConstant: initialItemLength)
                 length.isActive = true
                 itemLengthConstraints.append(length)

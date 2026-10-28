@@ -4,20 +4,22 @@ Compose a bottom navigation bar from sections, an optional action, and an option
 
 ## Overview
 
-The kit gives the bar two ways in. ``BNTabBarContainerViewController`` replaces
-`UITabBarController`: it holds a controller per tab and switches between them itself — what most
-apps want. ``BNTabBarView`` is the bar alone, for a host that switches its content by itself.
+The kit gives the bar two ways in. ``BNTabBarController`` replaces `UITabBarController`: it
+holds a controller per tab and switches between them itself — what most apps want.
+``BNTabBarView`` is the bar alone, for a host that switches its content by itself.
 
-## The container
+## The tab bar controller
 
 Each tab is a bar item and the controller shown while it is selected:
 
 ```swift
-let tabs = BNTabBarContainerViewController(
+let tabs = BNTabBarController(
     tabs: [
-        .init(item: BNTabBarItem(id: "home", icon: .symbol("house.fill"), title: "Home"),
+        .init(item: BNTabBarItem(id: "home", icon: .symbol("house"), selectedIcon: .symbol("house.fill"),
+                                 title: "Home"),
               viewController: UINavigationController(rootViewController: HomeViewController())),
-        .init(item: BNTabBarItem(id: "reports", icon: .symbol("chart.bar.fill"), title: "Reports"),
+        .init(item: BNTabBarItem(id: "reports", icon: .symbol("chart.bar"), selectedIcon: .symbol("chart.bar.fill"),
+                                 title: "Reports"),
               viewController: UINavigationController(rootViewController: ReportsViewController())),
     ],
     action: BNTabBarAction(icon: .symbol("plus"), accessibilityLabel: "New", style: .prominent)
@@ -26,24 +28,64 @@ tabs.onAction = { coordinator.create() }
 window.rootViewController = tabs
 ```
 
-The first tab is on screen at start. The bar floats over the content, and every tab's safe area
-grows by the bar's height, so a scroll view keeps its last row clear of the bar without being
-told. The controllers live as long as the container: a tab left and come back to keeps its
-scroll position and its navigation stack.
+The first tab is on screen at start. The bar floats over the content where the system's floating
+bar stands on iOS 26 — ``BNTabBarController/Placement`` puts it elsewhere — and every screen's
+safe area reaches up to the bar's top, so a scroll view keeps its last row clear of the bar
+without being told. Every tab's controller is the tab bar controller's child for as long as it is
+a tab: a tab left and come back to keeps its scroll position and its navigation stack, and a
+screen in any tab finds the controller as `bnTabBarController`, the way it would find
+`tabBarController`. A tab's stack is a plain `UINavigationController`.
 
-The container owns which tab is on screen. ``BNTabBarContainerViewController/onSelect`` reports
-a switch the user made, after it is done; ``BNTabBarContainerViewController/select(tabID:animated:)``
-makes one from the outside — after a modal flow saves, say — and is not reported back. A badge
-changes by the tab's id, so it holds whatever order the tabs stand in; a title changes through
-``BNTabBarContainerViewController/items``:
+### Selection
+
+The controller owns which tab is on screen. ``BNTabBarController/onSelect`` reports a switch the
+user made, after it is done; ``BNTabBarController/select(tabID:animated:)`` makes one from the
+outside — after a modal flow saves, say — and is not reported back.
+``BNTabBarController/shouldSelect`` is asked first and can turn a tab down: a locked one that
+offers an invitation instead stays unselected, and the lens goes back. A second tap on the tab on
+screen takes its stack back to the root, as under `UITabBarController`, and
+``BNTabBarController/onReselect`` says so — the place to scroll the root back to its top.
+
+### Hiding the bar
+
+``BNTabBarController/setTabBarHidden(_:animated:)`` slides the bar away and back — for a
+full-screen scene, or a screen that is to be without it — and every tab's content drops its inset
+with it. Such a screen hides the bar as it appears and shows it as it goes:
+
+```swift
+override func viewWillAppear(_ animated: Bool) {
+    super.viewWillAppear(animated)
+    bnTabBarController?.setTabBarHidden(true, animated: animated)
+}
+
+override func viewWillDisappear(_ animated: Bool) {
+    super.viewWillDisappear(animated)
+    bnTabBarController?.setTabBarHidden(false, animated: animated)
+}
+```
+
+Shown again in the middle of a swipe back, the bar comes back only once the swipe completes; a
+cancelled one leaves the screen on top and the bar hidden. The bar does not follow
+`hidesBottomBarWhenPushed`: a navigation controller says what it pushes to the system's tab bar
+controller alone.
+
+### Changing the tabs
+
+A badge changes by the tab's id, so it holds whatever order the tabs stand in, and so does the
+icon a tab shows while it is selected — a camera's tab showing the filter in use. Both change in
+place: the badge pops, the icon gives way by the system's symbol replace effect — from iOS 18 the
+one that morphs a symbol into its relative — or cross-fades when it is a picture:
 
 ```swift
 tabs.setBadge(.count(3), for: "inbox")
+tabs.setSelectedIcon(.symbol("camera.filters"), for: "camera")
 ```
 
-The tabs themselves are fixed when the container is made; a different set of tabs is a different
-container. The action can change with the app's state through
-``BNTabBarContainerViewController/action``.
+A title changes through ``BNTabBarController/items``. Which tabs there are changes through
+``BNTabBarController/tabs`` — a tab that appears with an invitation, a set an experiment decides.
+The tab on screen stays on screen while it is among them; otherwise the first one takes its place,
+and ``BNTabBarController/onSelect`` says so. The action can change with the app's state through
+``BNTabBarController/action``.
 
 ## The bar on its own
 
@@ -174,11 +216,16 @@ up to ``BNBadgeTheme/maximumContentSizeCategory`` — the icon keeps one size. I
 theme's ``BNTabBarTheme/badge``.
 
 One badge changes by its section's id — ``BNTabBarView/setBadge(_:for:)``, and the same on the
-container — and an id the bar does not have is passed over. Changing nothing but badges redraws
-the badges alone: they pop in and out and a number cross-fades, while a finger on the bar keeps
-its gesture. A custom renderer joins in through
-``BNTabBarItemRendering/updateBadge(_:transition:)``; one that does not is rebuilt as before. It
-draws the kit's badge with a ``BNBadgeView``, as the bar's own renderer does.
+tab bar controller — and an id the bar does not have is passed over. Changing nothing but badges
+redraws the badges alone: they pop in and out and a number cross-fades, while a finger on the bar
+keeps its gesture.
+
+The bar draws the badges above its material rather than in it: system glass blends what lies
+inside it into itself, and a badge's red comes out washed. A badge therefore does not rise with
+the glass under a finger. A custom renderer gives the bar the view to hang a badge from —
+``BNTabBarItemRendering/badgeAnchor`` — or draws its own with a ``BNBadgeView``, inside the
+material, and joins in through ``BNTabBarItemRendering/updateBadge(_:transition:)``; one that
+does neither is rebuilt as before.
 
 VoiceOver reads a badge in the host's words, or as shown when there are none; a dot always
 brings its own. A section behind More shows its badge as the menu item's subtitle, and More
@@ -188,7 +235,7 @@ wears a dot while any of them has one, naming them in its spoken value.
 
 iPhone Duo moves an app's bars into a strip beside the content — the status bar, the navigation
 bar's buttons, the tab bar — when the app is built against the iOS 27.1 SDK.
-``BNTabBarContainerViewController`` follows it: where the system keeps that strip, the bar stands
+``BNTabBarController`` follows it: where the system keeps that strip, the bar stands
 in it as a column at its bottom, where the system puts its own tab bar. A column shows icons
 only, puts the action under the sections and keeps clear of what the system reserves in the
 strip, such as the camera. The bar turns into a column only when every section fits there;
@@ -216,7 +263,7 @@ as "Tab N of M" with its selected state, and a long press is published as a cust
 
 ### Set up the bar
 
-- ``BNTabBarContainerViewController``
+- ``BNTabBarController``
 - ``BNTabBarView``
 - ``BNTabBarItem``
 - ``BNTabBarSymbolEffect``

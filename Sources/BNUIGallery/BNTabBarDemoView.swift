@@ -22,7 +22,6 @@
             static let action = 0
             static let accessory = false
             static let minimumItemWidth = Double(BNTabBarMetrics.standard.minimumItemWidth)
-            static let motion = BNTabBarMotion.standard
             static let haptics = true
             /// Off, Count, 120, Text, Dot.
             static let badge = 0
@@ -42,7 +41,7 @@
             Section(symbol: "bell.fill", title: "Alerts"),
             Section(symbol: "bookmark.fill", title: "Saved"),
             Section(symbol: "person.fill", title: "Profile"),
-            // Past five, to crowd the bar: sections narrow, labels shrink, then go, then More.
+            // Past five, to crowd the bar into More.
             Section(symbol: "magnifyingglass", title: "Search"),
             Section(symbol: "gearshape.fill", title: "Settings"),
         ]
@@ -68,22 +67,30 @@
         /// The bar along the bottom of the stage, and the bar in a strip down its trailing edge.
         private var rowConstraints: [NSLayoutConstraint] = []
         private var columnConstraints: [NSLayoutConstraint] = []
-        /// The strip iPhone Duo keeps for bars, as measured on its simulator; the container takes
-        /// the real one from the safe area.
+        /// The strip iPhone Duo keeps for bars, as measured on its simulator; the tab bar
+        /// controller takes the real one from the safe area.
         private static let stripWidth: CGFloat = 84
 
         private var sectionCount = Defaults.sections
         private var badgeKind = Defaults.badge
-        private var badgeCount = Defaults.badgeCount
-        /// Counts up once a second while on, so a drag can be tried against a badge that keeps
-        /// changing — it must not lose the gesture.
-        private var badgeTicker: Task<Void, Never>?
         private var selectionAnimation = BNTabBarDemoView.selectionEffects[Defaults.selectionAnimation].effect.symbolAnimation
         /// What the last section wears: its symbol, an oversized glyph, a photo, or its symbol as an
         /// image.
         var lastIcon = Defaults.lastIcon {
             didSet { tabBar?.items = makeItems() }
         }
+
+        /// The last section's title in place of its own; empty leaves its own.
+        var lastTitle = "" {
+            didSet { tabBar?.items = makeItems() }
+        }
+
+        // What Present opens the controller with, beside what the bar itself holds.
+        var verticalBar = GalleryTabBarHost.VerticalBar.automatic
+        var locksLastSection = false
+        /// The material knob's pick: the bar on the stage wears it wrapped in a probe, the
+        /// controller as it is.
+        private(set) var materialIndex = Defaults.material
 
         override init(frame: CGRect) {
             super.init(frame: frame)
@@ -111,38 +118,6 @@
             tabBar?.items = makeItems()
         }
 
-        func setTickingBadge(_ ticking: Bool) {
-            badgeTicker?.cancel()
-            badgeTicker = nil
-            guard ticking else { return }
-            badgeTicker = Task { [weak self] in
-                while !Task.isCancelled {
-                    do {
-                        try await Task.sleep(for: .seconds(1))
-                    } catch {
-                        return
-                    }
-                    self?.tickBadge()
-                }
-            }
-        }
-
-        /// By id, the way an app counts: where the section stands in the bar does not matter, and
-        /// one that is not there is passed over.
-        private func tickBadge() {
-            badgeCount += 1
-            for id in Self.badgedIDs {
-                tabBar?.setBadge(makeBadge(), for: id)
-            }
-        }
-
-        override func didMoveToWindow() {
-            super.didMoveToWindow()
-            if window == nil {
-                setTickingBadge(false)
-            }
-        }
-
         func setSelectionAnimation(index: Int) {
             guard Self.selectionEffects.indices.contains(index) else { return }
             selectionAnimation = Self.selectionEffects[index].effect.symbolAnimation
@@ -168,6 +143,7 @@
         func setMaterial(index: Int) {
             let materials = Self.materials
             guard materials.indices.contains(index) else { return }
+            materialIndex = index
             // Each one carries a probe, so the feed says what the glass hands its content as the
             // backdrop changes — whether it flips light and dark the way system bars do.
             tabBar?.material = GalleryProbedTabBarMaterial(base: materials[index].material) { [weak self] in
@@ -185,33 +161,8 @@
             tabBar?.theme.geometry.minimumItemWidth = value
         }
 
-        func setLift(duration: Double) {
-            tabBar?.theme.motion.lift.duration = duration
-        }
-
-        func setLift(bounce: Double) {
-            tabBar?.theme.motion.lift.bounce = bounce
-        }
-
-        func setUnlift(duration: Double) {
-            tabBar?.theme.motion.unlift.duration = duration
-        }
-
-        func setUnlift(bounce: Double) {
-            tabBar?.theme.motion.unlift.bounce = bounce
-        }
-
-        func setSelection(duration: Double) {
-            tabBar?.theme.motion.selection.duration = duration
-        }
-
-        func setSelection(bounce: Double) {
-            tabBar?.theme.motion.selection.bounce = bounce
-        }
-
-        /// Moves the selection the way a host does, through `setSelectedID`. It is the only path
-        /// that rides the selection spring — a finger rides lift and unlift — so without it the
-        /// selection knobs would have nothing to show.
+        /// Moves the selection the way a host does, through `setSelectedID` — the one path that rides
+        /// the selection spring rather than the finger's.
         func selectNextFromHost() {
             guard let tabBar else { return }
             let ids = makeItems().map(\.id)
@@ -229,27 +180,17 @@
             tabBar?.accessory = enabled ? BNTabBarAccessory(view: makeAccessoryView()) : nil
         }
 
-        func setAction(index: Int) {
-            // The last one brings its own pair: a light fill that needs a dark glyph.
-            let styles: [BNTabBarAction.Style?] = [
-                nil, .standard, .prominent, .prominent(fill: .systemYellow, glyph: .black),
-            ]
-            guard styles.indices.contains(index) else { return }
-            tabBar?.action = styles[index].map {
-                BNTabBarAction(icon: .symbol("plus"), accessibilityLabel: "Create", style: $0)
-            }
-        }
-
         /// Returns the control to its default state and clears the log. Called by the inspector's
         /// Reset, which then puts every knob back as well.
         func reset() {
             guard let tabBar else { return }
             sectionCount = Defaults.sections
             badgeKind = Defaults.badge
-            badgeCount = Defaults.badgeCount
-            setTickingBadge(false)
             selectionAnimation = Self.selectionEffects[Defaults.selectionAnimation].effect.symbolAnimation
             lastIcon = Defaults.lastIcon
+            lastTitle = ""
+            locksLastSection = false
+            tabBar.shouldSelect = nil
             tabBar.items = makeItems()
             tabBar.action = nil
             tabBar.accessory = nil
@@ -274,7 +215,7 @@
                 bar.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -BNGallerySpacing.m),
                 bar.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -BNGallerySpacing.m),
             ]
-            // The whole strip, as the container gives it: the column hangs from its bottom.
+            // The whole strip, as the tab bar controller gives it: the column hangs from its bottom.
             columnConstraints = [
                 bar.trailingAnchor.constraint(equalTo: trailingAnchor),
                 bar.widthAnchor.constraint(equalToConstant: Self.stripWidth),
@@ -299,7 +240,7 @@
             bar.onAccessoryTap = { [weak self] in self?.report("accessory tapped") }
         }
 
-        private func report(_ event: String) {
+        func report(_ event: String) {
             onGalleryEvent?(event)
         }
 
@@ -314,22 +255,27 @@
 
         private func makeItems() -> [BNTabBarItem] {
             Self.catalogue.prefix(sectionCount).enumerated().map { index, entry in
-                BNTabBarItem(
-                    id: entry.title.lowercased(),
-                    icon: index == sectionCount - 1 ? Self.lastIcon(lastIcon, symbol: entry.symbol) : .symbol(entry.symbol),
-                    title: entry.title,
-                    // The last one is the first behind More: its badge goes to the menu, and a dot
-                    // to More.
-                    badge: Self.badgedIDs.contains(entry.title.lowercased()) ? makeBadge() : nil,
-                    selectionAnimation: selectionAnimation,
-                )
+                makeItem(entry, isLast: index == sectionCount - 1)
             }
         }
-    }
 
-    extension BNTabBarDemoView {
-        func setBadgePosition(index: Int) {
-            tabBar?.theme.badge.position = index == 1 ? .bottomTrailing : .topTrailing
+        /// A section as the knobs draw it; the last one wears the last icon and the last title.
+        private func makeItem(_ entry: Section, isLast: Bool) -> BNTabBarItem {
+            BNTabBarItem(
+                id: entry.title.lowercased(),
+                icon: isLast ? Self.lastIcon(lastIcon, symbol: entry.symbol) : .symbol(entry.symbol),
+                title: isLast && !lastTitle.isEmpty ? lastTitle : entry.title,
+                // The last of the catalogue is the first behind More: its badge goes to the menu,
+                // and a dot to More.
+                badge: Self.badgedIDs.contains(entry.title.lowercased()) ? makeBadge() : nil,
+                selectionAnimation: selectionAnimation,
+            )
+        }
+
+        /// Every section of the catalogue as the knobs draw it, for the controller Present opens:
+        /// the ones on the bar, then the rest, in order, for its Add a tab.
+        func catalogueItems() -> (shown: [BNTabBarItem], spare: [BNTabBarItem]) {
+            (makeItems(), Self.catalogue.dropFirst(sectionCount).map { makeItem($0, isLast: false) })
         }
     }
 
@@ -343,7 +289,7 @@
 
         func makeBadge() -> BNBadge? {
             switch badgeKind {
-            case 1: .count(badgeCount, accessibilityLabel: "\(badgeCount) new")
+            case 1: .count(Defaults.badgeCount, accessibilityLabel: "\(Defaults.badgeCount) new")
             case 2: .count(120, accessibilityLabel: "120 new")
             case 3: .text("New")
             case 4: .dot(accessibilityLabel: "New")

@@ -52,19 +52,43 @@
         /// What the content needs across — the layout solver's input. The label is reported apart
         /// from the icon, because a crowded bar shrinks labels and then drops them.
         func measure() -> BNTabBarLayoutSolver.ItemMeasure
-        /// Shows another badge in place, without the view being made again. Returns `false` when it
+        /// Takes another badge in place, without the view being made again. Returns `false` when it
         /// cannot, and the bar then rebuilds its sections instead.
         ///
         /// A badge lies over the section and takes no part in its measure, so changing one moves
         /// nothing else. The default answers `false`: a renderer that does not draw badges in
         /// place keeps working, and the bar rebuilds it the way it did before badges updated alone.
-        /// A ``BNBadgeView`` draws the badge as the bar's own sections do.
+        /// A view with a ``badgeAnchor`` is still told: the bar draws the badge, the view says it to
+        /// VoiceOver.
         func updateBadge(_ badge: BNBadge?, transition: BNTransition) -> Bool
+        /// The view the bar hangs this section's badge from — the icon, whose trailing corner the
+        /// badge takes — or `nil` for a renderer that draws its own badge.
+        ///
+        /// With an anchor the bar draws the badge above its material rather than in it: system
+        /// glass blends what lies inside it into itself, and a badge's colour, the reddest thing on
+        /// the bar, comes out washed. Only the unselected copy is asked; the badge is drawn once.
+        /// The default is `nil`, so a renderer of the host's own keeps drawing its badges as before,
+        /// inside the material. One that wraps the kit's own item views hands on their anchor.
+        var badgeAnchor: UIView? { get }
+        /// Takes another selected icon in place, without the view being made again — animated
+        /// unless `transition` is immediate. Returns `false` when it cannot, and the bar then
+        /// rebuilds its sections instead. The default answers `false`.
+        func updateSelectedIcon(_ icon: BNTabBarItem.Icon?, transition: BNTransition) -> Bool
     }
 
     public extension BNTabBarItemRendering {
         /// Draws no badge in place: the bar rebuilds the sections instead.
         func updateBadge(_: BNBadge?, transition _: BNTransition) -> Bool {
+            false
+        }
+
+        /// No anchor: the renderer draws its own badge.
+        var badgeAnchor: UIView? {
+            nil
+        }
+
+        /// Takes no selected icon in place: the bar rebuilds the sections instead.
+        func updateSelectedIcon(_: BNTabBarItem.Icon?, transition _: BNTransition) -> Bool {
             false
         }
     }
@@ -78,7 +102,7 @@
         func makeItemView(for item: BNTabBarItem, layer: BNTabBarItemLayer) -> any BNTabBarItemRendering
     }
 
-    /// Default look: icon over an optional label, with an optional badge.
+    /// Default look: icon over an optional label, with the badge hung from the icon by the bar.
     public struct BNStandardTabBarItemRenderer: BNTabBarItemRenderer {
         private let theme: BNTabBarTheme
         private let labelMode: BNTabBarConfiguration.LabelMode

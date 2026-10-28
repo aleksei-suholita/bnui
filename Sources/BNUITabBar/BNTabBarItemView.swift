@@ -2,7 +2,8 @@
     import BNUICore
     import UIKit
 
-    /// Default item view: icon over an optional label, with an optional badge.
+    /// Default item view: icon over an optional label. Its badge is the bar's to draw, hung from
+    /// the icon (`badgeAnchor`); the view says it to VoiceOver.
     ///
     /// Owns its accessibility identity — a button that is additionally "selected" when active,
     /// the shape VoiceOver needs to announce "Tab N of M". Only the `.base` copy is exposed to
@@ -14,10 +15,16 @@
         private let labelMode: BNTabBarConfiguration.LabelMode
         private let itemLayer: BNTabBarItemLayer
         private let titleLabel = UILabel()
-        private let badgeView: BNBadgeView
         private let imageView = UIImageView()
-        /// An image's box, held so a theme of another point size resizes it; empty for a symbol.
+        /// An image's box, held so a theme of another point size resizes it; empty when neither
+        /// icon is a picture, and stood down while a symbol is on show.
         private var imageBoxConstraints: [NSLayoutConstraint] = []
+        /// The icon on show: the item's own, or its selected one while the section is drawn
+        /// selected.
+        private var shownIcon: BNTabBarItem.Icon
+        /// The item's selected icon, changeable in place.
+        private var selectedIcon: BNTabBarItem.Icon?
+        private var badge: BNBadge?
         private var isSelected = false
 
         init(
@@ -30,7 +37,9 @@
             self.theme = theme
             self.labelMode = labelMode
             itemLayer = layer
-            badgeView = BNBadgeView(theme: theme.badge, crossFade: theme.motion.crossFade)
+            shownIcon = item.icon
+            selectedIcon = item.selectedIcon
+            badge = item.badge
             super.init(frame: .zero)
             build()
         }
@@ -47,6 +56,9 @@
         func apply(state: BNTabBarItemState, transition: BNTransition) {
             theme = state.theme
             isSelected = state.isSelected
+            // Swapped, not animated: under a revealing lens the selected copy is the one that
+            // shows it, and the lens edge is where it changes.
+            show(state.isSelected ? selectedIcon ?? item.icon : item.icon)
 
             let changes = { [self] in
                 let colour = state.isSelected ? theme.palette.selected : theme.palette.unselected
@@ -74,7 +86,7 @@
         func playSelectionAnimation() {
             // Symbol effects move a symbol's layers; a picture has none. The app's own symbols come
             // as images, and move as the system's do.
-            guard imageView.image?.isSymbolImage == true, !UIAccessibility.isReduceMotionEnabled else { return }
+            guard imageView.image?.isSymbolImage == true, !bnReducesMotion else { return }
             // Symbol effects arrive with iOS 17. Below it the icon still changes weight and colour;
             // it just does not animate.
             guard #available(iOS 17.0, *) else { return }
@@ -83,8 +95,26 @@
             item.selectionAnimation.play(on: imageView)
         }
 
-        func updateBadge(_ badge: BNBadge?, transition: BNTransition) -> Bool {
-            showBadge(badge, transition: transition)
+        /// The bar draws the badge above its material; the view only says it.
+        func updateBadge(_ badge: BNBadge?, transition _: BNTransition) -> Bool {
+            self.badge = badge
+            refreshBadgeAccessibility()
+            return true
+        }
+
+        var badgeAnchor: UIView? {
+            imageView
+        }
+
+        /// In place while the new icon takes the box the old one took; another box changes what
+        /// the section measures, and the bar rebuilds it.
+        func updateSelectedIcon(_ icon: BNTabBarItem.Icon?, transition: BNTransition) -> Bool {
+            let box = (selectedIcon ?? item.icon).imageBox(for: theme.icon)
+            guard (icon ?? item.icon).imageBox(for: theme.icon) == box else { return false }
+            selectedIcon = icon
+            if isSelected {
+                show(icon ?? item.icon, animated: transition.isAnimated)
+            }
             return true
         }
 
@@ -97,9 +127,13 @@
                 : ceil((item.title as NSString).size(withAttributes: [
                     .font: theme.typography.selectedTitle,
                 ]).width)
+            // The wider of the two icons, so swapping to the selected one moves nothing.
+            let iconWidth = [item.icon, selectedIcon].compactMap(\.self)
+                .map { $0.imageBox(for: theme.icon)?.width ?? theme.icon.pointSize }
+                .max() ?? theme.icon.pointSize
             return BNTabBarLayoutSolver.ItemMeasure(
                 labelWidth: labelWidth,
-                iconWidth: item.icon.imageBox(for: theme.icon)?.width ?? theme.icon.pointSize,
+                iconWidth: iconWidth,
                 inset: theme.geometry.itemSpacing,
             )
         }
@@ -107,10 +141,10 @@
         // MARK: - Build
 
         private func build() {
-            imageView.image = item.icon.drawnImage
+            imageView.image = shownIcon.drawnImage
             imageView.contentMode = .scaleAspectFit
             imageView.translatesAutoresizingMaskIntoConstraints = false
-            if item.icon.imageBox(for: theme.icon) != nil {
+            if [item.icon, item.selectedIcon].contains(where: { $0?.imageBox(for: theme.icon) != nil }) {
                 imageBoxConstraints = [
                     imageView.widthAnchor.constraint(equalToConstant: 0),
                     imageView.heightAnchor.constraint(equalToConstant: 0),
@@ -158,9 +192,8 @@
                 stack.bottomAnchor.constraint(lessThanOrEqualTo: bottomAnchor),
             ])
 
-            buildBadge()
             configureAccessibility()
-            showBadge(item.badge, transition: .immediate)
+            refreshBadgeAccessibility()
         }
 
         private func shouldHideLabel(state: BNTabBarItemState) -> Bool {
@@ -174,23 +207,9 @@
 
         // MARK: - Badge
 
-        /// Hung from the icon's trailing corner, at the top or the bottom: a text grows away from
-        /// the glyph instead of over it, and a dot sits on the corner itself. A text stays inside
-        /// the section, over the glyph when it must, rather than on the next section.
-        private func buildBadge() {
-            addSubview(badgeView)
-            badgeView.pin(toCornerOf: imageView)
-            badgeView.keepInside(self)
-        }
-
-        private func showBadge(_ badge: BNBadge?, transition: BNTransition) {
-            badgeView.show(badge, transition: transition)
-            refreshBadgeAccessibility()
-        }
-
         private func refreshBadgeAccessibility() {
             guard itemLayer == .base else { return }
-            accessibilityValue = badgeView.spokenText
+            accessibilityValue = badge?.spokenText(countLimit: theme.badge.countLimit)
         }
 
         private func configureAccessibility() {
@@ -207,11 +226,49 @@
     }
 
     private extension BNTabBarItemView {
+        func show(_ icon: BNTabBarItem.Icon, animated: Bool = false) {
+            guard icon != shownIcon else { return }
+            shownIcon = icon
+            if animated, let image = icon.drawnImage {
+                replaceImage(with: image)
+            } else {
+                imageView.image = icon.drawnImage
+            }
+            fitImageBox()
+        }
+
+        /// A symbol gives way to a symbol by the system's replace effect — from iOS 18 the one that
+        /// morphs a symbol into its relative, `bell` into `bell.slash` — and anything else
+        /// cross-fades, as a symbol does before iOS 17.
+        func replaceImage(with image: UIImage) {
+            if #available(iOS 17.0, *), image.isSymbolImage, imageView.image?.isSymbolImage == true {
+                if #available(iOS 18.0, *) {
+                    imageView.setSymbolImage(image, contentTransition: .replace.magic(fallback: .replace))
+                } else {
+                    imageView.setSymbolImage(image, contentTransition: .replace)
+                }
+                return
+            }
+            UIView.transition(
+                with: imageView,
+                duration: theme.motion.crossFade.duration,
+                options: [.transitionCrossDissolve, .allowUserInteraction],
+            ) { [imageView] in
+                imageView.image = image
+            }
+        }
+
         /// An image sits in its box, not at its own size: the box is what the bar is measured by.
+        /// A symbol sizes itself, so the box stands down while one is on show.
         func fitImageBox() {
-            guard imageBoxConstraints.count == 2, let box = item.icon.imageBox(for: theme.icon) else { return }
+            guard imageBoxConstraints.count == 2 else { return }
+            guard let box = shownIcon.imageBox(for: theme.icon) else {
+                NSLayoutConstraint.deactivate(imageBoxConstraints)
+                return
+            }
             imageBoxConstraints[0].constant = box.width
             imageBoxConstraints[1].constant = box.height
+            NSLayoutConstraint.activate(imageBoxConstraints)
         }
     }
 #endif

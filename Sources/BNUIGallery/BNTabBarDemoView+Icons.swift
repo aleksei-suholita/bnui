@@ -3,27 +3,15 @@
     import UIKit
 
     extension BNTabBarDemoView {
-        /// The effects the knob offers, with the options each one has, by name.
+        /// The effects the knob offers, by name.
         static let selectionEffects: [(name: String, effect: any BNTabBarSymbolEffect)] = [
             ("Bounce", .bounce),
-            ("Bounce down, by layer", .bounce.down.byLayer),
             ("Pulse", .pulse),
             ("Wiggle", .wiggle),
-            ("Wiggle forward", .wiggle.forward),
-            ("Rotate", .rotate),
-            ("Rotate counterclockwise", .rotate.counterClockwise),
             ("Breathe", .breathe),
-            ("Breathe with a pulse", .breathe.pulse),
             ("Draw on", .drawOn),
-            ("Draw on, path by path", .drawOn.individually),
             ("Off", .none),
         ]
-
-        func setSymbolScale(index: Int) {
-            let scales: [UIImage.SymbolScale] = [.small, .medium, .large]
-            guard scales.indices.contains(index) else { return }
-            tabBar?.theme.icon.scale = scales[index]
-        }
 
         /// The last section's icon by the knob's index: its symbol, an 80 pt glyph that has to
         /// fit the box instead of growing the bar, a photo kept in its own colours, or its symbol

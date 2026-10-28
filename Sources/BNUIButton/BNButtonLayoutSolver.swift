@@ -98,7 +98,8 @@ public nonisolated enum BNButtonLayoutSolver {
         /// ``BNButtonSize/iconOnlyInset`` on every side of a lone icon.
         public var contentInsets: BNButtonInsets
         /// How far the icons are shrunk: a lone one to fit its circle, icons beside a title or each
-        /// other to fit the size's height. 1 unless an icon would cross the inset or the padding.
+        /// other to fit a line — the size's or the title's, whichever is taller. 1 unless an icon
+        /// would cross the inset or the padding.
         public var iconScale: CGFloat
 
         /// The area a finger actually hits. Never smaller than the platform minimum.
@@ -165,12 +166,15 @@ public nonisolated enum BNButtonLayoutSolver {
     }
 
     /// Icons beside a title, or beside each other, are no taller than one line the size holds —
-    /// its height less the vertical padding. A taller one is shrunk rather than the button grown,
-    /// as a lone icon is shrunk into its circle: the height belongs to the size, and only text,
-    /// wrapped or grown by Dynamic Type, is allowed past it. Two icons shrink together, by the
-    /// taller one, so the pair keeps its proportions.
+    /// its height less the vertical padding — or than a line of the title, once Dynamic Type has
+    /// made that the taller. A taller icon is shrunk rather than the button grown, as a lone icon
+    /// is shrunk into its circle: the height belongs to the size, and only text, wrapped or grown
+    /// by Dynamic Type, is allowed past it; an icon grown with the text goes as far as its line.
+    /// Two icons shrink together, by the taller one, so the pair keeps its proportions.
     private static func iconScaleBesideContent(input: Input) -> CGFloat {
-        let room = max(input.size.height - 2 * input.size.verticalPadding, 0)
+        let sizeLine = input.size.height - 2 * input.size.verticalPadding
+        let titleLine = input.titleWidth > 0 ? input.titleLineHeight : 0
+        let room = max(sizeLine, titleLine, 0)
         return min(1, fit(input.iconHeight, into: room))
     }
 

@@ -40,8 +40,8 @@
             )
         }
 
-        /// Text size and direction are trait overrides, which arrive with iOS 17; iOS 16 can
-        /// override only the appearance.
+        /// Text size, direction and the accessibility switches are trait overrides, which arrive with
+        /// iOS 17; iOS 16 can override only the appearance.
         private func traitSections(onChange: @escaping (GalleryEnvironment) -> Void) -> [UIMenu] {
             let appearance = section(
                 (title: "Appearance", image: "circle.lefthalf.filled"), \.appearance, name: \.title, onChange: onChange,
@@ -53,7 +53,30 @@
                 section(
                     (title: "Layout Direction", image: "arrow.left.arrow.right"), \.direction, name: \.title, onChange: onChange,
                 ),
+                accessibility(onChange: onChange),
             ]
+        }
+
+        /// What Settings → Accessibility would switch on, for the kit's controls on the stage. The
+        /// closed menu names what is on.
+        private func accessibility(onChange: @escaping (GalleryEnvironment) -> Void) -> UIMenu {
+            let on = [(reducesMotion, "Reduce Motion"), (reducesTransparency, "Reduce Transparency")]
+                .filter(\.0).map(\.1)
+            return UIMenu(
+                title: "Accessibility",
+                subtitle: on.isEmpty ? "System" : on.joined(separator: ", "),
+                image: UIImage(systemName: "accessibility"),
+                children: [
+                    toggle(
+                        (title: "Reduce Motion", image: "figure.walk.motion"), "The kit's controls move as Settings asks",
+                        \.reducesMotion, onChange: onChange,
+                    ),
+                    toggle(
+                        (title: "Reduce Transparency", image: "drop.halffull"), "The kit's materials go solid",
+                        \.reducesTransparency, onChange: onChange,
+                    ),
+                ],
+            )
         }
 
         private func toolSections(onChange: @escaping (GalleryEnvironment) -> Void) -> [UIMenu] {

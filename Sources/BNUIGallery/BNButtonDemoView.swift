@@ -4,43 +4,32 @@
 
     /// The bench for ``BNButton``.
     ///
-    /// The button in the middle of the whole stage, over whatever backdrop the stage shows, with a
-    /// system glass button under it — the motion bar is "indistinguishable from the system", and
-    /// that is only judgeable side by side. What the control reports goes to the stage's event
-    /// feed, so a tap that did not fire is visible rather than merely suspected. Full-bleed on
-    /// purpose: a Fill button is judged against a screen's width, not a card's.
+    /// The button in the middle of the whole stage, over whatever backdrop the stage shows. What
+    /// the control reports goes to the stage's event feed, so a tap that did not fire is visible
+    /// rather than merely suspected. Full-bleed on purpose: a Fill button is judged against a
+    /// screen's width, not a card's.
     final class BNButtonDemoView: UIView, BNGalleryEventReporting {
         enum Defaults {
             static let title = "Continue"
             static let sizeIndex = 1
             static let widthIndex = 0
+            static let alignmentIndex = 1
             static let styleIndex = 0
             static let materialIndex = 0
             static let cornerIndex = 0
-            static let forcedAccessibility = false
             static let statusIndex = 0
             static let cooldown = 0.0
             static let rejectionEnabled = true
-            static let rejectionTravel = 7.0
             static let rejectionHaptic = true
-            static let rejectionHold = 0.35
-            static let rejectionFlashAlpha = 0.45
             static let contentIndex = 0
             static let iconIndex = 0
             static let badgeIndex = 0
             static let menuIndex = 0
             static let usesLongTitle = false
             static let titleBehaviorIndex = 0
-            static let pressedScale = 0.96
-            static let pressDuration = 0.16
-            static let fastBounce = 0.45
-            static let slowBounce = 0.10
-            static let snapWindow = 0.25
-            static let maxVelocity = 6.0
             static let hapticsEnabled = true
             static let hapticMergeWindow = 0.15
             static let showsHitTarget = false
-            static let showsSystemButton = true
         }
 
         static let sizes: [BNButtonSize] = [.small, .medium, .large]
@@ -110,17 +99,8 @@
         static let longTitle = "Continue with a label long enough to run onto several lines at any width, "
             + "so truncating, two lines and unlimited wrapping all look different"
 
-        /// The system's glass button to stand beside the kit's; before iOS 26, the nearest system look.
-        static var systemConfiguration: UIButton.Configuration {
-            if #available(iOS 26.0, *) {
-                return .glass()
-            }
-            return .gray()
-        }
-
         var onGalleryEvent: ((String) -> Void)?
         let button = BNButton(content: .title(Defaults.title))
-        let systemButton = UIButton(configuration: BNButtonDemoView.systemConfiguration)
         var widthConstraints: [NSLayoutConstraint] = []
 
         // Knob state the content is rebuilt from.
@@ -151,19 +131,7 @@
         private func build() {
             button.translatesAutoresizingMaskIntoConstraints = false
             addSubview(button)
-
-            var configuration = systemButton.configuration ?? Self.systemConfiguration
-            configuration.title = "System"
-            systemButton.configuration = configuration
-            systemButton.translatesAutoresizingMaskIntoConstraints = false
-            addSubview(systemButton)
-
-            NSLayoutConstraint.activate([
-                // A little above centre, so the pair — ours over the system's — is what is centred.
-                button.centerYAnchor.constraint(equalTo: centerYAnchor, constant: -BNGallerySpacing.l),
-                systemButton.topAnchor.constraint(equalTo: button.bottomAnchor, constant: BNGallerySpacing.l),
-                systemButton.centerXAnchor.constraint(equalTo: centerXAnchor),
-            ])
+            button.centerYAnchor.constraint(equalTo: centerYAnchor).isActive = true
         }
 
         /// The feed shows what a `UIControl` target hears, so the touch events are checked on the

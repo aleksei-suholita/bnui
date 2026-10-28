@@ -4,6 +4,70 @@ Every release of BNUI. The kit follows semantic versioning; while it is at 0.x, 
 may break the API and a patch release does not. Each entry lists what is breaking, what is added
 and what is fixed, by product.
 
+## 0.9.0 — 2026-10-28
+
+### Breaking
+
+- `BNUITabBar`: `BNTabBarContainerViewController` is `BNTabBarController` now, named after the
+  `UITabBarController` it replaces; `BN.TabView` stays as it is. Its `margin:` argument gives way
+  to `placement:` — `.system`, the default, stands the bar where iOS 26 stands its own floating
+  bar, 21 pt off the sides and off the bottom edge; `.safeArea(margin: 16)` is where it stood
+  before. `contentGap:` defaults to 0: a screen's safe area reaches up to the bar's top, as under
+  the system's bar. `updateItems(_:)` is gone — `items` redraws the tabs, `tabs` changes which
+  there are. `bnTabViewMargin(_:)` is `bnTabViewPlacement(_:)`.
+- `BNUITabBar`: the controller no longer paints its view `.systemBackground`; the tabs' own
+  backgrounds show, and a host that wants one sets `view.backgroundColor`.
+- `BNUIButton`: `BNButtonAccessibilityOverrides` and the button's `accessibilityOverrides` are gone.
+  They were there for the gallery, whose stage menu now forces Reduce Motion and Reduce
+  Transparency for every control of the kit on the stage; a button reads the system's settings.
+- `BNUITabBar`: the bar draws the badges above its material. A renderer of the host's own that
+  wraps the kit's item views hands on their `badgeAnchor`, or its sections show no badge; one that
+  draws its own badges keeps drawing them, inside the material.
+
+### Added
+
+- `BNUITabBar`: `BNTabBarController` speaks UIKit's words. A screen finds it as
+  `bnTabBarController`; `setTabBarHidden(_:animated:)` and `isTabBarHidden` hide the bar, and every
+  tab's content drops its inset with it. A screen that is to be without the bar hides it as it
+  appears and shows it as it goes; shown again in the middle of a swipe back, the bar waits for the
+  swipe to complete, and a cancelled one leaves it hidden. The bar does not follow
+  `hidesBottomBarWhenPushed`.
+- `BNUITabBar`: `tabs` changes which tabs there are while the controller lives; the tab on screen
+  stays while it is among them, the first takes its place otherwise and `onSelect` says so.
+  `selectedViewController` names the tab on screen. Every tab's controller is a child, on screen
+  or not, as under `UITabBarController`.
+- `BNUITabBar`: `shouldSelect` — on the controller and on `BNTabBarView` — turns a tab down before
+  it is selected; the lens goes back. A second tap on the tab on screen takes its stack back to
+  the root, and `onReselect` says so.
+- `BNUITabBar`: `BNTabBarItem.selectedIcon` — the icon a section shows while it is selected, which
+  under the kit's lens changes on the lens edge, as the colour does. `setSelectedIcon(_:for:)` on
+  the controller and on the bar changes it while the bar is on screen, in place and animated: a
+  symbol by the system's replace effect (iOS 17; from iOS 18 the one that morphs related symbols),
+  a picture by a cross-fade. A renderer of the host's own joins in through
+  `BNTabBarItemRendering.updateSelectedIcon(_:transition:)`; one that does not is rebuilt.
+- `BNUITabBar`: the tab on screen decides the status bar.
+- `BNUIGallery`: the stage menu has Accessibility — Reduce Motion and Reduce Transparency for the
+  kit's controls on the stage, the tab bar's among them, from iOS 17. The Button page drops its
+  own pair, the springs of the press and the tuning of the refusal, and the system button beside
+  the kit's. The TabBar page drops the springs of the lens, the symbol scale, the ticking badge
+  and the yellow action, and offers six symbol effects instead of twelve.
+- `BNUIGallery`: the catalogue lists the kit's pages by name, without a line under each.
+- `BNUIGallery`: the TabBar page takes in the controller's: its Present opens the bar inside
+  `BNTabBarController`, full screen, as the knobs set it, with the controller's Vertical bar
+  beside it. Last title renames the last section — a long one walks the labels down
+  the crowding ladder, and its keyboard sends the bar away.
+
+### Fixed
+
+- `BNUITabBar`: a badge on system glass is as red as it is meant to be. Since 0.8.0 it lay inside
+  the glass, which blends what it holds into itself, and came out half transparent.
+- `BNUIButton`: a title wrapped to a number of lines and still too long ends its last line with
+  an ellipsis, as with `.truncate`; it was cut off there.
+- `BNUIButton`: a symbol beside a title grows with Dynamic Type as the title does, along the
+  title's text style; it stayed at the size's point size while the title grew. An icon beside a
+  title goes as far as a line of it, so the text still decides the height. A lone icon keeps its
+  size, as its circle does.
+
 ## 0.8.0 — 2026-10-23
 
 ### Breaking

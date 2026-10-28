@@ -20,6 +20,8 @@ public nonisolated struct BNButtonSize: Equatable, Sendable {
     /// 44 pt circle twelve points for a glyph twice that wide. 0 lets the icon reach the edge.
     public var iconOnlyInset: CGFloat
     public var iconSpacing: CGFloat
+    /// A symbol's point size at the default text size. Beside a title it grows with Dynamic Type
+    /// as the title does; a lone icon keeps it, as its circle keeps the size's height.
     public var iconPointSize: CGFloat
     public var minWidth: CGFloat
     /// Room set aside for the loading indicator.
