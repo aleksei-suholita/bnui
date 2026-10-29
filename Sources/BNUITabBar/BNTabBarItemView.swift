@@ -95,7 +95,7 @@
             item.selectionAnimation.play(on: imageView)
         }
 
-        /// The bar draws the badge above its material; the view only says it.
+        /// The bar draws the badge; the view only says it.
         func updateBadge(_ badge: BNBadge?, transition _: BNTransition) -> Bool {
             self.badge = badge
             refreshBadgeAccessibility()

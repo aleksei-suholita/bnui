@@ -4,6 +4,23 @@ Every release of BNUI. The kit follows semantic versioning; while it is at 0.x, 
 may break the API and a patch release does not. Each entry lists what is breaking, what is added
 and what is fixed, by product.
 
+## 0.10.0 — 2026-10-29
+
+### Breaking
+
+- `BNUITabBar`: the bar's badges are glass — the system's glass tinted `BNTabBarTheme.badge`'s
+  background, on iOS 26 and later; paint before it — drawn inside the material, above the lens.
+  A badge moves with its section when the glass rises under a finger; above the material, as
+  since 0.9.0, it stayed behind. There is no painted badge on the bar: inside system glass paint
+  comes out washed.
+
+### Added
+
+- `BNUICore`: `BNBadgeView(theme:crossFade:material:)` — `.paint`, as before and the default, or
+  `.glass`, the system's glass tinted the theme's background, on iOS 26 and later. A glass badge
+  pops in and out as a painted one does, its glass coming and going by its effect. A renderer that
+  draws its own badges inside the bar makes them glass, as the bar does.
+
 ## 0.9.0 — 2026-10-28
 
 ### Breaking

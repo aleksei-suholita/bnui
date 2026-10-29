@@ -434,8 +434,11 @@ BNUICore | BNBadgeTheme.position | @MainActor var position: BNBadgeTheme.Positio
 BNUICore | BNBadgeTheme.standard | @MainActor static let standard: BNBadgeTheme
 BNUICore | BNBadgeTheme.text | @MainActor var text: UIColor
 BNUICore | BNBadgeView | @MainActor final class BNBadgeView
+BNUICore | BNBadgeView.Material | @MainActor enum Material
+BNUICore | BNBadgeView.Material.glass | case glass
+BNUICore | BNBadgeView.Material.paint | case paint
 BNUICore | BNBadgeView.badge | @MainActor var badge: BNBadge? { get }
-BNUICore | BNBadgeView.init(theme:crossFade:) | @MainActor init(theme: BNBadgeTheme, crossFade: BNCurve)
+BNUICore | BNBadgeView.init(theme:crossFade:material:) | @MainActor init(theme: BNBadgeTheme, crossFade: BNCurve, material: BNBadgeView.Material = .paint)
 BNUICore | BNBadgeView.keepInside(_:) | @MainActor func keepInside(_ view: UIView)
 BNUICore | BNBadgeView.pin(toCornerOf:) | @MainActor func pin(toCornerOf view: UIView)
 BNUICore | BNBadgeView.show(_:transition:) | @MainActor func show(_ newBadge: BNBadge?, transition: BNTransition)

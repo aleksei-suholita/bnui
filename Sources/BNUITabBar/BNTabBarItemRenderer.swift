@@ -64,11 +64,12 @@
         /// The view the bar hangs this section's badge from — the icon, whose trailing corner the
         /// badge takes — or `nil` for a renderer that draws its own badge.
         ///
-        /// With an anchor the bar draws the badge above its material rather than in it: system
-        /// glass blends what lies inside it into itself, and a badge's colour, the reddest thing on
-        /// the bar, comes out washed. Only the unselected copy is asked; the badge is drawn once.
-        /// The default is `nil`, so a renderer of the host's own keeps drawing its badges as before,
-        /// inside the material. One that wraps the kit's own item views hands on their anchor.
+        /// With an anchor the bar draws the badge, of glass and inside its material: system glass
+        /// blends paint inside it into itself, and a badge's colour, the reddest thing on the bar,
+        /// comes out washed. Only the unselected copy is asked; the badge is drawn once.
+        /// The default is `nil`, so a renderer of the host's own keeps drawing its badges itself —
+        /// of glass, ``BNBadgeView/Material/glass``, to look as the bar's do. One that wraps the
+        /// kit's own item views hands on their anchor.
         var badgeAnchor: UIView? { get }
         /// Takes another selected icon in place, without the view being made again — animated
         /// unless `transition` is immediate. Returns `false` when it cannot, and the bar then

@@ -220,11 +220,12 @@ tab bar controller — and an id the bar does not have is passed over. Changing 
 redraws the badges alone: they pop in and out and a number cross-fades, while a finger on the bar
 keeps its gesture.
 
-The bar draws the badges above its material rather than in it: system glass blends what lies
-inside it into itself, and a badge's red comes out washed. A badge therefore does not rise with
-the glass under a finger. A custom renderer gives the bar the view to hang a badge from —
-``BNTabBarItemRendering/badgeAnchor`` — or draws its own with a ``BNBadgeView``, inside the
-material, and joins in through ``BNTabBarItemRendering/updateBadge(_:transition:)``; one that
+The bar's badges are glass — the system's glass tinted the theme's badge background, from iOS 26;
+paint before it — drawn inside the material, above the lens, so a badge moves with its section
+when the glass rises under a finger. There is no painted badge on the bar: system glass blends
+paint inside it into itself, and a badge's red comes out washed. A custom renderer gives the bar
+the view to hang a badge from — ``BNTabBarItemRendering/badgeAnchor`` — or draws its own with a
+``BNBadgeView`` of ``BNBadgeView/Material/glass``, inside the material, and joins in through ``BNTabBarItemRendering/updateBadge(_:transition:)``; one that
 does neither is rebuilt as before.
 
 VoiceOver reads a badge in the host's words, or as shown when there are none; a dot always

@@ -214,7 +214,7 @@
         var lens: (any BNTabBarLens)?
         var baseItemViews: [any BNTabBarItemRendering] = []
         var selectedItemViews: [any BNTabBarItemRendering] = []
-        /// Where the badges are drawn: above the material, over the sections.
+        /// Where the badges are drawn: inside the material, over the sections.
         let badgeOverlay = UIView()
         /// A badge per slot, in slot order; `nil` where the section's view draws its own.
         var badgeViews: [BNBadgeView?] = []
@@ -360,7 +360,7 @@
             addSubview(surface.view)
             surface.contentContainer.addSubview(lens)
             followAppearance(of: surface)
-            buildBadgeOverlay()
+            buildBadgeOverlay(in: surface)
 
             // Built before the constraints below: an action changes the composition, so it has to
             // exist by the time alignment is decided.

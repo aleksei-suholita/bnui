@@ -15,21 +15,35 @@
     /// It takes no touches and says nothing to VoiceOver: the control it marks speaks for it, with
     /// ``spokenText`` in its value.
     ///
-    /// A tab bar draws its sections' badges with it, above its material, and a renderer of the
-    /// host's own can draw them inside its sections:
+    /// A badge of ``Material/glass`` lies on the system's glass tinted the theme's background
+    /// instead of paint, from iOS 26 — the badge to draw inside system glass, which blends paint
+    /// into itself and washes its colour out.
+    ///
+    /// A tab bar draws its sections' badges with it, of glass and inside its material, and a
+    /// renderer of the host's own can draw them inside its sections the same way:
     ///
     /// ```swift
-    /// let badge = BNBadgeView(theme: theme.badge, crossFade: theme.motion.crossFade)
+    /// let badge = BNBadgeView(theme: theme.badge, crossFade: theme.motion.crossFade, material: .glass)
     /// addSubview(badge)
     /// badge.pin(toCornerOf: iconView)
     /// badge.keepInside(self)
     /// badge.show(item.badge, transition: .immediate)
     /// ```
     public final class BNBadgeView: UIView {
+        /// What a badge is made of.
+        public enum Material: Equatable, Sendable {
+            /// Paint of the theme's ``BNBadgeTheme/background``.
+            case paint
+            /// The system's glass tinted the theme's ``BNBadgeTheme/background``, on iOS 26 and
+            /// later; paint before it.
+            case glass
+        }
+
         /// The badge on show.
         public private(set) var badge: BNBadge?
 
         private let theme: BNBadgeTheme
+        private let material: Material
         /// How long a changed number cross-fades — the control's own cross-fade.
         private let crossFade: BNCurve
         private let label = BNBadgeLabel()
@@ -38,6 +52,8 @@
         /// One per part: a dot giving way to a text runs two at once, and one left unkept would
         /// finish later and hide the part that had come back.
         private var animations: [UIView: BNAnimation] = [:]
+        /// The glass under each part, for a glass badge; empty for paint.
+        private var glasses: [UIView: UIVisualEffectView] = [:]
 
         /// A badge view showing nothing yet.
         ///
@@ -46,8 +62,10 @@
         ///     `BNTabBarTheme.badge`.
         ///   - crossFade: How long a changed number cross-fades: the control's own cross-fade,
         ///     such as `BNTabBarTheme.motion.crossFade`.
-        public init(theme: BNBadgeTheme, crossFade: BNCurve) {
+        ///   - material: Paint, or glass for a badge inside system glass.
+        public init(theme: BNBadgeTheme, crossFade: BNCurve, material: Material = .paint) {
             self.theme = theme
+            self.material = material
             self.crossFade = crossFade
             super.init(frame: .zero)
             build()
@@ -126,12 +144,12 @@
             label.adjustsFontForContentSizeCategory = true
             label.maximumContentSizeCategory = theme.maximumContentSizeCategory
             label.textColor = theme.text
-            label.backgroundColor = theme.background
+            label.backgroundColor = usesGlass ? .clear : theme.background
             label.textAlignment = .center
             label.bnApplyCapsule()
             label.clipsToBounds = true
 
-            dot.backgroundColor = theme.background
+            dot.backgroundColor = usesGlass ? .clear : theme.background
             dot.bnApplyCapsule()
 
             for view in [label, dot] {
@@ -139,6 +157,10 @@
                 view.isUserInteractionEnabled = false
                 view.translatesAutoresizingMaskIntoConstraints = false
                 addSubview(view)
+            }
+            if #available(iOS 26.0, *), usesGlass {
+                addGlass(under: label)
+                addGlass(under: dot)
             }
             translatesAutoresizingMaskIntoConstraints = false
             // Below required, so a bound from ``keepInside(_:)`` can move the text back.
@@ -159,6 +181,30 @@
             ])
         }
 
+        /// Glass where the theme asks for it and the system has it.
+        private var usesGlass: Bool {
+            guard #available(iOS 26.0, *) else { return false }
+            return material == .glass
+        }
+
+        /// A capsule of glass under `part`, its size and shape, shown and hidden with it.
+        @available(iOS 26.0, *)
+        private func addGlass(under part: UIView) {
+            let glass = UIVisualEffectView()
+            glass.isHidden = true
+            glass.isUserInteractionEnabled = false
+            glass.bnApplyCapsule()
+            glass.translatesAutoresizingMaskIntoConstraints = false
+            insertSubview(glass, belowSubview: part)
+            NSLayoutConstraint.activate([
+                glass.topAnchor.constraint(equalTo: part.topAnchor),
+                glass.bottomAnchor.constraint(equalTo: part.bottomAnchor),
+                glass.leadingAnchor.constraint(equalTo: part.leadingAnchor),
+                glass.trailingAnchor.constraint(equalTo: part.trailingAnchor),
+            ])
+            glasses[part] = glass
+        }
+
         // MARK: - Showing
 
         /// A badge arriving pops in from the theme's appear scale. One still on its way out turns
@@ -167,20 +213,16 @@
         private func reveal(_ view: UIView, transition: BNTransition) {
             animations[view]?.interrupt()
             let wasHidden = view.isHidden
-            view.isHidden = false
+            setHidden(false, view)
             guard transition != .immediate else {
-                view.alpha = 1
-                view.transform = .identity
+                setShown(true, view)
                 return
             }
             if wasHidden {
-                let scale = theme.appearScale
-                view.alpha = 0
-                view.transform = CGAffineTransform(scaleX: scale, y: scale)
+                setShown(false, view)
             }
-            animations[view] = transition.run {
-                view.alpha = 1
-                view.transform = .identity
+            animations[view] = transition.run { [weak self] in
+                self?.setShown(true, view)
             }
         }
 
@@ -190,18 +232,42 @@
             guard !view.isHidden else { return }
             animations[view]?.interrupt()
             guard transition != .immediate else {
-                view.isHidden = true
+                setHidden(true, view)
                 return
             }
-            let scale = theme.appearScale
-            animations[view] = transition.run {
-                view.alpha = 0
-                view.transform = CGAffineTransform(scaleX: scale, y: scale)
-            } completion: { finished in
+            animations[view] = transition.run { [weak self] in
+                self?.setShown(false, view)
+            } completion: { [weak self] finished in
                 guard finished else { return }
-                view.isHidden = true
+                self?.setHidden(true, view)
                 view.transform = .identity
+                self?.glasses[view]?.transform = .identity
             }
+        }
+
+        /// A part at rest on show, or shrunk away to the appear scale. Its glass shrinks with it,
+        /// but comes and goes by its effect rather than by its alpha: glass does not fade.
+        private func setShown(_ shown: Bool, _ part: UIView) {
+            let scale = shown ? 1 : theme.appearScale
+            part.alpha = shown ? 1 : 0
+            part.transform = CGAffineTransform(scaleX: scale, y: scale)
+            guard let glass = glasses[part] else { return }
+            glass.transform = part.transform
+            if #available(iOS 26.0, *) {
+                glass.effect = shown ? tintedGlass() : nil
+            }
+        }
+
+        private func setHidden(_ hidden: Bool, _ part: UIView) {
+            part.isHidden = hidden
+            glasses[part]?.isHidden = hidden
+        }
+
+        @available(iOS 26.0, *)
+        private func tintedGlass() -> UIGlassEffect {
+            let glass = UIGlassEffect(style: .regular)
+            glass.tintColor = theme.background
+            return glass
         }
 
         /// A number changing cross-fades, and the capsule follows the new width.

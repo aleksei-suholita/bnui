@@ -5,8 +5,7 @@
     // MARK: - Badges and selected icons
 
     // What changes on a section without the bar being rebuilt — its badge, its selected icon — and
-    // what the bar draws above its material: the badges hang from the sections, over the glass
-    // rather than in it.
+    // the layer the badges hang from the sections in, inside the glass.
 
     public extension BNTabBarView {
         /// Shows `badge` on the section with `id`, or takes its badge away with `nil` — drawn in
@@ -40,20 +39,21 @@
             return item
         }
 
-        /// The overlay the badges are drawn in: above the material, not in it. System glass blends
-        /// what lies inside it into itself, and a badge — the reddest thing on the bar — came out
-        /// washed. Above it a badge does not rise with the glass under a finger: it stays at its
-        /// section's place for the moment the finger is down.
-        func buildBadgeOverlay() {
+        /// The overlay the badges are drawn in: inside the material, above the lens, so a badge
+        /// moves with its section when the glass rises under a finger. The badges are glass —
+        /// system glass blends paint inside it into itself, and a painted badge, the reddest thing
+        /// on the bar, came out washed; glass keeps its colour there.
+        func buildBadgeOverlay(in surface: BNTabBarSurface) {
+            let host = surface.contentContainer
             badgeOverlay.subviews.forEach { $0.removeFromSuperview() }
             badgeOverlay.isUserInteractionEnabled = false
             badgeOverlay.translatesAutoresizingMaskIntoConstraints = false
-            addSubview(badgeOverlay)
+            host.addSubview(badgeOverlay)
             NSLayoutConstraint.activate([
-                badgeOverlay.topAnchor.constraint(equalTo: topAnchor),
-                badgeOverlay.bottomAnchor.constraint(equalTo: bottomAnchor),
-                badgeOverlay.leadingAnchor.constraint(equalTo: leadingAnchor),
-                badgeOverlay.trailingAnchor.constraint(equalTo: trailingAnchor),
+                badgeOverlay.topAnchor.constraint(equalTo: host.topAnchor),
+                badgeOverlay.bottomAnchor.constraint(equalTo: host.bottomAnchor),
+                badgeOverlay.leadingAnchor.constraint(equalTo: host.leadingAnchor),
+                badgeOverlay.trailingAnchor.constraint(equalTo: host.trailingAnchor),
             ])
         }
 
@@ -61,7 +61,7 @@
         /// view; `nil` for a view that draws its own badge.
         func makeBadge(for item: BNTabBarItem, on view: any BNTabBarItemRendering) -> BNBadgeView? {
             guard let anchor = view.badgeAnchor else { return nil }
-            let badge = BNBadgeView(theme: activeTheme.badge, crossFade: activeTheme.motion.crossFade)
+            let badge = BNBadgeView(theme: activeTheme.badge, crossFade: activeTheme.motion.crossFade, material: .glass)
             badgeOverlay.addSubview(badge)
             badge.pin(toCornerOf: anchor)
             badge.keepInside(view)

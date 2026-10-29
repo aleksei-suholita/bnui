@@ -110,8 +110,8 @@ arm64-apple-ios16.0-simulator`, not `xcodebuild`.
   no contrast checks (WCAG, a veil) and no Increase Contrast handling in the kit: removed until
   after the alpha
 - `Sources/BNUIButton/` — `BNButton`: theme, roles, materials, motion
-- `Sources/BNUITabBar/` — `BNTabBarView` (lens, materials, section renderers, badges drawn above
-  the material) and `BNTabBarController`, a replacement for `UITabBarController` that hosts the
+- `Sources/BNUITabBar/` — `BNTabBarView` (lens, materials, section renderers, badges of glass
+  drawn inside the material) and `BNTabBarController`, a replacement for `UITabBarController` that hosts the
   content and owns the selected section; "+" lives in the bar as an action, not as a tab. It is a
   plain `UIViewController` speaking UIKit's words: `bnTabBarController`, `setTabBarHidden`
   (`+Hiding`; `hidesBottomBarWhenPushed` is not followed — a plain navigation controller tells no
