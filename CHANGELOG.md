@@ -4,6 +4,17 @@ Every release of BNUI. The kit follows semantic versioning; while it is at 0.x, 
 may break the API and a patch release does not. Each entry lists what is breaking, what is added
 and what is fixed, by product.
 
+## 0.10.1 — 2026-10-29
+
+### Fixed
+
+- `BNUIButton`: a scroll, a sheet's drag or a back swipe begun on a button no longer fires it. The
+  button's press recognizes alongside every other gesture, so UIKit never cancelled it, and a finger
+  lifted after a scroll — still over the button, which had travelled with it — tapped the button.
+  The press now ends cancelled once a gesture above the button that cancels touches in its view has
+  begun, as a system button's touch does; the button's own gestures — the glass response, its menu —
+  and a tap on the screen behind it do not count.
+
 ## 0.10.0 — 2026-10-29
 
 ### Breaking

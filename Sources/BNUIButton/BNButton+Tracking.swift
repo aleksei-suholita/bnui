@@ -274,7 +274,8 @@
 
     extension BNButton: UIGestureRecognizerDelegate {
         /// Never blocks anything else — the system's glass response and the host's own gestures
-        /// (a scroll view above this button) all keep working alongside.
+        /// (a scroll view above this button) all keep working alongside. A gesture above that
+        /// takes the finger still ends the press: ``BNButtonPressRecognizer`` reports it cancelled.
         public func gestureRecognizer(
             _: UIGestureRecognizer,
             shouldRecognizeSimultaneouslyWith _: UIGestureRecognizer,
