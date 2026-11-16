@@ -5,6 +5,7 @@ BNUIButton | BN.Button.badge(_:) | @MainActor func badge(_ count: Int) -> BN.But
 BNUIButton | BN.Button.badge(_:) | @MainActor func badge(_ text: String) -> BN.Button
 BNUIButton | BN.Button.bnButtonAccessibilityStrings(_:) | @MainActor func bnButtonAccessibilityStrings(_ strings: BNButtonAccessibilityStrings) -> BN.Button
 BNUIButton | BN.Button.bnButtonAlignment(_:) | @MainActor func bnButtonAlignment(_ alignment: BNButtonAlignment) -> BN.Button
+BNUIButton | BN.Button.bnButtonContentTransition(_:) | @MainActor func bnButtonContentTransition(_ transition: BNButtonContentTransition) -> BN.Button
 BNUIButton | BN.Button.bnButtonDisabled(_:) | @MainActor func bnButtonDisabled(_ disabled: Bool) -> BN.Button
 BNUIButton | BN.Button.bnButtonHaptics(_:) | @MainActor func bnButtonHaptics(_ haptics: BNButtonHaptics) -> BN.Button
 BNUIButton | BN.Button.bnButtonMaterial(_:) | @MainActor func bnButtonMaterial(_ material: any BNButtonMaterial) -> BN.Button
@@ -37,12 +38,15 @@ BNUIButton | BNBlurButtonMaterial.pressResponse | @MainActor var pressResponse: 
 BNUIButton | BNButton | @MainActor final class BNButton
 BNUIButton | BNButton.accessibilityActivate() | @MainActor override func accessibilityActivate() -> Bool
 BNUIButton | BNButton.accessibilityLabel | @MainActor override var accessibilityLabel: String? { get set }
+BNUIButton | BNButton.animatesSizeChanges | @MainActor var animatesSizeChanges: Bool
 BNUIButton | BNButton.badge | @MainActor var badge: BNBadge? { get set }
 BNUIButton | BNButton.beginTracking(_:with:) | @MainActor override func beginTracking(_: UITouch, with _: UIEvent?) -> Bool
 BNUIButton | BNButton.canBecomeFocused | @MainActor override var canBecomeFocused: Bool { get }
 BNUIButton | BNButton.configuration | @MainActor var configuration: BNButtonConfiguration { get set }
 BNUIButton | BNButton.content | @MainActor var content: BNButtonContent { get set }
 BNUIButton | BNButton.contentRenderer | @MainActor var contentRenderer: (any BNButtonContentRenderer)? { get set }
+BNUIButton | BNButton.contentTransition | @MainActor var contentTransition: BNButtonContentTransition
+BNUIButton | BNButton.contentTransitionDuration | @MainActor var contentTransitionDuration: TimeInterval?
 BNUIButton | BNButton.contextMenuInteraction(_:configurationForMenuAtLocation:) | @MainActor override func contextMenuInteraction(_: UIContextMenuInteraction, configurationForMenuAtLocation _: CGPoint) -> UIContextMenuConfiguration?
 BNUIButton | BNButton.contextMenuInteraction(_:willDisplayMenuFor:animator:) | @MainActor override func contextMenuInteraction(_ interaction: UIContextMenuInteraction, willDisplayMenuFor configuration: UIContextMenuConfiguration, animator: (any UIContextMenuInteractionAnimating)?)
 BNUIButton | BNButton.didUpdateFocus(in:with:) | @MainActor override func didUpdateFocus(in context: UIFocusUpdateContext, with coordinator: UIFocusAnimationCoordinator)
@@ -68,6 +72,7 @@ BNUIButton | BNButton.point(inside:with:) | @MainActor override func point(insid
 BNUIButton | BNButton.pressesBegan(_:with:) | @MainActor override func pressesBegan(_ presses: Set<UIPress>, with event: UIPressesEvent?)
 BNUIButton | BNButton.pressesCancelled(_:with:) | @MainActor override func pressesCancelled(_ presses: Set<UIPress>, with event: UIPressesEvent?)
 BNUIButton | BNButton.pressesEnded(_:with:) | @MainActor override func pressesEnded(_ presses: Set<UIPress>, with event: UIPressesEvent?)
+BNUIButton | BNButton.setContent(_:animated:) | @MainActor func setContent(_ newContent: BNButtonContent, animated: Bool)
 BNUIButton | BNButton.setStatus(_:animated:) | @MainActor func setStatus(_ status: BNButtonStatus, animated: Bool)
 BNUIButton | BNButton.showsHitTargetOutline | @MainActor var showsHitTargetOutline: Bool { get set }
 BNUIButton | BNButton.size | @MainActor var size: BNButtonSize { get set }
@@ -144,6 +149,14 @@ BNUIButton | BNButtonContentState.size | @MainActor var size: BNButtonSize
 BNUIButton | BNButtonContentState.status | @MainActor var status: BNButtonStatus
 BNUIButton | BNButtonContentState.style | @MainActor var style: BNButtonStyle
 BNUIButton | BNButtonContentState.theme | @MainActor var theme: BNButtonTheme
+BNUIButton | BNButtonContentTransition | nonisolated enum BNButtonContentTransition
+BNUIButton | BNButtonContentTransition.Direction | nonisolated enum Direction
+BNUIButton | BNButtonContentTransition.Direction.down | case down
+BNUIButton | BNButtonContentTransition.Direction.up | case up
+BNUIButton | BNButtonContentTransition.blur | case blur
+BNUIButton | BNButtonContentTransition.fadeThrough | case fadeThrough
+BNUIButton | BNButtonContentTransition.roll | case roll
+BNUIButton | BNButtonContentTransition.slide(_:) | case slide(BNButtonContentTransition.Direction)
 BNUIButton | BNButtonHapticEmphasis | nonisolated enum BNButtonHapticEmphasis
 BNUIButton | BNButtonHapticEmphasis.pronounced | case pronounced
 BNUIButton | BNButtonHapticEmphasis.silent | case silent
@@ -395,6 +408,7 @@ BNUIButton | BNStandardButtonContentRenderer.init() | @MainActor init()
 BNUIButton | BNStandardButtonContentRenderer.makeContentView(for:theme:size:) | @MainActor func makeContentView(for content: BNButtonContent, theme: BNButtonTheme, size: BNButtonSize) -> any BNButtonContentRendering
 BNUIButton | View.bnButtonAccessibilityStrings(_:) | @MainActor func bnButtonAccessibilityStrings(_ strings: BNButtonAccessibilityStrings) -> some View 
 BNUIButton | View.bnButtonAlignment(_:) | @MainActor func bnButtonAlignment(_ alignment: BNButtonAlignment) -> some View 
+BNUIButton | View.bnButtonContentTransition(_:) | @MainActor func bnButtonContentTransition(_ transition: BNButtonContentTransition) -> some View 
 BNUIButton | View.bnButtonDisabled(_:) | @MainActor func bnButtonDisabled(_ disabled: Bool) -> some View 
 BNUIButton | View.bnButtonHaptics(_:) | @MainActor func bnButtonHaptics(_ haptics: BNButtonHaptics) -> some View 
 BNUIButton | View.bnButtonMaterial(_:) | @MainActor func bnButtonMaterial(_ material: any BNButtonMaterial) -> some View 

@@ -55,6 +55,11 @@
                     initial: BNButtonDemoView.Defaults.titleBehaviorIndex,
                     onChange: { demo.setTitleBehavior(index: $0) },
                 )),
+                BNGalleryKnob(label: "Transition", control: .segmented(
+                    options: BNButtonDemoView.transitions.map(BNButtonDemoView.transitionName),
+                    initial: BNButtonDemoView.Defaults.transitionIndex,
+                    onChange: { demo.setTransition(index: $0) },
+                )),
             ]
         }
 

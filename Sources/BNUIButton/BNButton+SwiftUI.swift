@@ -34,6 +34,11 @@
         ///
         /// Sized by the button's own layout solver: it hugs its content, or takes the offered width
         /// for ``BNButtonWidth/fill``, and its height grows with Dynamic Type and wrapped titles.
+        ///
+        /// New content changed inside an animation — `withAnimation`, `.animation(_:value:)` —
+        /// goes on the kit's springs in the ``SwiftUICore/View/bnButtonContentTransition(_:)``
+        /// style, a blur unless one is set; changed outside one, it is shown at once, as a `Text`
+        /// would be. The frame follows the new size the way SwiftUI lays it out.
         struct Button: UIViewRepresentable {
             let content: BNButtonContent
             let isLoading: Bool
@@ -157,6 +162,10 @@
                     material: settings.material,
                     haptics: settings.haptics ?? BNButtonHaptics(),
                 )
+                button.contentTransition = settings.contentTransition ?? .blur
+                // The frame is SwiftUI's: it lays the button out from `sizeThatFits`, and a button
+                // laying out the hosting controller's view itself would fight it.
+                button.animatesSizeChanges = false
                 // SwiftUI writes `isEnabled` on a wrapped control from its own `.disabled()` alone —
                 // on the gallery stand that write took a busy button's spinner away. The face counts
                 // SwiftUI's flag in already, so the write is kept off the status: it must undo
@@ -173,7 +182,6 @@
                 let settings = settings(in: context.environment)
                 // Each of these setters compares before it rebuilds, so re-assigning an unchanged value
                 // on every SwiftUI update costs nothing.
-                button.content = content
                 button.style = settings.style ?? .primary
                 button.size = size(settings, in: context.environment)
                 button.configuration = settings.configuration
@@ -183,6 +191,14 @@
                 if button.material?.identity != settings.material?.identity {
                     button.material = settings.material
                 }
+                // After the looks, whose rebuilds would cut a content change short. SwiftUI decides
+                // whether the change is animated, as it does for a `Text`: inside an animation it is,
+                // on the kit's own springs and in the button's transition; outside one it is at once.
+                button.contentTransition = settings.contentTransition ?? .blur
+                button.setContent(
+                    content,
+                    animated: context.transaction.animation != nil && !context.transaction.disablesAnimations,
+                )
                 // The kit's own state-change curve carries the change; SwiftUI only decides whether
                 // there is one at all.
                 button.setStatus(

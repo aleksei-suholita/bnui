@@ -32,6 +32,11 @@
             rejectionOverlay = nil
             rejectionAnimation?.interrupt()
             rejectionAnimation = nil
+            contentFadeAnimation?.interrupt()
+            contentFadeAnimation = nil
+            outgoingContentView = nil
+            blurOverlay = nil
+            contentDrawing = nil
             surface = nil
             badgeHost = nil
             badgeView = nil
@@ -87,7 +92,7 @@
             return view
         }
 
-        private func activateContentConstraints(for content: UIView, in container: UIView) {
+        func activateContentConstraints(for content: UIView, in container: UIView) {
             // Leading and trailing anchors rather than left and right: right-to-left mirrors this
             // for free, and the control never sets `semanticContentAttribute`.
             let alignedEdge: NSLayoutConstraint? = switch configuration.alignment {
@@ -199,8 +204,13 @@
                 side: size.indicatorSide,
             )
             indicatorView.setAnimating(loading)
+            if loading {
+                // A blur or a roll still drawn over the content goes with it, behind the spinner.
+                fadeOutContentOverlays(transition: transition)
+            }
 
-            guard contentView.alpha != (loading ? 0 : 1) else { return }
+            // The spinner too: content hidden under an overlay is already at 0 when work starts.
+            guard contentView.alpha != (loading ? 0 : 1) || indicatorView.alpha != (loading ? 1 : 0) else { return }
             // Alpha only: the content stays in the hierarchy so it keeps deciding the width. A
             // spinner swapped in for the label would resize the button the moment work started.
             transition.run {
@@ -220,7 +230,13 @@
         // MARK: - Layout
 
         var solvedIntrinsicSize: CGSize {
-            let output = solvedOutput ?? solveLayout(availableWidth: bounds.width)
+            let output = if solvesNaturalWidth, case .hug = configuration.width {
+                // The current width is the old content's. Taken as a ceiling it would squeeze longer
+                // content into it, and a hugging button could only ever shrink.
+                solveLayout(availableWidth: 0)
+            } else {
+                solvedOutput ?? solveLayout(availableWidth: bounds.width)
+            }
             let width: CGFloat = switch configuration.width {
             // The host stretches a full-width button; reporting a width would fight its constraints.
             case .fill: UIView.noIntrinsicMetric
@@ -232,6 +248,9 @@
         /// Re-solves after a layout pass and reacts only to what actually changed — re-applying an
         /// unchanged axis on every pass would restart the colour transition mid-press.
         func refreshSolvedLayout() {
+            // The pass that brought the frame for the new content: from here on the width the
+            // host gave is the ceiling again, as for a wrapping title it has to be.
+            solvesNaturalWidth = false
             let output = solveLayout(availableWidth: bounds.width)
             guard output != solvedOutput else { return }
 

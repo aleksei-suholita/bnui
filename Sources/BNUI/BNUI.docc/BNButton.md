@@ -15,6 +15,13 @@
 - ``badge``
 - ``menu``
 
+### Changing the content
+
+- ``setContent(_:animated:)``
+- ``contentTransition``
+- ``contentTransitionDuration``
+- ``animatesSizeChanges``
+
 ### Appearance
 
 - ``theme``

@@ -27,6 +27,8 @@
             static let menuIndex = 0
             static let usesLongTitle = false
             static let titleBehaviorIndex = 0
+            /// Blur: the style a host gets from `setContent(_:animated:)` unless it picks another.
+            static let transitionIndex = 1
             static let hapticsEnabled = true
             static let hapticMergeWindow = 0.15
             static let showsHitTarget = false
@@ -99,6 +101,20 @@
         static let longTitle = "Continue with a label long enough to run onto several lines at any width, "
             + "so truncating, two lines and unlimited wrapping all look different"
 
+        /// The transition knob's options: at once, then every style.
+        static let transitions: [BNButtonContentTransition?] = [nil, .blur, .fadeThrough, .slide(.up), .slide(.down), .roll]
+
+        static func transitionName(_ style: BNButtonContentTransition?) -> String {
+            switch style {
+            case nil: "Off"
+            case .blur: "Blur"
+            case .fadeThrough: "Fade"
+            case .slide(.up): "Slide ↑"
+            case .slide(.down): "Slide ↓"
+            case .roll: "Roll"
+            }
+        }
+
         var onGalleryEvent: ((String) -> Void)?
         let button = BNButton(content: .title(Defaults.title))
         var widthConstraints: [NSLayoutConstraint] = []
@@ -108,6 +124,8 @@
         var iconIndex = Defaults.iconIndex
         var contentKind = 0
         var usesLongTitle = false
+        /// The style the content knobs' changes go in; none — at once, as `content =`.
+        var contentTransition: BNButtonContentTransition?
         /// The corner knob, kept apart from the size: every size step carries a capsule of its
         /// own, so switching steps would otherwise undo the knob.
         var cornerShape = BNShape.capsule

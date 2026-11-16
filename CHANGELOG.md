@@ -4,6 +4,30 @@ Every release of BNUI. The kit follows semantic versioning; while it is at 0.x, 
 may break the API and a patch release does not. Each entry lists what is breaking, what is added
 and what is fixed, by product.
 
+## 0.10.2 — 2026-11-16
+
+### Added
+
+- `BNUIButton`: `BNButton.setContent(_:animated:)` — the animated counterpart of `content`, which
+  stays immediate. A call made inside the host's animation block joins it and takes its duration
+  and curve; otherwise the button's own springs carry the change, and the views around the button
+  make room as it grows — `animatesSizeChanges`, on by default, leaves the frame to the host when
+  off. Off screen, with animations off or with `animated: false`, the change is immediate.
+- `BNUIButton`: `BNButton.contentTransition` — how the old content gives way to the new one:
+  `.blur`, the default; `.fadeThrough`; `.slide(.up)` or `.slide(.down)`; `.roll`, where the
+  characters that change roll into their new ones, as SwiftUI's numeric text does. When the title
+  stays, only the icons change, in place, in every style. Under Reduce Motion every style is a
+  short fade.
+- `BNUIButton`: `BNButton.contentTransitionDuration` — the kit's springs at the host's speed.
+- `BNUIButton`: `BN.Button` animates content changed inside a SwiftUI animation, in the
+  `bnButtonContentTransition(_:)` style, on the kit's springs; changed outside one, at once.
+
+### Fixed
+
+- `BNUIButton`: a hugging button given content wider than its old one grows to it. The new
+  content was measured against the width the old one had, so a longer title was cut short or
+  wrapped at the old width.
+
 ## 0.10.1 — 2026-10-29
 
 ### Fixed

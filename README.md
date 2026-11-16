@@ -13,7 +13,7 @@ iOS controls built on UIKit, with a SwiftUI face for each. Alpha.
 Add the package with Swift Package Manager:
 
 ```swift
-.package(url: "https://github.com/aleksei-suholita/bnui.git", exact: "0.8.0")
+.package(url: "https://github.com/aleksei-suholita/bnui.git", exact: "0.10.2")
 ```
 
 Then depend on the whole kit or only on the controls you use:

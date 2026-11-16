@@ -7,15 +7,17 @@
     /// Deliberately not interactive: every touch belongs to the button, and a label that swallowed
     /// one would produce a press the control never hears about.
     final class BNButtonContentView: UIView, BNButtonContentRendering {
-        private let content: BNButtonContent
-        private var theme: BNButtonTheme
-        private var size: BNButtonSize
+        // Not private, and not set from outside: the changes in place
+        // (`BNButtonContentView+InPlace.swift`) read and update them.
+        var content: BNButtonContent
+        var theme: BNButtonTheme
+        var size: BNButtonSize
 
-        private let stack = UIStackView()
-        private let titleLabel = UILabel()
-        private var iconViews: [BNButtonIconView] = []
+        let stack = UIStackView()
+        let titleLabel = UILabel()
+        var iconViews: [BNButtonIconView] = []
         /// What each of `iconViews` shows, to draw it again at another point size.
-        private var icons: [BNButtonIcon] = []
+        var icons: [BNButtonIcon] = []
         /// The point size the symbols are drawn at: the size's own, until Dynamic Type grows the
         /// title beside them and takes them along.
         private var iconPointSize: CGFloat
@@ -63,28 +65,29 @@
 
             if let leading = content.leadingIcon {
                 stack.addArrangedSubview(makeIconView(for: leading))
+                icons.append(leading)
             }
             if content.hasTitle {
                 stack.addArrangedSubview(titleLabel)
             }
             if let trailing = content.trailingIcon {
                 stack.addArrangedSubview(makeIconView(for: trailing))
+                icons.append(trailing)
             }
+            iconViews = stack.arrangedSubviews.compactMap { $0 as? BNButtonIconView }
         }
 
-        private func makeIconView(for icon: BNButtonIcon) -> BNButtonIconView {
+        func makeIconView(for icon: BNButtonIcon) -> BNButtonIconView {
             let view = BNButtonIconView(image: image(for: icon))
             view.keepsOwnColours = icon.rendering == .original
             view.contentMode = .scaleAspectFit
             view.isUserInteractionEnabled = false
             view.setContentHuggingPriority(.required, for: .horizontal)
             view.setContentCompressionResistancePriority(.required, for: .horizontal)
-            iconViews.append(view)
-            icons.append(icon)
             return view
         }
 
-        private func image(for icon: BNButtonIcon) -> UIImage? {
+        func image(for icon: BNButtonIcon) -> UIImage? {
             let configuration = UIImage.SymbolConfiguration(
                 pointSize: iconPointSize,
                 weight: theme.icon.weight,

@@ -26,9 +26,10 @@
     public final class BNButton: UIControl {
         // MARK: - Content and composition
 
+        /// What the button shows, changed at once; ``setContent(_:animated:)`` animates a change.
         public var content: BNButtonContent {
             didSet {
-                guard content != oldValue else { return }
+                guard content != oldValue, !isSwappingContent else { return }
                 rebuild()
             }
         }
@@ -210,6 +211,36 @@
 
         var hitOverlay: CAShapeLayer?
         var focusRing: CAShapeLayer?
+
+        // MARK: - Content transitions
+
+        /// How ``setContent(_:animated:)`` carries the old content into the new one.
+        /// ``BNButtonContentTransition/blur`` by default.
+        public var contentTransition = BNButtonContentTransition.blur
+        /// How long an animated content change takes when the host wants its own speed: the
+        /// longer of the kit's two springs — the content's and the outline's — takes this long,
+        /// and the other keeps its share of it. `nil`, the default, keeps the kit's own springs.
+        /// A change made inside the host's animation takes that animation's duration either way.
+        public var contentTransitionDuration: TimeInterval?
+        /// Whether an animated content change moves the button's surroundings with it: `true`, the
+        /// default, lays out its nearest view controller's view — or its window — under the
+        /// outline's spring; `false` leaves the frame to the host's next layout pass.
+        public var animatesSizeChanges = true
+        let contentTransitionTuning = BNButtonContentTransitionTuning()
+        /// Set while ``setContent(_:animated:)`` stores the new content, which it then shows itself.
+        var isSwappingContent = false
+        /// The content on its way out, until its fade ends.
+        var outgoingContentView: UIView?
+        var contentFadeAnimation: BNAnimation?
+        /// The blur style's picture of the change, over the content until the blur ends.
+        var blurOverlay: UIView?
+        /// The roll style's drawing of the change, over the content until it settles.
+        var contentDrawing: BNButtonRoll?
+        /// Counts the clips a change puts on the content, so that only the latest one lifts it.
+        var contentClipGeneration = 0
+        /// The next intrinsic size is solved without the current width as a ceiling: new content
+        /// has to be measured at its own width, not squeezed into the frame the old one had.
+        var solvesNaturalWidth = false
 
         // MARK: - Init
 

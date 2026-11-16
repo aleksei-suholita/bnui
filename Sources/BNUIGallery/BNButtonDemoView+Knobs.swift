@@ -53,13 +53,23 @@
                 ? BNCustomViewContentRenderer(identity: "gallery.badge") { Self.makeCustomGlyph() }
                 : nil
 
-            button.content = switch contentKind {
+            let content: BNButtonContent = switch contentKind {
             case 1: BNButtonContent(title: title, leadingIcon: icon)
             case 2: BNButtonContent(title: title, trailingIcon: icon)
             // An icon on its own has no words, so it carries a label the way the spec demands.
             case 3: .icon(icon, accessibilityLabel: "Settings")
             case 4: BNButtonContent(accessibilityLabel: "Custom glyph")
             default: .title(title)
+            }
+            button.setContent(content, animated: contentTransition != nil)
+        }
+
+        /// How the content knobs' next changes reach the button: at once, or in a style.
+        func setTransition(index: Int) {
+            guard Self.transitions.indices.contains(index) else { return }
+            contentTransition = Self.transitions[index]
+            if let style = contentTransition {
+                button.contentTransition = style
             }
         }
 
@@ -172,6 +182,8 @@
         /// The theme goes back first: the knobs after it set what it holds.
         func reset() {
             button.theme = .standard
+            // The content goes back at once: a reset is not a change to watch.
+            contentTransition = nil
             setLongTitle(Defaults.usesLongTitle)
             setIcon(index: Defaults.iconIndex)
             setContentKind(index: Defaults.contentIndex)
@@ -192,6 +204,7 @@
             setHapticsEnabled(Defaults.hapticsEnabled)
             setHapticMergeWindow(Defaults.hapticMergeWindow)
             setShowsHitTarget(Defaults.showsHitTarget)
+            setTransition(index: Defaults.transitionIndex)
         }
 
         private func applyWidthConstraints() {

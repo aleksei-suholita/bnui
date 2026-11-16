@@ -87,6 +87,17 @@ kit's own springs still carry an animated change — SwiftUI decides *whether*, 
 `.buttonStyle`, `.tint` and `.buttonBorderShape` dress SwiftUI's own buttons and leave the
 kit's alone.
 
+New content follows the same rule. Changed inside an animation, a button's content goes on the
+kit's springs in the `.bnButtonContentTransition(_:)` style — a blur unless one is set; changed
+outside one, it is shown at once, as a `Text` would be:
+
+```swift
+BN.Button("\(count) items", systemImage: "cart") { checkout() }
+    .bnButtonContentTransition(.roll)
+
+Button("Add") { withAnimation { count += 1 } }
+```
+
 **Sizes come from the controls.** A button answers with its layout solver: it hugs its
 content in a stack, or takes the offered width for ``BNButtonWidth/fill``. The bar takes the
 offered width and its own height.

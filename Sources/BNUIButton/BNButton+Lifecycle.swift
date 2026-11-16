@@ -20,6 +20,7 @@
             scaleAnimation = nil
 
             buildHierarchy()
+            solvesNaturalWidth = true
             // Before the first state reaches the new views: the old tree's layout would hand them
             // an axis and an icon scale solved for content that is no longer there.
             invalidateSolvedLayout()

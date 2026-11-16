@@ -95,6 +95,24 @@ BNButton(content: BNButtonContent(title: "Continue", leadingIcon: .image(logo, r
 
 The state cannot recolour such a picture, so a disabled button dims it instead.
 
+### Changing the content
+
+Setting ``BNButton/content`` changes it at once. ``BNButton/setContent(_:animated:)`` animates the
+change: the outline springs to the new size, the views around the button make room, and the old
+content gives way in the ``BNButton/contentTransition`` style — a blur by default:
+
+```swift
+save.setContent(BNButtonContent(title: "Saved", leadingIcon: .symbol("checkmark")), animated: true)
+
+cart.contentTransition = .roll                  // "2 items" rolls to "3 items"
+cart.setContent(.title("3 items"), animated: true)
+```
+
+A call made inside the host's own animation block joins it and takes its duration and curve;
+``BNButton/contentTransitionDuration`` sets the speed of the button's own springs. When the
+title stays, only the icons change, in place, in every style. Under Reduce Motion every style
+becomes a short fade.
+
 ## Badge
 
 ``BNButton/badge`` hangs a ``BNBadge`` — a count, a short text or a dot, the same a tab bar's
@@ -233,6 +251,11 @@ The guarantees the control keeps whatever the theme asks for:
 - ``BNButton/onTouchUp``
 - ``BNButton/onTouchCancel``
 - ``BNButtonHaptics``
+
+### Change its content
+
+- ``BNButton/setContent(_:animated:)``
+- ``BNButtonContentTransition``
 
 ### Add a badge or a menu
 

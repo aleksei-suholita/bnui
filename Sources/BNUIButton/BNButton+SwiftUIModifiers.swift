@@ -20,6 +20,7 @@
         var reservesSpaceForLoading: Bool?
         var stacksVerticallyAtAccessibilitySizes: Bool?
         var accessibilityStrings: BNButtonAccessibilityStrings?
+        var contentTransition: BNButtonContentTransition?
         /// Set by `bnButtonDisabled` anywhere above. Once true it stays true below, as SwiftUI's
         /// own `.disabled()` does: a form disabled as a whole cannot be re-enabled from inside.
         var isDisabled = false
@@ -118,6 +119,13 @@
             transformEnvironment(\.bnButton) { $0.accessibilityStrings = strings }
         }
 
+        /// How every ``BN/Button`` beneath carries one content into the next when the content
+        /// changes inside an animation — `withAnimation` or `.animation(_:value:)`. A blur
+        /// without one. Content changed outside an animation is shown at once.
+        func bnButtonContentTransition(_ transition: BNButtonContentTransition) -> some View {
+            transformEnvironment(\.bnButton) { $0.contentTransition = transition }
+        }
+
         /// Disables every ``BN/Button`` beneath, the kit's way: a tap is refused — a flash, a
         /// shake, ``BNButton/onRejected`` — instead of falling silent.
         ///
@@ -191,6 +199,12 @@
         /// The words VoiceOver says for this button, over any `bnButtonAccessibilityStrings` above.
         func bnButtonAccessibilityStrings(_ strings: BNButtonAccessibilityStrings) -> Self {
             adjusting { $0.accessibilityStrings = strings }
+        }
+
+        /// How this button carries one content into the next, over any
+        /// `bnButtonContentTransition` above it.
+        func bnButtonContentTransition(_ transition: BNButtonContentTransition) -> Self {
+            adjusting { $0.contentTransition = transition }
         }
 
         /// Disables this button the kit's way, refusing a tap rather than ignoring it. A

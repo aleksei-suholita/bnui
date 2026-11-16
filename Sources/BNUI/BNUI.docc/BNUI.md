@@ -147,6 +147,7 @@ is written down.
 ### Button Motion
 
 - ``BNButtonMotion``
+- ``BNButtonContentTransition``
 
 ### Button Materials
 
