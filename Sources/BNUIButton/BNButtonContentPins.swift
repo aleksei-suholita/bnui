@@ -18,6 +18,14 @@
             [top, leading, bottom, trailing] + (alignedEdge.map { [$0] } ?? [])
         }
 
+        /// Lets go of the sides, or holds them again. Let go while new content waits for a wider
+        /// frame the host gives later: held to the old width, a longer title is laid out — and
+        /// pictured by a blur or a roll — cut short. Its own width and the centre hold it meanwhile.
+        func holdSides(_ holds: Bool) {
+            leading.isActive = holds
+            trailing.isActive = holds
+        }
+
         func apply(_ insets: BNButtonInsets) {
             top.constant = insets.top
             leading.constant = insets.leading

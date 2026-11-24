@@ -21,6 +21,8 @@
         var stacksVerticallyAtAccessibilitySizes: Bool?
         var accessibilityStrings: BNButtonAccessibilityStrings?
         var contentTransition: BNButtonContentTransition?
+        /// `nil` — the kit's own springs, as unset.
+        var contentTransitionDuration: TimeInterval?
         /// Set by `bnButtonDisabled` anywhere above. Once true it stays true below, as SwiftUI's
         /// own `.disabled()` does: a form disabled as a whole cannot be re-enabled from inside.
         var isDisabled = false
@@ -126,6 +128,15 @@
             transformEnvironment(\.bnButton) { $0.contentTransition = transition }
         }
 
+        /// How long a content change takes in every ``BN/Button`` beneath, as
+        /// ``BNButton/contentTransitionDuration`` sets it on one button: the outline and the content
+        /// keep their shares of it, and a symbol changed in place takes the content's. SwiftUI's own
+        /// animation lends no duration: without one, the kit's springs keep their pace. `nil` goes
+        /// back to them.
+        func bnButtonContentTransitionDuration(_ duration: TimeInterval?) -> some View {
+            transformEnvironment(\.bnButton) { $0.contentTransitionDuration = duration }
+        }
+
         /// Disables every ``BN/Button`` beneath, the kit's way: a tap is refused — a flash, a
         /// shake, ``BNButton/onRejected`` — instead of falling silent.
         ///
@@ -205,6 +216,12 @@
         /// `bnButtonContentTransition` above it.
         func bnButtonContentTransition(_ transition: BNButtonContentTransition) -> Self {
             adjusting { $0.contentTransition = transition }
+        }
+
+        /// How long a content change takes in this button, over any
+        /// `bnButtonContentTransitionDuration` above it; `nil` — the kit's own springs.
+        func bnButtonContentTransitionDuration(_ duration: TimeInterval?) -> Self {
+            adjusting { $0.contentTransitionDuration = duration }
         }
 
         /// Disables this button the kit's way, refusing a tap rather than ignoring it. A

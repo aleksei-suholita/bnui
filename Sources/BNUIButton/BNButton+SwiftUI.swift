@@ -38,7 +38,9 @@
         /// New content changed inside an animation — `withAnimation`, `.animation(_:value:)` —
         /// goes on the kit's springs in the ``SwiftUICore/View/bnButtonContentTransition(_:)``
         /// style, a blur unless one is set; changed outside one, it is shown at once, as a `Text`
-        /// would be. The frame follows the new size the way SwiftUI lays it out.
+        /// would be. The frame follows the new size the way SwiftUI lays it out, and the outline
+        /// moves to it on the kit's spring. A new style changes the colours on the theme's
+        /// state-change curve; a press under way carries on.
         struct Button: UIViewRepresentable {
             let content: BNButtonContent
             let isLoading: Bool
@@ -163,6 +165,7 @@
                     haptics: settings.haptics ?? BNButtonHaptics(),
                 )
                 button.contentTransition = settings.contentTransition ?? .blur
+                button.contentTransitionDuration = settings.contentTransitionDuration
                 // The frame is SwiftUI's: it lays the button out from `sizeThatFits`, and a button
                 // laying out the hosting controller's view itself would fight it.
                 button.animatesSizeChanges = false
@@ -195,6 +198,7 @@
                 // whether the change is animated, as it does for a `Text`: inside an animation it is,
                 // on the kit's own springs and in the button's transition; outside one it is at once.
                 button.contentTransition = settings.contentTransition ?? .blur
+                button.contentTransitionDuration = settings.contentTransitionDuration
                 button.setContent(
                     content,
                     animated: context.transaction.animation != nil && !context.transaction.disablesAnimations,

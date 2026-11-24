@@ -143,7 +143,7 @@
 
         /// A separate overlay rather than a border on the material's own layer: a glass effect view
         /// is not ours to draw on, and a stroke on its layer would sit under the refraction.
-        private func makeBorderView(in container: UIView) -> UIView {
+        func makeBorderView(in container: UIView) -> UIView {
             let view = UIView()
             view.isUserInteractionEnabled = false
             view.backgroundColor = .clear
@@ -230,7 +230,7 @@
         // MARK: - Layout
 
         var solvedIntrinsicSize: CGSize {
-            let output = if solvesNaturalWidth, case .hug = configuration.width {
+            let output = if pendingLayout.naturalWidth, case .hug = configuration.width {
                 // The current width is the old content's. Taken as a ceiling it would squeeze longer
                 // content into it, and a hugging button could only ever shrink.
                 solveLayout(availableWidth: 0)
@@ -250,8 +250,8 @@
         func refreshSolvedLayout() {
             // The pass that brought the frame for the new content: from here on the width the
             // host gave is the ceiling again, as for a wrapping title it has to be.
-            solvesNaturalWidth = false
-            awaitsLayoutAfterRebuild = false
+            pendingLayout.naturalWidth = false
+            pendingLayout.afterRebuild = false
             let output = solveLayout(availableWidth: bounds.width)
             guard output != solvedOutput else { return }
 

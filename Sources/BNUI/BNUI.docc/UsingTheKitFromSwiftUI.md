@@ -98,6 +98,10 @@ BN.Button("\(count) items", systemImage: "cart") { checkout() }
 Button("Add") { withAnimation { count += 1 } }
 ```
 
+The springs keep their own pace whatever animation SwiftUI runs: its duration is not one a
+control can read. `.bnButtonContentTransitionDuration(_:)` gives them one, as
+``BNButton/contentTransitionDuration`` does in UIKit — a symbol changed in place included.
+
 **Sizes come from the controls.** A button answers with its layout solver: it hugs its
 content in a stack, or takes the offered width for ``BNButtonWidth/fill``. The bar takes the
 offered width and its own height.

@@ -61,6 +61,29 @@ nonisolated struct BNButtonContentTransitionTuning: Equatable {
     }
 }
 
+/// How fast the system's replace effect plays when a symbol changes in place and the change has
+/// a duration of its own: the host's, or the host's animation's. Without one the effect keeps the
+/// system's speed.
+///
+/// The system publishes no duration for the effect. These are read from RenderBox on iOS 26.5,
+/// where symbol animations are timed at speed 1: Magic Replace adding a slash takes 2/3 s, taking it
+/// off 0.7 s, a badge 1 s; a plain replace, down and up, half a second. A button's symbols change
+/// most often by a slash — `mic` to `mic.slash` — so that is the measure of Magic Replace; an
+/// unrelated pair falls back to the plain replace and so ends a little sooner.
+nonisolated enum BNSymbolReplaceTiming {
+    /// Magic Replace adding a slash, at speed 1.
+    static let magicReplace: TimeInterval = 2.0 / 3.0
+    /// The plain replace, down and up, at speed 1.
+    static let replace: TimeInterval = 0.5
+
+    /// The speed that makes an effect taking `natural` at speed 1 take `duration` instead; 1 for
+    /// a duration that is not a real one.
+    static func speed(toTake duration: TimeInterval, natural: TimeInterval) -> Double {
+        guard duration > 0, duration.isFinite, natural > 0 else { return 1 }
+        return natural / duration
+    }
+}
+
 /// Which way a roll goes: down when both titles hold a number and the new one is smaller, up
 /// otherwise — the system's own default. A counter going from 3 to 2 rolls back.
 nonisolated enum BNButtonRollDirection {

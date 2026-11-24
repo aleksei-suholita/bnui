@@ -20,13 +20,17 @@
         /// The old content gives way in the ``contentTransition`` style, clipped to the outline
         /// while the change is under way; when the title stays, only the icons change, in place.
         /// The outline moves to the new size, and so do the views around the button unless
-        /// ``animatesSizeChanges`` is off.
+        /// ``animatesSizeChanges`` is off. Off, or under SwiftUI, the frame is the host's to give:
+        /// when it arrives outside an animation, the outline moves from where it stood to the new
+        /// frame on the button's spring.
         ///
         /// - Parameters:
         ///   - newContent: What the button shows next.
         ///   - animated: Whether the change is animated.
         public func setContent(_ newContent: BNButtonContent, animated: Bool) {
             guard newContent != content else { return }
+            // A frame a previous change was waiting for is this change's now, or it jumps.
+            pendingLayout.outlineMove = nil
             let timing = BNButtonContentTiming.resolve(
                 animated: animated,
                 isInWindow: window != nil,
@@ -43,21 +47,26 @@
                 // the button: the spring below then carries only what the new content moves.
                 root?.layoutIfNeeded()
             }
-            if awaitsLayoutAfterRebuild {
+            if pendingLayout.afterRebuild {
                 // A style, size or material set just before rebuilt the views, and nothing has
                 // laid them out: the old content is measured where it stands, not in the corner it
                 // was made in. Unanimated, so a host's block cannot carry them out of the corner.
                 UIView.performWithoutAnimation { layoutIfNeeded() }
             }
+            let outlineMove = outlineMove(for: timing)
 
             isSwappingContent = true
             content = newContent
             isSwappingContent = false
-            solvesNaturalWidth = true
+            pendingLayout.naturalWidth = true
 
+            // A hugging button whose new frame the host gives later: until it comes, the new
+            // content stands at its own width rather than squeezed into the old outline, so a blur
+            // or a roll pictures it whole — a longer title, not its first word and an ellipsis.
+            let holdsSides = root != nil || configuration.width != .hug
             var arrival: (outgoing: UIView?, incoming: UIView)?
-            if !takesIconsInPlace(timing: timing) {
-                UIView.performWithoutAnimation { arrival = prepareArrival() }
+            if !takesIconsInPlace(timing: timing, holdsSides: holdsSides) {
+                UIView.performWithoutAnimation { arrival = prepareArrival(holdsSides: holdsSides) }
             }
             let startCentre = contentCentre
             invalidateSolvedLayout()
@@ -65,8 +74,17 @@
             // The new size goes under its spring before the content starts to change: a picture
             // the blur takes lays out whatever is pending at once, and the width would jump.
             layOutNewSize(root: root, timing: timing)
+            let awaitsFrame = bounds.size == outlineMove.size
             if let arrival {
                 transition(from: arrival.outgoing, to: arrival.incoming, timing: timing, startCentre: startCentre)
+            }
+            contentPins?.holdSides(true)
+            if awaitsFrame {
+                // Nothing laid the button out to its new size: the frame is still the host's to
+                // give, and the size it asks for is the new content's own — whatever pass the
+                // pictures above may have run.
+                pendingLayout.outlineMove = outlineMove
+                pendingLayout.naturalWidth = true
             }
         }
 
@@ -94,7 +112,7 @@
         /// Sets the old content loose and puts the new one in its place, invisible: the fade that
         /// follows is what shows it. Called with animations off, so nothing here is animated by a
         /// block the host may be running.
-        private func prepareArrival() -> (outgoing: UIView?, incoming: UIView)? {
+        private func prepareArrival(holdsSides: Bool) -> (outgoing: UIView?, incoming: UIView)? {
             guard let container = surface?.contentContainer else { return nil }
             let outgoing = detachContentView(in: container)
             let renderer = contentRenderer ?? BNStandardButtonContentRenderer()
@@ -111,6 +129,7 @@
             contentView = incoming
             invalidateSolvedLayout()
             activateContentConstraints(for: incoming, in: container)
+            contentPins?.holdSides(holdsSides)
             incoming.apply(state: contentState, transition: .immediate)
             place(incoming, in: container)
             // Its own views are laid out now, at the size they keep. Left to the layout under the

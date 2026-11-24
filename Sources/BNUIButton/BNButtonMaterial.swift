@@ -36,14 +36,29 @@
         public let contentContainer: UIView
         /// Called whenever the state changes; the material decides what that looks like.
         public let apply: (BNButtonSurfaceState, BNTransition) -> Void
+        /// Takes a new style and material into this surface, which ``apply`` then draws: `true`
+        /// when it can, `false` when the button has to make a new surface. The kit's materials keep
+        /// their surface through new colours, and glass through another glass; a host's material
+        /// gets a new surface for every change.
+        let restyle: (BNButtonStyle, any BNButtonMaterial) -> Bool
 
         public init(
             view: UIView,
             contentContainer: UIView,
             apply: @escaping (BNButtonSurfaceState, BNTransition) -> Void = { _, _ in },
         ) {
+            self.init(view: view, contentContainer: contentContainer, restyle: { _, _ in false }, apply: apply)
+        }
+
+        init(
+            view: UIView,
+            contentContainer: UIView,
+            restyle: @escaping (BNButtonStyle, any BNButtonMaterial) -> Bool,
+            apply: @escaping (BNButtonSurfaceState, BNTransition) -> Void,
+        ) {
             self.view = view
             self.contentContainer = contentContainer
+            self.restyle = restyle
             self.apply = apply
         }
     }
@@ -87,11 +102,16 @@
             let view = UIView()
             view.bnApplyShape(size.shape, maximumRadius: size.maximumCornerRadius)
 
-            let override = fill
-            return BNButtonSurface(view: view, contentContainer: view) { state, transition in
-                let colour = override ?? style.fill.color(for: state.status, isPressed: state.isPressed)
+            // What the surface draws from, changed in place by a new style or another fill.
+            var drawn = (style: style, fill: fill)
+            return BNButtonSurface(view: view, contentContainer: view, restyle: { style, material in
+                guard let solid = material as? Self else { return false }
+                drawn = (style, solid.fill)
+                return true
+            }, apply: { state, transition in
+                let colour = drawn.fill ?? drawn.style.fill.color(for: state.status, isPressed: state.isPressed)
                 transition.run { view.backgroundColor = colour }
-            }
+            })
         }
     }
 
@@ -144,18 +164,25 @@
             effectView.isUserInteractionEnabled = true
             effectView.contentView.isUserInteractionEnabled = true
 
-            let tinted = tinted
-            let makeEffect = makeEffect
-            return BNButtonSurface(view: effectView, contentContainer: effectView.contentView) { state, transition in
-                guard tinted else { return }
-                let target = style.fill.color(for: state.status, isPressed: state.isPressed)
-                let current = (effectView.effect as? UIGlassEffect)?.tintColor
+            // What the surface draws from, and the effect it shows: a new style or another glass
+            // changes the effect on this same view, which the system carries across.
+            var drawn = (style: style, material: self)
+            var shown = (glass: glassStyle, tint: tinted ? style.fill.normal : nil)
+            return BNButtonSurface(view: effectView, contentContainer: effectView.contentView, restyle: { style, material in
+                // Another answer to a finger is another press — the system's or the button's own.
+                guard let glass = material as? Self, glass.isInteractive == drawn.material.isInteractive else { return false }
+                drawn = (style, glass)
+                return true
+            }, apply: { state, transition in
+                let material = drawn.material
+                let tint = material.tinted ? drawn.style.fill.color(for: state.status, isPressed: state.isPressed) : nil
                 // A tint is baked into the effect and cannot be changed afterwards, so a new colour
-                // means a new effect. Skipped when the colour has not moved: rebuilding the effect
-                // on every press would throw away the system's own animation.
-                guard current != target else { return }
-                transition.run { effectView.effect = makeEffect(target) }
-            }
+                // means a new effect. Skipped when nothing has moved: rebuilding the effect on every
+                // press would throw away the system's own animation.
+                guard material.glassStyle != shown.glass || tint != shown.tint else { return }
+                shown = (material.glassStyle, tint)
+                transition.run { effectView.effect = material.makeEffect(tint: tint) }
+            })
         }
 
         private func makeEffect(tint: UIColor?) -> UIGlassEffect {
@@ -203,12 +230,19 @@
                 maximumRadius: size.maximumCornerRadius,
                 fill: tinted ? style.fill.normal : nil,
             )
-            let tinted = tinted
-            return BNButtonSurface(view: plate, contentContainer: plate.contentView) { state, transition in
-                guard tinted else { return }
-                let target = style.fill.color(for: state.status, isPressed: state.isPressed)
+            // What the plate draws from, changed in place by a new style or the tint turned on or
+            // off. Another system material is another plate.
+            let blurStyle = blurStyle
+            var drawn = (style: style, tinted: tinted)
+            return BNButtonSurface(view: plate, contentContainer: plate.contentView, restyle: { style, material in
+                guard let blur = material as? Self, blur.blurStyle == blurStyle else { return false }
+                drawn = (style, blur.tinted)
+                return true
+            }, apply: { state, transition in
+                let target = drawn.tinted ? drawn.style.fill.color(for: state.status, isPressed: state.isPressed) : nil
+                guard plate.fill != target else { return }
                 transition.run { plate.fill = target }
-            }
+            })
         }
     }
 

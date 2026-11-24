@@ -14,8 +14,12 @@
         /// Not while a roll is under way: it carries the icon change itself. A blur still drawn
         /// gives way to the content at once.
         ///
+        /// - Parameters:
+        ///   - timing: Who animates the change.
+        ///   - holdsSides: Whether the row stays held to the old outline's sides; let go, it is laid
+        ///     out at its own width until the host gives the new frame.
         /// - Returns: `false` when more than the icons changed; the whole content is then replaced.
-        func takesIconsInPlace(timing: BNButtonContentTiming) -> Bool {
+        func takesIconsInPlace(timing: BNButtonContentTiming, holdsSides: Bool) -> Bool {
             guard contentRenderer == nil, contentDrawing == nil,
                   let view = contentView as? BNButtonContentView, view.content.title == content.title,
                   let container = surface?.contentContainer
@@ -23,8 +27,13 @@
             showContentUnderBlur()
             let kept = view.rowViews
             let before = kept.map { centre(of: $0, in: container) }
-            guard let change = view.takeIconsInPlace(from: content, duration: activeContentTuning.content.duration)
-            else { return false }
+            guard let change = view.takeIconsInPlace(
+                from: content,
+                duration: contentSpring(for: timing).duration,
+                symbolDuration: symbolDuration(for: timing),
+            ) else { return false }
+            solveForNewIcons()
+            contentPins?.holdSides(holdsSides)
 
             var moved: [UIView] = []
             var arrivals: [(icon: UIView, alpha: CGFloat)] = []
@@ -139,6 +148,32 @@
         /// the last one had got to.
         private func centre(of view: UIView, in container: UIView) -> CGPoint {
             view.superview?.convert(view.center, to: container) ?? view.center
+        }
+
+        /// How long a symbol's replace effect takes: the content's share of the duration the host
+        /// set, or the host's own animation; `nil` — the system's speed, when the kit's own springs
+        /// run at their own pace.
+        private func symbolDuration(for timing: BNButtonContentTiming) -> TimeInterval? {
+            switch timing {
+            case let .inherited(duration): duration
+            case .own: contentTransitionDuration == nil ? nil : activeContentTuning.content.duration
+            case .immediate: nil
+            }
+        }
+
+        /// Solves the layout again for the icons the row holds now, at the width the change takes.
+        /// The scale and the insets solved for the old icons would lay a new symbol out at the old
+        /// one's size — too wide for its frame, pushed off centre — and the slide below would start
+        /// from there, until the next layout pass put it back: the symbol jerked sideways and back.
+        private func solveForNewIcons() {
+            let hugs = if case .hug = configuration.width {
+                true
+            } else {
+                false
+            }
+            let output = solveLayout(availableWidth: hugs ? 0 : bounds.width)
+            solvedOutput = output
+            contentPins?.apply(output.contentInsets)
         }
 
         /// A blur still drawn gives way at once to the content under it, to be changed in place.

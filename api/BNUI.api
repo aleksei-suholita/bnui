@@ -6,6 +6,7 @@ BNUIButton | BN.Button.badge(_:) | @MainActor func badge(_ text: String) -> BN.B
 BNUIButton | BN.Button.bnButtonAccessibilityStrings(_:) | @MainActor func bnButtonAccessibilityStrings(_ strings: BNButtonAccessibilityStrings) -> BN.Button
 BNUIButton | BN.Button.bnButtonAlignment(_:) | @MainActor func bnButtonAlignment(_ alignment: BNButtonAlignment) -> BN.Button
 BNUIButton | BN.Button.bnButtonContentTransition(_:) | @MainActor func bnButtonContentTransition(_ transition: BNButtonContentTransition) -> BN.Button
+BNUIButton | BN.Button.bnButtonContentTransitionDuration(_:) | @MainActor func bnButtonContentTransitionDuration(_ duration: TimeInterval?) -> BN.Button
 BNUIButton | BN.Button.bnButtonDisabled(_:) | @MainActor func bnButtonDisabled(_ disabled: Bool) -> BN.Button
 BNUIButton | BN.Button.bnButtonHaptics(_:) | @MainActor func bnButtonHaptics(_ haptics: BNButtonHaptics) -> BN.Button
 BNUIButton | BN.Button.bnButtonMaterial(_:) | @MainActor func bnButtonMaterial(_ material: any BNButtonMaterial) -> BN.Button
@@ -409,6 +410,7 @@ BNUIButton | BNStandardButtonContentRenderer.makeContentView(for:theme:size:) | 
 BNUIButton | View.bnButtonAccessibilityStrings(_:) | @MainActor func bnButtonAccessibilityStrings(_ strings: BNButtonAccessibilityStrings) -> some View 
 BNUIButton | View.bnButtonAlignment(_:) | @MainActor func bnButtonAlignment(_ alignment: BNButtonAlignment) -> some View 
 BNUIButton | View.bnButtonContentTransition(_:) | @MainActor func bnButtonContentTransition(_ transition: BNButtonContentTransition) -> some View 
+BNUIButton | View.bnButtonContentTransitionDuration(_:) | @MainActor func bnButtonContentTransitionDuration(_ duration: TimeInterval?) -> some View 
 BNUIButton | View.bnButtonDisabled(_:) | @MainActor func bnButtonDisabled(_ disabled: Bool) -> some View 
 BNUIButton | View.bnButtonHaptics(_:) | @MainActor func bnButtonHaptics(_ haptics: BNButtonHaptics) -> some View 
 BNUIButton | View.bnButtonMaterial(_:) | @MainActor func bnButtonMaterial(_ material: any BNButtonMaterial) -> some View 

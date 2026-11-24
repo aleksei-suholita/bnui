@@ -37,7 +37,7 @@
         public var style: BNButtonStyle {
             didSet {
                 guard style != oldValue else { return }
-                rebuild()
+                restyle()
             }
         }
 
@@ -76,7 +76,7 @@
 
         /// Overrides the style's material. `nil` — the style decides, which is the usual case.
         public var material: (any BNButtonMaterial)? {
-            didSet { rebuild() }
+            didSet { restyle() }
         }
 
         public var contentRenderer: (any BNButtonContentRenderer)? {
@@ -221,15 +221,17 @@
         /// longer of the kit's two springs — the content's and the outline's — takes this long,
         /// and the other keeps its share of it. `nil`, the default, keeps the kit's own springs.
         /// A change made inside the host's animation takes that animation's duration either way.
+        /// A symbol replaced in place takes the content's share; with neither, the system's pace.
         public var contentTransitionDuration: TimeInterval?
         /// Whether an animated content change moves the button's surroundings with it: `true`, the
         /// default, lays out its nearest view controller's view — or its window — under the
-        /// outline's spring; `false` leaves the frame to the host's next layout pass.
+        /// outline's spring; `false` leaves the frame to the host's next layout pass, and the
+        /// outline moves to it on that spring.
         public var animatesSizeChanges = true
         let contentTransitionTuning = BNButtonContentTransitionTuning()
         /// Set while ``setContent(_:animated:)`` stores the new content, which it then shows itself.
         var isSwappingContent = false
-        var awaitsLayoutAfterRebuild = false
+        var pendingLayout = BNButtonPendingLayout()
         /// The content on its way out, until its fade ends.
         var outgoingContentView: UIView?
         var contentFadeAnimation: BNAnimation?
@@ -239,9 +241,6 @@
         var contentDrawing: BNButtonRoll?
         /// Counts the clips a change puts on the content, so that only the latest one lifts it.
         var contentClipGeneration = 0
-        /// The next intrinsic size is solved without the current width as a ceiling: new content
-        /// has to be measured at its own width, not squeezed into the frame the old one had.
-        var solvesNaturalWidth = false
 
         // MARK: - Init
 
@@ -293,6 +292,7 @@
 
         override public func layoutSubviews() {
             super.layoutSubviews()
+            followNewFrame()
             refreshSolvedLayout()
             updateBadgeAnchors()
             updateFocusEffect()
