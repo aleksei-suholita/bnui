@@ -86,9 +86,15 @@
         // MARK: - Keyboard
 
         /// The bar steps aside for the keyboard on its own — one of the three hiding cases the
-        /// spec assigns to the control rather than the host.
+        /// spec assigns to the control rather than the host. Only for a keyboard that comes on
+        /// screen: one announced with no frame to stand in hides nothing, and brings back a bar
+        /// an earlier keyboard hid.
         @objc private func keyboardWillShow(_ notification: Notification) {
-            setKeyboardHidden(true, notification: notification)
+            let endFrame = notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? CGRect
+            setKeyboardHidden(
+                BNTabBarKeyboardRules.hidesBar(keyboardEndFrame: endFrame),
+                notification: notification,
+            )
         }
 
         @objc private func keyboardWillHide(_ notification: Notification) {
