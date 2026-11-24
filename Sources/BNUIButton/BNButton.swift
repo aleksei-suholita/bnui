@@ -229,6 +229,7 @@
         let contentTransitionTuning = BNButtonContentTransitionTuning()
         /// Set while ``setContent(_:animated:)`` stores the new content, which it then shows itself.
         var isSwappingContent = false
+        var awaitsLayoutAfterRebuild = false
         /// The content on its way out, until its fade ends.
         var outgoingContentView: UIView?
         var contentFadeAnimation: BNAnimation?

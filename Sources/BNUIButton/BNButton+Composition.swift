@@ -251,6 +251,7 @@
             // The pass that brought the frame for the new content: from here on the width the
             // host gave is the ceiling again, as for a wrapping title it has to be.
             solvesNaturalWidth = false
+            awaitsLayoutAfterRebuild = false
             let output = solveLayout(availableWidth: bounds.width)
             guard output != solvedOutput else { return }
 

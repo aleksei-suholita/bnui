@@ -43,6 +43,12 @@
                 // the button: the spring below then carries only what the new content moves.
                 root?.layoutIfNeeded()
             }
+            if awaitsLayoutAfterRebuild {
+                // A style, size or material set just before rebuilt the views, and nothing has
+                // laid them out: the old content is measured where it stands, not in the corner it
+                // was made in. Unanimated, so a host's block cannot carry them out of the corner.
+                UIView.performWithoutAnimation { layoutIfNeeded() }
+            }
 
             isSwappingContent = true
             content = newContent

@@ -20,6 +20,9 @@
             scaleAnimation = nil
 
             buildHierarchy()
+            // Until the next layout pass the new views stand in the button's corner, at no size:
+            // a change measured on them would start from there.
+            awaitsLayoutAfterRebuild = true
             solvesNaturalWidth = true
             // Before the first state reaches the new views: the old tree's layout would hand them
             // an axis and an icon scale solved for content that is no longer there.

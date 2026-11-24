@@ -60,6 +60,14 @@
                     initial: BNButtonDemoView.Defaults.transitionIndex,
                     onChange: { demo.setTransition(index: $0) },
                 )),
+                BNGalleryKnob(label: "Move surroundings", control: .toggle(
+                    initial: BNButtonDemoView.Defaults.movesSurroundings,
+                    onChange: { demo.setMovesSurroundings($0) },
+                )),
+                BNGalleryKnob(label: "Restyle too", control: .toggle(
+                    initial: BNButtonDemoView.Defaults.restylesWithContent,
+                    onChange: { demo.setRestylesWithContent($0) },
+                )),
             ]
         }
 

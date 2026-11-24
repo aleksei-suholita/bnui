@@ -29,6 +29,8 @@
             static let titleBehaviorIndex = 0
             /// Blur: the style a host gets from `setContent(_:animated:)` unless it picks another.
             static let transitionIndex = 1
+            static let movesSurroundings = true
+            static let restylesWithContent = false
             static let hapticsEnabled = true
             static let hapticMergeWindow = 0.15
             static let showsHitTarget = false
@@ -126,6 +128,8 @@
         var usesLongTitle = false
         /// The style the content knobs' changes go in; none — at once, as `content =`.
         var contentTransition: BNButtonContentTransition?
+        /// Each animated content change sets the style first, in the same pass.
+        var restylesWithContent = false
         /// The corner knob, kept apart from the size: every size step carries a capsule of its
         /// own, so switching steps would otherwise undo the knob.
         var cornerShape = BNShape.capsule

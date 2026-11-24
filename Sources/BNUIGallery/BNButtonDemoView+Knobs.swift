@@ -61,6 +61,10 @@
             case 4: BNButtonContent(accessibilityLabel: "Custom glyph")
             default: .title(title)
             }
+            if restylesWithContent, contentTransition != nil {
+                // As `BN.Button` updates its button: the looks first, the content after them.
+                button.style = button.style == .primary ? .secondary : .primary
+            }
             button.setContent(content, animated: contentTransition != nil)
         }
 
@@ -71,6 +75,19 @@
             if let style = contentTransition {
                 button.contentTransition = style
             }
+        }
+
+        /// Whether a change lays out the screen around the button under its spring. Off, as under
+        /// `BN.Button`, the frame waits for the host's next layout pass.
+        func setMovesSurroundings(_ moves: Bool) {
+            button.animatesSizeChanges = moves
+        }
+
+        /// Whether an animated content change also switches the style between primary and
+        /// secondary, set just before it in the same pass. The Style knob keeps showing what it
+        /// last chose.
+        func setRestylesWithContent(_ restyles: Bool) {
+            restylesWithContent = restyles
         }
 
         private static func makeCustomGlyph() -> UIView {
@@ -205,6 +222,8 @@
             setHapticMergeWindow(Defaults.hapticMergeWindow)
             setShowsHitTarget(Defaults.showsHitTarget)
             setTransition(index: Defaults.transitionIndex)
+            setMovesSurroundings(Defaults.movesSurroundings)
+            setRestylesWithContent(Defaults.restylesWithContent)
         }
 
         private func applyWidthConstraints() {
