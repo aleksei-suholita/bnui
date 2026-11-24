@@ -8,12 +8,30 @@ and what is fixed, by product.
 
 ### Added
 
+- `BNUIButton`: `bnButtonContentTransitionDuration(_:)`, on any view for the buttons beneath it and
+  on `BN.Button` itself — `contentTransitionDuration` from SwiftUI, whose own animation lends the
+  button no duration.
+- `BNUIButton`: a symbol changed in place takes the change's duration — the content's share of
+  `contentTransitionDuration`, or the host's animation — instead of the system's pace, about two
+  thirds of a second for Magic Replace. Without a duration it keeps the system's pace.
 - `BNUIGallery`: the Button page has Move surroundings, for `animatesSizeChanges`, and Restyle
   too, which sets the style just before each content change, in the same pass, as `BN.Button` sets
   the looks before the content.
 
 ### Fixed
 
+- `BNUIButton`: a new style or material changes the button's colours in place, on the theme's
+  state-change curve, when its surface can take it: the same material in other colours, or glass
+  in another glass that answers a finger the same way. It used to make the button again, and a
+  style changed by a tap cut the press's return short: the squeezed surface gave way to a new one
+  at full size. Where the button is still made again, the new surface carries on from the squeeze.
+- `BNUIButton`: when the host gives the frame for new content — `BN.Button`, or
+  `animatesSizeChanges` off — the outline moves from where it stood to that frame on the button's
+  spring. It used to jump to the new size.
+- `BNUIButton`: a longer title in a hugging button whose frame the host gives later is no longer
+  blurred or rolled in cut short — its first word and an ellipsis, then the whole title.
+- `BNUIButton`: a symbol changed in place for one of another width or scale no longer jerks
+  sideways and back: it was laid out by the old symbol's scale and insets for a frame.
 - `BNUIButton`: content changed with `setContent(_:animated:)` right after a new style, size or
   material changes where it stands. Those rebuild the button's views, and the change measured them
   before any layout had placed them: icons slid in from the button's corner, and a blur or a roll
