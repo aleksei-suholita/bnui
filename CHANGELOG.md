@@ -4,6 +4,22 @@ Every release of BNUI. The kit follows semantic versioning; while it is at 0.x, 
 may break the API and a patch release does not. Each entry lists what is breaking, what is added
 and what is fixed, by product.
 
+## 0.10.3 — 2026-11-24
+
+### Added
+
+- `BNUIGallery`: the Button page has Move surroundings, for `animatesSizeChanges`, and Restyle
+  too, which sets the style just before each content change, in the same pass, as `BN.Button` sets
+  the looks before the content.
+
+### Fixed
+
+- `BNUIButton`: content changed with `setContent(_:animated:)` right after a new style, size or
+  material changes where it stands. Those rebuild the button's views, and the change measured them
+  before any layout had placed them: icons slid in from the button's corner, and a blur or a roll
+  was drawn there. `BN.Button` sets the looks before the content, so it did this whenever an update
+  restyled the button too; so did a change inside the host's animation block.
+
 ## 0.10.2 — 2026-11-16
 
 ### Added
